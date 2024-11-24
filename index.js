@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 var mysql      = require('mysql');
 var connection = mysql.createConnection({
-    host     : "bqg2wximjlnqgmfjj44o-mysql.services.clever-cloud.com:21610",
+    host     : process.env.MYSQL_ADDON_HOST,
     database : process.env.MYSQL_ADDON_DB,
     user     : process.env.MYSQL_ADDON_USER,
     password : process.env.MYSQL_ADDON_PASSWORD
@@ -18,15 +18,6 @@ app.get("/", (req, res, next)=> {
         }
         res.send('Connecté à la BDD')
     });
-});
-app.get("/api/getListUser/", (req, res, next)=>{
-    connection.query("SELECT user, COUNT(DISTINCT card) as nbCardUser FROM cards GROUP BY user  ORDER BY nbCardUser DESC",
-        (err,result)=>{
-            if(err) {
-                console.log(err)
-            }
-            res.send(result)
-        });
 });
 app.get("/api/getListUser/", (req, res, next)=>{
     connection.query("SELECT user, COUNT(DISTINCT card) as nbCardUser FROM cards GROUP BY user  ORDER BY nbCardUser DESC",
