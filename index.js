@@ -128,7 +128,7 @@ app.get("/api/getRaritiesByBooster/:booster", (req, res, next)=>{
 
     const booster = req.params.booster;
 
-    db.query("SELECT rarity, stade, block FROM rarities WHERE booster = ? ", [booster],
+    db.query("SELECT rarity, stade, block, nameGuru FROM rarities WHERE booster = ? ", [booster],
         (err,result)=>{
             if(err) {
                 console.log(err)
