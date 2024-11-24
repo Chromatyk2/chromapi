@@ -18,7 +18,7 @@ app.get("/", (req, res, next)=> {
         }
         console.log('Connected to MySQL database');
     });
-}
+});
 
 app.get("/api/getListUser/", (req, res, next)=>{
     connection.query("SELECT user, COUNT(DISTINCT card) as nbCardUser FROM cards GROUP BY user  ORDER BY nbCardUser DESC",
