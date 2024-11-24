@@ -6,8 +6,7 @@ var connection = mysql.createPool({
     host     : process.env.MYSQL_ADDON_HOST,
     database : process.env.MYSQL_ADDON_DB,
     user     : process.env.MYSQL_ADDON_USER,
-    password : process.env.MYSQL_ADDON_PASSWORD,
-    port : process.env.MYSQL_ADDON_PORT
+    password : process.env.MYSQL_ADDON_PASSWORD
 });
 connection.connect(function(err) {
     if (err) throw err;
