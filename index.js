@@ -8,9 +8,6 @@ var connection = mysql.createConnection({
     user     : process.env.MYSQL_ADDON_USER,
     password : process.env.MYSQL_ADDON_PASSWORD
 });
-app.listen(8080 , ()=>{
-    console.log(`Server is running on ＄{PORT}`)
-})
 app.get("/", (req, res, next)=> {
     res.send('Hello World!')
     connection.connect((err) => {
@@ -1166,3 +1163,6 @@ if(err) {
 console.log(err)
         } }) })
 
+app.listen(8080 , ()=>{
+    console.log(`Server is running on ＄{PORT}`)
+})
