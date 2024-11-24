@@ -8,10 +8,6 @@ var connection = mysql.createPool({
     user     : process.env.MYSQL_ADDON_USER,
     password : process.env.MYSQL_ADDON_PASSWORD
 });
-connection.connect(function(err) {
-    if (err) throw err;
-    console.log("test");
-});
 app.get("/api/getProfil/:pseudo", (req, res, next)=>{
 
     const pseudo = req.params.pseudo;
