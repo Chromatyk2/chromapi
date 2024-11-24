@@ -1,5 +1,5 @@
 const process = require('process')
-var mysql      = require('mysql');
+var mysql      = require('mysql2');
 var connection = mysql.createPool({
   host     : process.env.MYSQL_ADDON_HOST,
   database : process.env.MYSQL_ADDON_DB,
