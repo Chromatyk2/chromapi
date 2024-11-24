@@ -1,33 +1,12 @@
 console.log("test");
 const express = require('express');
-const cors = require('cors');
 const app = express();
-const mysql = require('mysql')
+var mysql      = require('mysql');
 var connection = mysql.createConnection({
-    host     : process.env.MYSQL_ADDON_HOST,
-    database : process.env.MYSQL_ADDON_DB,
-    user     : process.env.MYSQL_ADDON_USER,
-    password : process.env.MYSQL_ADDON_PASSWORD
-});
-app.get("/", (req, res, next)=> {
-    connection.connect((err) => {
-        console.log("Road to DB")
-        if (err) {
-            console.error('Error connecting to MySQL:', err);
-            return;
-        }
-        console.log('Connected to MySQL database');
-    });
-});
-app.get("/api/getListUser/", (req, res, next)=>{
-    connection.connect((err) => {
-        console.log("Road to DB")
-        if (err) {
-            console.error('Error connecting to MySQL:', err);
-            return;
-        }
-        console.log('Connected to MySQL database');
-    });
+    host     : "bqg2wximjlnqgmfjj44o-mysql.services.clever-cloud.com",
+    database : "bqg2wximjlnqgmfjj44o",
+    user     : "u1lw03a0o85nt1dw",
+    password : "5Q9BxiCFQgxHyBpg67eE"
 });
 app.get("/api/getListUser/", (req, res, next)=>{
     connection.query("SELECT user, COUNT(DISTINCT card) as nbCardUser FROM cards GROUP BY user  ORDER BY nbCardUser DESC",
