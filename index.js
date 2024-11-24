@@ -14,6 +14,18 @@ connection.query('SELECT 1 + 1 AS solution', (err, rows, fields) => {
 
     console.log('The solution is: ', rows[0].solution)
 })
+
+app.get("/api/getProfil/:pseudo", (req, res, next)=>{
+
+    const pseudo = req.params.pseudo;
+    connection.query("SELECT pseudo, xp, first_pokemon, second_pokemon, third_pokemon, fourth_pokemon, fifth_pokemon, sixth_pokemon, profil_picture, level, box, canOpen, lastOpening, pkmToken FROM profil WHERE pseudo = ?", pseudo,
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.json(result)
+        });
+});
 connection.end()
 
 app.listen(8080, () => {
