@@ -9,14 +9,7 @@ var connection = mysql.createConnection({
     password : "5Q9BxiCFQgxHyBpg67eE"
 });
 app.get("/", (req, res, next)=> {
-    connection.connect((err) => {
-        res.send('Hello World!')
-        if (err) {
-            res.send('Error connecting to MySQL:')
-            return;
-        }
-        res.send('Connecté à la BDD')
-    });
+    res.send('Hello World!')
 });
 app.get("/api/getListUser/", (req, res, next)=>{
     connection.query("SELECT user, COUNT(DISTINCT card) as nbCardUser FROM cards GROUP BY user  ORDER BY nbCardUser DESC",
