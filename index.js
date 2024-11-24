@@ -9,8 +9,8 @@ var connection = mysql.createConnection({
     user     : process.env.MYSQL_ADDON_USER,
     password : process.env.MYSQL_ADDON_PASSWORD
 });
-connection.connect();
-
+connection.connect(function(err) {   if (err) throw err;   console.log("Connecté à la base de données MySQL!"); });
+app.get('/', (req,res) => {    res.status(200).send("test")})
 app.get("/api/getProfil/:pseudo", (req, res, next)=>{
 
     const pseudo = req.params.pseudo;
