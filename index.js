@@ -10,15 +10,12 @@ var connection = mysql.createConnection({
     password : process.env.MYSQL_ADDON_PASSWORD
 });
 connection.connect((err) => {
+    console.log("Road to DB")
     if (err) {
         console.error('Error connecting to MySQL:', err);
         return;
     }
     console.log('Connected to MySQL database');
-});
-connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
-    if (error) throw error;
-    console.log('The solution is: ', results[0].solution);
 });
 
 app.get("/api/getListUser/", (req, res, next)=>{
