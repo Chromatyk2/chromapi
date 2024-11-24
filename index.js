@@ -8,6 +8,21 @@ var connection = mysql.createConnection({
     user     : process.env.MYSQL_ADDON_USER,
     password : process.env.MYSQL_ADDON_PASSWORD
 });
+connection.connect(function(err) {
+    if (err) throw err;
+    console.log("test");
+});
+app.get("/api/getProfil/:pseudo", (req, res, next)=>{
+
+    const pseudo = req.params.pseudo;
+    connection.query("SELECT pseudo, xp, first_pokemon, second_pokemon, third_pokemon, fourth_pokemon, fifth_pokemon, sixth_pokemon, profil_picture, level, box, canOpen, lastOpening, pkmToken FROM profil WHERE pseudo = ?", pseudo,
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.json(result)
+        });
+});
 app.get("/api/getListUser", (req, res, next)=>{
     connection.query("SELECT user, COUNT(DISTINCT card) as nbCardUser FROM cards GROUP BY user  ORDER BY nbCardUser DESC",
         (err,result)=>{
@@ -743,17 +758,7 @@ const pseudo = req.params.pseudo;
 });
 
 
-app.get("/api/getProfil/:pseudo", (req, res, next)=>{
 
-    const pseudo = req.params.pseudo;
-    connection.query("SELECT pseudo, xp, first_pokemon, second_pokemon, third_pokemon, fourth_pokemon, fifth_pokemon, sixth_pokemon, profil_picture, level, box, canOpen, lastOpening, pkmToken FROM profil WHERE pseudo = ?", pseudo,
-        (err,result)=>{
-            if(err) {
-                console.log(err)
-            }
-            res.json(result)
-        });
-});
 
 app.get("/api/getByUserAll/:pseudo", (req, res, next)=>{
 
