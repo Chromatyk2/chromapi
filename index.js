@@ -19,7 +19,16 @@ app.get("/", (req, res, next)=> {
         console.log('Connected to MySQL database');
     });
 });
-
+app.get("/api/getListUser/", (req, res, next)=>{
+    connection.connect((err) => {
+        console.log("Road to DB")
+        if (err) {
+            console.error('Error connecting to MySQL:', err);
+            return;
+        }
+        console.log('Connected to MySQL database');
+    });
+});
 app.get("/api/getListUser/", (req, res, next)=>{
     connection.query("SELECT user, COUNT(DISTINCT card) as nbCardUser FROM cards GROUP BY user  ORDER BY nbCardUser DESC",
         (err,result)=>{
@@ -1158,3 +1167,4 @@ console.log(err)
 app.listen(8080 , ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
+connection.end();
