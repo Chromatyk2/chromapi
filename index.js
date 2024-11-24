@@ -23,7 +23,7 @@ app.get("/api/getProfil/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            res.json(result)
+            res.send(result)
         });
 });
 connection.end()
