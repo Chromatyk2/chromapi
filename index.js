@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express();
 // Route to get all posts
 
-app.get("/api/get", (req, res, next)=>{
+app.get("/api/get/", (req, res, next)=>{
     db.query('SELECT 1 + 1 AS solution', function(err, rows, fields) {
         if (err) throw err;
         console.log('The solution is: ', rows[0].solution);
@@ -13,7 +13,7 @@ app.get("/api/get", (req, res, next)=>{
     });
 });
 
-app.get("/api/getListUser", (req, res, next)=>{
+app.get("/api/getListUser/", (req, res, next)=>{
     db.query("SELECT user, COUNT(DISTINCT card) as nbCardUser FROM cards GROUP BY user  ORDER BY nbCardUser DESC",
         (err,result)=>{
             if(err) {
