@@ -751,7 +751,7 @@ app.get("/api/getProfil/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            res.send(result)
+            res.json(result)
         });
 });
 
