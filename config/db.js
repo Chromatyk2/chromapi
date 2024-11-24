@@ -1,11 +1,10 @@
 const mysql = require('mysql')
 
-var pool  = mysql.createPool({
+var pool  = mysql.createConnection({
   host: "bqg2wximjlnqgmfjj44o-mysql.services.clever-cloud.com",
   user: "u1lw03a0o85nt1dw",
   password: "5Q9BxiCFQgxHyBpg67eE",
-  database:"bqg2wximjlnqgmfjj44o",
-  port:21610
+  database:"bqg2wximjlnqgmfjj44o"
 });
 
 pool.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
