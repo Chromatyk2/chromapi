@@ -6,8 +6,7 @@ var connection = mysql.createConnection({
     host     : "bqg2wximjlnqgmfjj44o-mysql.services.clever-cloud.com:21610",
     database : process.env.MYSQL_ADDON_DB,
     user     : process.env.MYSQL_ADDON_USER,
-    password : process.env.MYSQL_ADDON_PASSWORD,
-    port     : process.env.MYSQL_ADDON_PORT
+    password : process.env.MYSQL_ADDON_PASSWORD
 });
 app.get("/", (req, res, next)=> {
     res.send('Hello World!')
