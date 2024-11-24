@@ -1,13 +1,13 @@
+console.log("test");
 const express = require('express');
 const cors = require('cors');
 const app = express();
 const mysql = require('mysql')
-
-var connection   = mysql.createConnection({
-    host: "bqg2wximjlnqgmfjj44o-mysql.services.clever-cloud.com",
-    user: "u1lw03a0o85nt1dw",
-    password: "5Q9BxiCFQgxHyBpg67eE",
-    database:"bqg2wximjlnqgmfjj44o"
+var connection = mysql.createConnection({
+    host     : process.env.MYSQL_ADDON_HOST,
+    database : process.env.MYSQL_ADDON_DB,
+    user     : process.env.MYSQL_ADDON_USER,
+    password : process.env.MYSQL_ADDON_PASSWORD
 });
 connection.connect((err) => {
     if (err) {
