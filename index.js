@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 var mysql      = require('mysql');
 var connection = mysql.createConnection({
-    host     : process.env.MYSQL_ADDON_HOST,
+    host     : process.env.MYSQL_ADDON_DIRECT_HOST,
     database : process.env.MYSQL_ADDON_DB,
     user     : process.env.MYSQL_ADDON_USER,
     password : process.env.MYSQL_ADDON_PASSWORD
