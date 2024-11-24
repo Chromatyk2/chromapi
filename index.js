@@ -11,10 +11,7 @@ var connection = mysql.createConnection({
 });
 connection.connect(function(err) {   if (err) throw err;   console.log("Connecté à la base de données MySQL!"); });
 app.get('/', (req,res) => {
-    connection.connect(function (err) {
-        if (err) throw err;
-        console.log("Connecté à la base de données MySQL!");
-    });
+    console.log(process.env)
 })
 app.get("/api/getProfil/:pseudo", (req, res, next)=>{
 
