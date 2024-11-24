@@ -8,13 +8,32 @@ var connection = mysql.createConnection({
     user     : "u1lw03a0o85nt1dw",
     password : "5Q9BxiCFQgxHyBpg67eE"
 });
+app.get("/", (req, res, next)=> {
+    connection.connect((err) => {
+        res.send('Hello World!')
+        if (err) {
+            res.send('Error connecting to MySQL:')
+            return;
+        }
+        res.send('Connecté à la BDD')
+    });
+});
 app.get("/api/getListUser/", (req, res, next)=>{
     connection.query("SELECT user, COUNT(DISTINCT card) as nbCardUser FROM cards GROUP BY user  ORDER BY nbCardUser DESC",
         (err,result)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
+        });
+});
+app.get("/api/getListUser/", (req, res, next)=>{
+    connection.query("SELECT user, COUNT(DISTINCT card) as nbCardUser FROM cards GROUP BY user  ORDER BY nbCardUser DESC",
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.send(result)
         });
 });
 
@@ -26,7 +45,7 @@ app.get("/api/getListUser/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -38,7 +57,7 @@ const pseudo = req.params.pseudo;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -50,7 +69,7 @@ const id = req.params.id;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -61,7 +80,7 @@ app.get("/api/getBoostersList", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -73,7 +92,7 @@ app.get("/api/getBoostersListByGen/:gen", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -85,7 +104,7 @@ app.get("/api/getCardsPoint/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -99,7 +118,7 @@ app.get("/api/getMyCardsBySet/:pseudo/:booster", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -112,7 +131,7 @@ app.get("/api/getMyNbDouble/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -125,7 +144,7 @@ app.get("/api/getRaritiesByBooster/:booster", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -136,7 +155,7 @@ app.get("/api/getTotalCardByUser/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 app.get("/api/getBoosterTotalCard", (req, res, next)=>{
@@ -145,7 +164,7 @@ app.get("/api/getBoosterTotalCard", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -155,7 +174,7 @@ app.get("/api/getLastCard", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -165,7 +184,7 @@ app.get("/api/getTotalCard", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -178,7 +197,7 @@ app.get("/api/getMyTotalCards/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -191,7 +210,7 @@ app.get("/api/getMyLastTenCards/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -205,7 +224,7 @@ app.get("/api/getNbCardsBySet/:pseudo/:booster", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -219,7 +238,7 @@ app.get("/api/getNbCards/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 app.delete('/api/deleteBooster/:user/:booster',(req,res)=>{
@@ -229,7 +248,7 @@ app.delete('/api/deleteBooster/:user/:booster',(req,res)=>{
         if(err) {
             console.log(err)
         }
-        return res.send(result)
+        res.send(result)
     })
 })
 
@@ -243,7 +262,7 @@ app.delete('/api/sellCards/:user/:card/:limit',(req,res)=>{
         if(err) {
             console.log(err)
         }
-        return res.send(result)
+        res.send(result)
     })
 })
 
@@ -262,7 +281,7 @@ app.post('/api/addCard', function (req, res, next){
         if(err) {
             console.log(err)
         }
-        return res.send(result)
+        res.send(result)
     });   })
 
 app.options('/api/addLastSelling')
@@ -275,7 +294,7 @@ app.post('/api/addLastSelling', function (req, res, next){
         if(err) {
             console.log(err)
         }
-        return res.send(result)
+        res.send(result)
     });   })
 
 app.options('/api/addButtonClick')
@@ -288,7 +307,7 @@ app.post('/api/addButtonClick', function (req, res, next){
         if(err) {
             console.log(err)
         }
-        return res.send(result)
+        res.send(result)
     });   })
 
 app.options('/api/registerCards')
@@ -300,7 +319,7 @@ app.post('/api/registerCards', function (req, res, next){
         if(err) {
             console.log(err)
         }
-        return res.send(result)
+        res.send(result)
     });   })
 
 app.post('/api/addCardsPointButton',(req,res)=>{
@@ -309,7 +328,7 @@ app.post('/api/addCardsPointButton',(req,res)=>{
     connection.query("UPDATE cardspoint SET points = points + 1000 WHERE user = ?",user, (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -320,7 +339,7 @@ app.post('/api/updatePokemonTeam',(req,res)=>{
     connection.query("UPDATE profil SET ?? = ? WHERE pseudo = ?",[pkm,image,user], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 app.post('/api/updateSkin',(req,res)=>{
@@ -330,7 +349,7 @@ app.post('/api/updateSkin',(req,res)=>{
     connection.query("UPDATE profil SET profil_picture = ? WHERE pseudo = ?",[skin, user], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -340,7 +359,7 @@ app.post('/api/removeBoxSkin',(req,res)=>{
     connection.query("UPDATE profil SET box = box - 1 WHERE pseudo = ?",user, (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 app.post('/api/removeToken',(req,res)=>{
@@ -349,7 +368,7 @@ app.post('/api/removeToken',(req,res)=>{
     connection.query("UPDATE profil SET pkmToken = pkmToken - 1 WHERE pseudo = ?",user, (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -361,7 +380,7 @@ app.post('/api/addSkin',(req,res)=>{
     connection.query("INSERT INTO skin (pseudo,skin) VALUES (?,?) ",[user, skin], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -371,7 +390,7 @@ app.get("/api/getCurrentDailyGame", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -383,7 +402,7 @@ app.get("/api/getDailyGameByDay/:day", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -393,7 +412,7 @@ app.get("/api/getAllDailyGames", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 app.post('/api/addDailyGame',(req,res)=>{
@@ -405,7 +424,7 @@ app.post('/api/addDailyGame',(req,res)=>{
     connection.query("INSERT INTO dailygame (name,description,day) VALUES (?,?,?) ",[name, description, day], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -416,7 +435,7 @@ app.get("/api/truncatePedandex", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -427,7 +446,7 @@ app.post('/api/removeBooster',(req,res)=>{
         if(err) {
             console.log(err)
         }
-        return res.send(result)
+        res.send(result)
     })
 })
 app.post('/api/addCardsPoint',(req,res)=>{
@@ -436,7 +455,7 @@ app.post('/api/addCardsPoint',(req,res)=>{
     connection.query("INSERT INTO profil (pseudo,cardToken) VALUES (?,1) ON DUPLICATE KEY UPDATE cardToken = cardToken + 1 ",user, (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 app.post('/api/addPkmTokenTw',(req,res)=>{
@@ -444,7 +463,7 @@ app.post('/api/addPkmTokenTw',(req,res)=>{
     connection.query("UPDATE profil SET pkmToken = pkmToken + 1 WHERE pseudo = 'chromatyk'", (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 app.post('/api/addPkmToken',(req,res)=>{
@@ -453,7 +472,7 @@ app.post('/api/addPkmToken',(req,res)=>{
     connection.query("INSERT INTO profil (pseudo,pkmToken) VALUES (?,1) ON DUPLICATE KEY UPDATE pkmToken = pkmToken + 1 ",user, (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -465,7 +484,7 @@ app.post('/api/addCardsPointTw',(req,res)=>{
     connection.query("INSERT INTO profil (pseudo,cardToken) VALUES (?,1) ON DUPLICATE KEY UPDATE cardToken = cardToken + 1 ",user, (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 app.post('/api/addXp',(req,res)=>{
@@ -476,7 +495,7 @@ app.post('/api/addXp',(req,res)=>{
     connection.query("INSERT INTO profil (pseudo,xp,level,box) VALUES (?,?,1,1) ON DUPLICATE KEY UPDATE xp = xp + ? ",[user,win,wins], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -488,7 +507,7 @@ app.post('/api/addToken',(req,res)=>{
     connection.query("INSERT INTO tokens (pseudo,token) VALUES (?,?) ON DUPLICATE KEY UPDATE token = token + ? ",[user,win,wins], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -501,7 +520,7 @@ app.get("/api/getMyTokens/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -513,7 +532,7 @@ app.get("/api/getCanOpen/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -525,7 +544,7 @@ app.post('/api/removeCanOpen',(req,res)=>{
     connection.query("UPDATE profil SET canOpen = 0, lastOpening = ? WHERE pseudo = ?",[today,pseudo], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -536,7 +555,7 @@ app.post('/api/allowCanOpen',(req,res)=>{
     connection.query("UPDATE profil SET canOpen = 0 WHERE pseudo = ?",pseudo, (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -549,7 +568,7 @@ app.post('/api/addPedandexWin',(req,res)=>{
     connection.query("INSERT INTO pedandex (pseudo,tries, answer, day) VALUES (?,?, ?, ?)",[user,tries,answer, day], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -561,7 +580,7 @@ app.get("/api/getPedandexWin/:day", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -573,7 +592,7 @@ app.get("/api/getPedandexWinByUSer/:user", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -584,7 +603,7 @@ app.post('/api/levelUp',(req,res)=>{
     connection.query("UPDATE profil SET level = level + 1, xp = 0, box = box + 1 WHERE pseudo = ?",pseudo, (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 app.post('/api/addCardsPointFromSelling',(req,res)=>{
@@ -593,7 +612,7 @@ app.post('/api/addCardsPointFromSelling',(req,res)=>{
     connection.query("UPDATE profil SET powder = powder + ? WHERE pseudo = ?",[cardPoint,user], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -604,7 +623,7 @@ app.post('/api/removeCardsPoint',(req,res)=>{
     connection.query("UPDATE profil SET cardToken = cardToken - 1 WHERE pseudo = ?",[user], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -615,7 +634,7 @@ app.post('/api/removeCardsPointRandom',(req,res)=>{
     connection.query("UPDATE cardspoint SET points = points - 500 WHERE user = ?",user, (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -630,7 +649,7 @@ app.post('/api/addBooster', function (req, res, next){
         if(err) {
             console.log(err)
         }
-        return res.send(result)
+        res.send(result)
     });   })
 
 app.options('/api/updateBooster')
@@ -644,7 +663,7 @@ app.post('/api/updateBooster', function (req, res, next){
         if(err) {
             console.log(err)
         }
-        return res.send(result)
+        res.send(result)
     });   })
 
 app.get("/api/getMyBoosters/:pseudo", (req, res, next)=>{
@@ -655,7 +674,7 @@ app.get("/api/getMyBoosters/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -668,7 +687,7 @@ app.get("/api/getMyBoostersByOne/:pseudo/:booster", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -680,7 +699,7 @@ app.post('/api/updateSellingTime',(req,res)=>{
     connection.query("UPDATE last_selling SET sellingTime = ? WHERE user = ?",[sellingTime,pseudo], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 app.post('/api/updateButtonTime',(req,res)=>{
@@ -691,7 +710,7 @@ app.post('/api/updateButtonTime',(req,res)=>{
     connection.query("UPDATE points_button SET hour = ? WHERE user = ?",[hour,pseudo], (err,result)=>{
         if(err) {
             console.log(err)   }
-        return res.send(result)
+        res.send(result)
     });
 });
 
@@ -703,7 +722,7 @@ app.get("/api/getSellingTime/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -715,7 +734,7 @@ app.get("/api/getDateButton/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 app.get("/api/getCountPropositionByTrade/:id", (req, res, next)=>{
@@ -726,7 +745,7 @@ const id = req.params.id;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -738,7 +757,7 @@ const pseudo = req.params.pseudo;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -751,7 +770,7 @@ app.get("/api/getProfil/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -763,7 +782,7 @@ const pseudo = req.params.pseudo;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -775,7 +794,7 @@ app.get("/api/getSkins/:pseudo", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -788,7 +807,7 @@ const pseudo = req.params.pseudo;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -801,7 +820,7 @@ const tradeId = req.params.tradeId;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -813,7 +832,7 @@ const idMainCapture = req.params.idMainCapture;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -826,7 +845,7 @@ const pseudo = req.params.pseudo;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -838,7 +857,7 @@ const pseudo = req.params.pseudo;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -850,7 +869,7 @@ const id = req.params.id;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -861,7 +880,7 @@ app.get("/api/getMyNote", (req, res, next)=>{
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -872,7 +891,7 @@ app.get("/api/getAllProfil", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -883,7 +902,7 @@ app.get("/api/getAllProfilRandom", (req, res, next)=>{
             if(err) {
                 console.log(err)
             }
-            return res.send(result)
+            res.send(result)
         });
 });
 
@@ -894,7 +913,7 @@ app.get("/api/lastGame", (req, res, next)=>{
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -905,7 +924,7 @@ app.get("/api/getCurrentGame", (req, res, next)=>{
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -916,7 +935,7 @@ app.get("/api/getViewersNote", (req, res, next)=>{
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -927,7 +946,7 @@ app.get("/api/truncateViewers", (req, res, next)=>{
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -940,7 +959,7 @@ connection.query("INSERT INTO chromaguess (note) VALUES (?)",[note], (err,result
    if(err) {
    console.log(err)
    }
-   return res.send(result)
+   res.send(result)
 });   })
 
 app.options('/api/viewersGuess')
@@ -953,7 +972,7 @@ connection.query("INSERT INTO viewersguess (note, pseudo) VALUES (?,?)",[note, u
    if(err) {
    console.log(err)
    }
-   return res.send(result)
+   res.send(result)
 });   })
 
 app.options('/api/createTrade')
@@ -967,7 +986,7 @@ connection.query("INSERT INTO trades (idMainCapture, idSecondCapture, state) VAL
    if(err) {
    console.log(err)
    }
-   return res.send(result)
+   res.send(result)
 });   })
 
 app.options('/api/createGuess')
@@ -980,7 +999,7 @@ connection.query("INSERT INTO popositiontrade (idTrade, idCapture) VALUES (?,?)"
    if(err) {
    console.log(err)
    }
-   return res.send(result)
+   res.send(result)
 });   })
 
 app.options('/api/addCurrentImage')
@@ -992,7 +1011,7 @@ connection.query("INSERT INTO currentgame (image) VALUES (?)",[image], (err,resu
    if(err) {
    console.log(err)
    }
-   return res.send(result)
+   res.send(result)
 });   })
 
 app.delete('/api/deleteTrade/:id',(req,res)=>{
@@ -1001,7 +1020,7 @@ app.delete('/api/deleteTrade/:id',(req,res)=>{
     if(err) {
       console.log(err)
     }
-    return res.send(result)
+    res.send(result)
   })
 })
 
@@ -1011,7 +1030,7 @@ app.delete('/api/deleteCapture/:id',(req,res)=>{
     if(err) {
       console.log(err)
     }
-    return res.send(result)
+    res.send(result)
   })
 })
 
@@ -1021,7 +1040,7 @@ app.delete('/api/deleteGuess/:id',(req,res)=>{
     if(err) {
       console.log(err)
     }
-    return res.send(result)
+    res.send(result)
   })
 })
 
@@ -1034,7 +1053,7 @@ const pseudo = req.params.pseudo;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 
@@ -1046,7 +1065,7 @@ const shiny = req.params.shiny;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 app.get("/api/getTradesByPokemon/:pkmId", (req, res, next)=>{
@@ -1057,7 +1076,7 @@ const pkmId = req.params.pkmId;
     if(err) {
       console.log(err)
     }
-      return res.send(result)
+      res.send(result)
     });
 });
 // Route to get one post
@@ -1069,7 +1088,7 @@ const id = req.params.id;
     if(err) {
     console.log(err)
     }
-    return res.send(result)
+    res.send(result)
     });   });
 
 // Route for creating the post
@@ -1101,7 +1120,7 @@ connection.query("INSERT INTO captures (pseudo, pkmName, pkmImage,pkmId, shiny, 
    if(err) {
    console.log(err)
    }
-   return res.send(result)
+   res.send(result)
 });   })
 
 // Route to like a post
