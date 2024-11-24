@@ -1,4 +1,4 @@
-const process = require('proce ss')
+const process = require('process')
 const express = require('express');
 const app = express();
 var mysql      = require('mysql');
