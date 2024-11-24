@@ -3,15 +3,9 @@ const db = require('./config/db')
 const cors = require('cors');
 
 const app = express();
-const  PORT = 3000;
-app.use(express.json())
-app.use(cors());
 // Route to get all posts
 
 
-app.get("/api/get", (req, res, next)=>{
-    res.send('hello world')
-})
 app.get("/api/getListUser", (req, res, next)=>{
 
     db.query("SELECT user, COUNT(DISTINCT card) as nbCardUser FROM cards GROUP BY user  ORDER BY nbCardUser DESC",
