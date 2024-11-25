@@ -438,6 +438,15 @@ app.post('/api/removeBooster',(req,res)=>{
         res.send(result)
     })
 })
+app.post('/api/addCardsPoint/:pseudo',(req,res)=>{
+
+    const pseudo = req.params.pseudo;
+    db.query("INSERT INTO profil (pseudo,cardToken) VALUES (?,1) ON DUPLICATE KEY UPDATE cardToken = cardToken + 1 ",pseudo, (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
 app.post('/api/addCardsPoint',(req,res)=>{
 
     const user = req.query.my_login;
