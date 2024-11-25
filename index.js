@@ -440,7 +440,7 @@ app.post('/api/removeBooster',(req,res)=>{
 })
 app.post('/api/addCardsPoint/:pseudo',(req,res)=>{
 
-    const pseudo = req.params.pseudo;
+    const pseudo = req.params.user;
     db.query("INSERT INTO profil (pseudo,cardToken) VALUES (?,1) ON DUPLICATE KEY UPDATE cardToken = cardToken + 1 ",pseudo, (err,result)=>{
         if(err) {
             console.log(err)   }
