@@ -158,7 +158,7 @@ app.get("/api/getBoosterTotalCard", (req, res, next)=>{
 });
 
 app.get("/api/getLastCard", (req, res, next)=>{
-    db.query("SELECT user, card, booster, stade, block FROM cards WHERE stade = 4 ORDER BY id DESC LIMIT 10",
+    db.query("SELECT user, card, booster, stade, block, number FROM cards WHERE stade = 4 ORDER BY id DESC LIMIT 10",
         (err,result)=>{
             if(err) {
                 console.log(err)
