@@ -759,6 +759,17 @@ app.get("/api/getByUser/:pseudo", (req, res, next)=>{
         });
 });
 
+app.get("/api/getTotalPokemon/:pseudo", (req, res, next)=>{
+
+    const pseudo = req.params.pseudo;
+    db.query("SELECT COUNT(*) as totalCapture FROM captures WHERE pseudo = ?", pseudo,
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
 
 app.get("/api/getProfil/:pseudo", (req, res, next)=>{
 
