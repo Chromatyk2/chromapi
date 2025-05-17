@@ -770,6 +770,17 @@ app.get("/api/getByUser/:pseudo", (req, res, next)=>{
         });
 });
 
+app.get("/api/getTotalPokemon/:pseudo", (req, res, next)=>{
+
+    const pseudo = req.params.pseudo;
+    db.query("SELECT COUNT(*) as totalCapture FROM captures WHERE pseudo = ?", pseudo,
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
 
 app.get("/api/getProfil/:pseudo", (req, res, next)=>{
 
@@ -1046,6 +1057,16 @@ app.delete('/api/deleteCapture/:id',(req,res)=>{
 app.delete('/api/deleteGuess/:id',(req,res)=>{
     const id = req.params.id;
     db.query("DELETE FROM popositiontrade WHERE idCapture= ?", id, (err,result)=>{
+        if(err) {
+            console.log(err)
+        }
+        res.send(result)
+    })
+})
+app.delete('/api/deleteShiny/:id/:pseudo',(req,res)=>{
+    const id = req.params.id;
+    const pseudo = req.params.pseudo;
+    db.query("DELETE FROM `captures` WHERE pseudo = ? AND pkmId = ? LIMIT 5;",[pseudo,id], (err,result)=>{
         if(err) {
             console.log(err)
         }
