@@ -470,8 +470,8 @@ app.post('/api/addCardsPointRoulette',(req,res)=>{
 app.post('/api/addPkmPointRoulette',(req,res)=>{
 
     const user = req.body.user;
-    const PkmToken = req.body.PkmToken;
-    db.query("INSERT INTO profil (pseudo,pkmToken) VALUES (?,?) ON DUPLICATE KEY UPDATE pkmToken = pkmToken + ? ",[user,PkmToken,PkmToken], (err,result)=>{
+    const pkmToken = req.body.pkmToken;
+    db.query("INSERT INTO profil (pseudo,pkmToken) VALUES (?,?) ON DUPLICATE KEY UPDATE pkmToken = pkmToken + ? ",[user,pkmToken,pkmToken], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
