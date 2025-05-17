@@ -467,6 +467,16 @@ app.post('/api/addCardsPointRoulette',(req,res)=>{
         res.send(result)
     });
 });
+app.post('/api/addPkmPointRoulette',(req,res)=>{
+
+    const user = req.body.user;
+    const PkmToken = req.body.PkmToken;
+    db.query("INSERT INTO profil (pseudo,pkmToken) VALUES (?,?) ON DUPLICATE KEY UPDATE pkmToken = pkmToken + ? ",[user,PkmToken,PkmToken], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
 app.post('/api/addPkmTokenTw',(req,res)=>{
 
     db.query("UPDATE profil SET pkmToken = pkmToken + 1 WHERE pseudo = 'chromatyk'", (err,result)=>{
