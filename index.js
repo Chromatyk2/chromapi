@@ -1038,7 +1038,7 @@ app.post('/api/addCurrentImage', function (req, res, next){
     const image = req.body.image;
     const plateforme = req.body.plateforme;
 
-    db.query("INSERT INTO currentgame (image, console) VALUES (?,?)",[image,plateforme], (err,result)=>{
+    db.query("INSERT INTO currentgame (title, console) VALUES (?,?)",[image,plateforme], (err,result)=>{
         if(err) {
             console.log(err)
         }
