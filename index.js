@@ -102,7 +102,7 @@ app.get("/api/getMyCardsBySet/:pseudo/:booster", (req, res, next)=>{
     const pseudo = req.params.pseudo;
     const booster = req.params.booster;
 
-    db.query("SELECT user, card,rarity, COUNT(card) as nbCard FROM cards WHERE booster = ? AND user = ? GROUP BY card, rarity", [booster,pseudo],
+    db.query("SELECT user, card,rarity,stade, COUNT(card) as nbCard FROM cards WHERE booster = ? AND user = ? GROUP BY card, rarity", [booster,pseudo],
         (err,result)=>{
             if(err) {
                 console.log(err)
@@ -451,6 +451,27 @@ app.post('/api/addCardsPoint',(req,res)=>{
 
     const user = req.body.user;
     db.query("INSERT INTO profil (pseudo,cardToken) VALUES (?,1) ON DUPLICATE KEY UPDATE cardToken = cardToken + 1 ",user, (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
+
+app.post('/api/addCardsPointRoulette',(req,res)=>{
+
+    const user = req.body.user;
+    const nbToken = req.body.nbToken;
+    db.query("INSERT INTO profil (pseudo,cardToken) VALUES (?,?) ON DUPLICATE KEY UPDATE cardToken = cardToken + ? ",[user, nbToken, nbToken], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
+app.post('/api/addPkmPointRoulette',(req,res)=>{
+
+    const user = req.body.user;
+    const nbToken = req.body.nbToken;
+    db.query("INSERT INTO profil (pseudo,pkmToken) VALUES (?,?) ON DUPLICATE KEY UPDATE pkmToken = pkmToken + ? ",[user,nbToken,nbToken], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
