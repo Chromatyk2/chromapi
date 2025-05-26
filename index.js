@@ -1035,7 +1035,7 @@ app.post('/api/createGuess', function (req, res, next){
 app.options('/api/addCurrentImage')
 app.post('/api/addCurrentImage', function (req, res, next){
 
-    const image = req.body.image;
+    const image = req.body.title;
     const plateforme = req.body.plateforme;
 
     db.query("INSERT INTO currentgame (title, console) VALUES (?,?)",[image,plateforme], (err,result)=>{
