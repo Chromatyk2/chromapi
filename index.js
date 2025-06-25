@@ -485,6 +485,14 @@ app.post('/api/addPkmTokenTw',(req,res)=>{
         res.send(result)
     });
 });
+app.post('/api/addCardTokenTw',(req,res)=>{
+
+    db.query("UPDATE profil SET cardToken = cardToken + 1 WHERE pseudo = 'chromatyk'", (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
 app.post('/api/addPkmToken',(req,res)=>{
 
     const user = req.body.user;
