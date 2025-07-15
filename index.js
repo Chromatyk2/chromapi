@@ -110,6 +110,19 @@ app.get("/api/getMyCardsBySet/:pseudo/:booster", (req, res, next)=>{
             res.send(result)
         });
 });
+app.get("/api/getMyCardsBySetAndStade/:pseudo/:booster", (req, res, next)=>{
+
+    const pseudo = req.params.pseudo;
+    const booster = req.params.booster;
+
+    db.query("SELECT user, card,rarity,stade, COUNT(card) as nbCard FROM cards WHERE booster = ? AND user = ? GROUP BY stade, card ORDER BY `cards`.`card` ASC", [booster,pseudo],
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
 
 app.get("/api/getMyNbDouble/:pseudo", (req, res, next)=>{
 
