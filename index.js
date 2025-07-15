@@ -102,7 +102,7 @@ app.get("/api/getMyCardsBySet/:pseudo/:booster", (req, res, next)=>{
     const pseudo = req.params.pseudo;
     const booster = req.params.booster;
 
-    db.query("SELECT user, card,rarity,stade, COUNT(card) as nbCard FROM cards WHERE booster = ? AND user = ? GROUP BY card, rarity", [booster,pseudo],
+    db.query("SELECT user, card,rarity,MAX(stade) as stade, COUNT(card) as nbCard FROM cards WHERE booster = ? AND user = ? GROUP BY card, rarity", [booster,pseudo],
         (err,result)=>{
             if(err) {
                 console.log(err)
