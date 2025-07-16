@@ -71,7 +71,18 @@ app.get("/api/getBoostersList", (req, res, next)=>{
             res.send(result)
         });
 });
+app.get("/api/getBadgesByUser/:pseudo", (req, res, next)=>{
 
+    const pseudo = req.params.pseudo;
+
+    db.query("SELECT user, image, stade, description FROM badges WHERE user = ?;", [pseudo],
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
 app.get("/api/getBoosterByName/:name", (req, res, next)=>{
     const name = req.params.name;
 
