@@ -301,6 +301,21 @@ app.post('/api/addCard', function (req, res, next){
         res.send(result)
     });   })
 
+app.options('/api/addBadge')
+app.post('/api/addBadge', function (req, res, next){
+
+    const pseudo = req.body.pseudo;
+    const image = req.body.image;
+    const stade = req.body.stade;
+    const description = req.body.description;
+
+    db.query("INSERT INTO badges (user,image,stade,description) VALUES (?,?,?,?)",[pseudo,image,stade,description], (err,result)=>{
+        if(err) {
+            console.log(err)
+        }
+        res.send(result)
+    });   })
+
 app.options('/api/addLastSelling')
 app.post('/api/addLastSelling', function (req, res, next){
 
@@ -348,6 +363,7 @@ app.post('/api/addCardsPointButton',(req,res)=>{
         res.send(result)
     });
 });
+
 
 app.post('/api/updatePokemonTeam',(req,res)=>{
     const pkm = req.body.pkm;
