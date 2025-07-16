@@ -230,6 +230,20 @@ app.get("/api/getNbCardsBySet/:pseudo/:booster", (req, res, next)=>{
         });
 });
 
+app.get("/api/getBadgesByUserAndSet/:pseudo/:booster", (req, res, next)=>{
+
+    const pseudo = req.params.pseudo;
+    const booster = req.params.booster;
+
+    db.query("SELECT user, image, stade, description WHERE image = ? AND user = ?;", [booster,pseudo],
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
 app.get("/api/getNbCards/:pseudo", (req, res, next)=>{
 
     const pseudo = req.params.pseudo;
@@ -253,6 +267,7 @@ app.delete('/api/deleteBooster/:user/:booster',(req,res)=>{
         res.send(result)
     })
 })
+
 
 
 
