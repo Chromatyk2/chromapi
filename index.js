@@ -63,8 +63,19 @@ app.get("/api/getGuess/:id", (req, res, next)=>{
 });
 
 app.get("/api/getBoostersList", (req, res, next)=>{
-
     db.query("SELECT name, gen, block, nameGuru, totalcards FROM booster_list ORDER BY id ASC",
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
+app.get("/api/getBoosterByName/:name", (req, res, next)=>{
+    const name = req.params.name;
+
+    db.query("SELECT name, gen, block, nameGuru, totalcards, fullName FROM booster_list WHERE name= ?",name,
         (err,result)=>{
             if(err) {
                 console.log(err)
