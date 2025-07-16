@@ -235,7 +235,7 @@ app.get("/api/getBadgesByUserAndSet/:pseudo/:booster", (req, res, next)=>{
     const pseudo = req.params.pseudo;
     const booster = req.params.booster;
 
-    db.query("SELECT user, image, stade, description WHERE image = ? AND user = ?;", [booster,pseudo],
+    db.query("SELECT user, image, stade, description FROM badges WHERE image = ? AND user = ?;", [booster,pseudo],
         (err,result)=>{
             if(err) {
                 console.log(err)
