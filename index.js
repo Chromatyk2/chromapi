@@ -408,6 +408,16 @@ app.post('/api/updateSkin',(req,res)=>{
         res.send(result)
     });
 });
+app.post('/api/updateBadge',(req,res)=>{
+
+    const user = req.body.user;
+    const image = req.body.image;
+    db.query("UPDATE profil SET badge = ? WHERE pseudo = ?",[image, user], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
 
 app.post('/api/removeBoxSkin',(req,res)=>{
 
