@@ -327,11 +327,11 @@ app.post('/api/addCard', function (req, res, next){
     const idCard = req.body.idCard;
     const booster = req.body.booster;
     const rarity = req.body.rarity;
-    const stade = req.body.stade;
+    const grade = req.body.grade;
     const nb = req.body.nb;
     const block = req.body.block;
 
-    db.query("INSERT INTO cards (user,card,booster,rarity,stade, number, block) VALUES (?,?,?,?,?,?,?)",[pseudo,idCard,booster,rarity,stade, nb, block], (err,result)=>{
+    db.query("INSERT INTO cards (user,card,booster,rarity,stade, number, block) VALUES (?,?,?,?,?,?,?)",[pseudo,idCard,booster,rarity,grade, nb, block], (err,result)=>{
         if(err) {
             console.log(err)
         }
