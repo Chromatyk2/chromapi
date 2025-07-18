@@ -1001,7 +1001,7 @@ app.get("/api/getMyNote", (req, res, next)=>{
 
 app.get("/api/getAllProfil", (req, res, next)=>{
 
-    db.query("SELECT * FROM profil WHERE pseudo != 'chromatyk' ORDER BY level + 0 DESC, xp DESC",
+    db.query("SELECT * FROM profil ORDER BY level + 0 DESC, xp DESC",
         (err,result)=>{
             if(err) {
                 console.log(err)
@@ -1012,7 +1012,7 @@ app.get("/api/getAllProfil", (req, res, next)=>{
 
 app.get("/api/getAllProfilRandom", (req, res, next)=>{
 
-    db.query("SELECT * FROM profil WHERE pseudo != 'chromatyk' AND first_pokemon is not NULL  AND second_pokemon is not NULL  AND third_pokemon is not NULL  AND fourth_pokemon is not NULL  AND fifth_pokemon is not NULL  AND sixth_pokemon is not NULL  AND profil_picture is not NULL  ORDER BY level + 0 DESC, xp DESC",
+    db.query("SELECT * FROM profil WHERE first_pokemon is not NULL  AND second_pokemon is not NULL  AND third_pokemon is not NULL  AND fourth_pokemon is not NULL  AND fifth_pokemon is not NULL  AND sixth_pokemon is not NULL  AND profil_picture is not NULL  ORDER BY level + 0 DESC, xp DESC",
         (err,result)=>{
             if(err) {
                 console.log(err)
@@ -1186,7 +1186,7 @@ app.get("/api/getByPokemon/:pkmId/:pseudo", (req, res, next)=>{
 app.get("/api/getLaderboard/:shiny", (req, res, next)=>{
 
     const shiny = req.params.shiny;
-    db.query('SELECT pseudo, COUNT(DISTINCT pkmId) AS nbCapture FROM captures WHERE shiny = ? AND pseudo != "Chromatyk" GROUP BY pseudo ORDER BY nbCapture DESC', shiny,
+    db.query('SELECT pseudo, COUNT(DISTINCT pkmId) AS nbCapture FROM captures WHERE shiny = ? GROUP BY pseudo ORDER BY nbCapture DESC', shiny,
         (err,result)=>{
             if(err) {
                 console.log(err)
