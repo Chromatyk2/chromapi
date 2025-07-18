@@ -133,6 +133,20 @@ app.get("/api/getMyCardsBySet/:pseudo/:booster", (req, res, next)=>{
         });
 });
 
+app.get("/api/getAllMyCardsBySet/:pseudo/:booster", (req, res, next)=>{
+
+    const pseudo = req.params.pseudo;
+    const booster = req.params.booster;
+
+    db.query("SELECT * FROM cards WHERE booster = ? AND user = ?", [booster,pseudo],
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
 app.get("/api/getMyCardsBySetAndStade/:pseudo/:booster", (req, res, next)=>{
 
     const pseudo = req.params.pseudo;
