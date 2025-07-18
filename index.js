@@ -594,8 +594,6 @@ app.post('/api/addPkmToken',(req,res)=>{
     });
 });
 
-
-
 app.post('/api/addCardsPointTw',(req,res)=>{
 
     const user = req.body.user;
@@ -611,6 +609,18 @@ app.post('/api/addXp',(req,res)=>{
     const win = req.body.win;
     const wins = req.body.wins;
     db.query("INSERT INTO profil (pseudo,xp,level,box) VALUES (?,?,1,1) ON DUPLICATE KEY UPDATE xp = xp + ? ",[user,win,wins], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
+
+app.post('/api/addPowder',(req,res)=>{
+
+    const user = req.body.user;
+    const win = req.body.win;
+    const wins = req.body.wins;
+    db.query("INSERT INTO profil (pseudo,powder) VALUES (?,?) ON DUPLICATE KEY UPDATE powder = powder + ? ",[user,win,wins], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
