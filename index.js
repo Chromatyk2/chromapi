@@ -344,9 +344,10 @@ app.post('/api/addBadge', function (req, res, next){
     const pseudo = req.body.pseudo;
     const image = req.body.image;
     const stade = req.body.stade;
+    const booster = req.body.booster;
     const description = req.body.description;
 
-    db.query("INSERT INTO badges (user,image,stade,description) VALUES (?,?,?,?)",[pseudo,image,stade,description], (err,result)=>{
+    db.query("INSERT INTO badges (user,image,stade,description,booster) VALUES (?,?,?,?,?)",[pseudo,image,stade,description,booster], (err,result)=>{
         if(err) {
             console.log(err)
         }
