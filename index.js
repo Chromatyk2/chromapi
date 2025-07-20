@@ -453,6 +453,16 @@ app.post('/api/removeToken',(req,res)=>{
     });
 });
 
+app.post('/api/removePowder',(req,res)=>{
+
+    const user = req.body.user;
+    db.query("UPDATE profil SET powder = powder - 500 WHERE pseudo = ?",user, (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
+
 app.post('/api/addSkin',(req,res)=>{
 
     const skin = req.body.skin;
