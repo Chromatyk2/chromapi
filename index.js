@@ -152,7 +152,7 @@ app.get("/api/getMyCardsBySetAndStade/:pseudo/:booster", (req, res, next)=>{
     const pseudo = req.params.pseudo;
     const booster = req.params.booster;
 
-    db.query("SELECT DISTINCT card, stade FROM cards WHERE booster= ? AND user = ? GROUP BY card, stade", [booster,pseudo],
+    db.query("SELECT DISTINCT card, stade FROM cards WHERE booster= ? AND user = ? AND stade > 0 GROUP BY card, stade", [booster,pseudo],
         (err,result)=>{
             if(err) {
                 console.log(err)
