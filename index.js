@@ -1204,6 +1204,16 @@ app.delete('/api/deleteShiny/:id/:pseudo',(req,res)=>{
         res.send(result)
     })
 })
+app.delete('/api/deleteShinyBadge/:id/:pseudo',(req,res)=>{
+    const id = req.params.id;
+    const pseudo = req.params.pseudo;
+    db.query("DELETE FROM `captures` WHERE pseudo = ? AND pkmId = ? AND shiny = 1 LIMIT 5;",[pseudo,id], (err,result)=>{
+        if(err) {
+            console.log(err)
+        }
+        res.send(result)
+    })
+})
 
 app.get("/api/getByPokemon/:pkmId/:pseudo", (req, res, next)=>{
 
