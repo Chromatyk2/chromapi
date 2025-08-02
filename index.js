@@ -462,7 +462,15 @@ app.post('/api/removePowder',(req,res)=>{
         res.send(result)
     });
 });
+app.post('/api/removeBerry',(req,res)=>{
 
+    const user = req.body.user;
+    db.query("UPDATE profil SET berry = berry - 1 WHERE pseudo = ?",user, (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
 app.post('/api/addSkin',(req,res)=>{
 
     const skin = req.body.skin;
@@ -625,7 +633,16 @@ app.post('/api/addXp',(req,res)=>{
         res.send(result)
     });
 });
+app.post('/api/addXpPokemon',(req,res)=>{
 
+    const user = req.body.user;
+    const pokemon = req.body.pokemon;
+    db.query("UPDATE compagnon SET xp = xp + 1 WHERE pseudo = ? AND pokemon = ? ",[user,pokemon], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
 app.post('/api/addPowder',(req,res)=>{
 
     const user = req.body.user;
@@ -793,6 +810,17 @@ app.post('/api/levelUp',(req,res)=>{
     const pseudo = req.body.pseudo;
 
     db.query("UPDATE profil SET level = level + 1, xp = 0, box = box + 1 WHERE pseudo = ?",pseudo, (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
+app.post('/api/lvlUpPokemon',(req,res)=>{
+
+    const pseudo = req.body.pseudo;
+    const pokemon = req.body.pokemon;
+
+    db.query("UPDATE compagnon SET level = level + 1, xp = 0 WHERE pseudo = ? AND pokemon = ?",[pseudo,pokemon], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
