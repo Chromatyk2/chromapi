@@ -658,7 +658,8 @@ app.post('/api/addCompagnon',(req,res)=>{
     const pkm = req.body.pkm;
     const shiny = req.body.shiny;
     const shine = req.body.shine;
-    db.query("INSERT INTO compagnon (pseudo,pokemon, level, xp, shiny) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE pokemon=?,shiny=?, level = 1, xp = 0;",[user,pokemon,level,xp,shiny,pkm,shine], (err,result)=>{
+    const actif = req.body.actif;
+    db.query("INSERT INTO compagnon (pseudo,pokemon, level, xp, shiny,actif) VALUES (?,?,?,?,?,?);",[user,pokemon,level,xp,shiny,actif], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -674,7 +675,16 @@ app.get('/api/getCompagnon/:pseudo',(req,res)=>{
     });
 });
 
+app.post('/api/updateCompagnon',(req,res)=>{
 
+    const pseudo = req.body.pseudo;
+
+    db.query("UPDATE compagnon SET actif = 0 WHERE pseudo = ?",[pseudo], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
 app.get("/api/getMyTokens/:pseudo", (req, res, next)=>{
 
     const pseudo = req.params.pseudo;
