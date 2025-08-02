@@ -665,7 +665,7 @@ app.post('/api/addCompagnon',(req,res)=>{
     });
 });
 
-app.post('/api/getCompagnon/:pseudo',(req,res)=>{
+app.get('/api/getCompagnon/:pseudo',(req,res)=>{
     const pseudo = req.params.pseudo;
     db.query("SELECT pseudo, pokemon, level, xp FROM compagnon WHERE pseudo = ?", pseudo, (err,result)=>{
         if(err) {
