@@ -603,6 +603,17 @@ app.post('/api/addCardTokenTw',(req,res)=>{
         res.send(result)
     });
 });
+
+app.post('/api/addBerry',(req,res)=>{
+
+    const berry = req.body.berry;
+    const user = req.body.user;
+    db.query("UPDATE profil SET berry = berry + ? WHERE pseudo = ?",[berry,user], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
 app.post('/api/addPkmToken',(req,res)=>{
 
     const user = req.body.user;
