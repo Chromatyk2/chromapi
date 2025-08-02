@@ -650,6 +650,19 @@ app.post('/api/addToken',(req,res)=>{
     });
 });
 
+app.post('/api/addCompagnon',(req,res)=>{
+    const user = req.body.user;
+    const pokemon = req.body.pokemon;
+    const level = req.body.level;
+    const xp = req.body.xp;
+    const pkm = req.body.pkm;
+    db.query("INSERT INTO compagnon (pseudo,pokemon, level, xp) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE pokemon=?, level = 1, xp = 0;",[user,pokemon,level,xp,pkm], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
+
 
 app.get("/api/getMyTokens/:pseudo", (req, res, next)=>{
 
