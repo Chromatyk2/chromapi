@@ -462,7 +462,7 @@ app.post('/api/removePowder',(req,res)=>{
         res.send(result)
     });
 });
-app.post('/api/removeBerry',(req,res)=>{
+app.post('/api/removeBerry/:user',(req,res)=>{
 
     const user = req.body.user;
     db.query("UPDATE profil SET berry = berry - 1 WHERE pseudo = ?",user, (err,result)=>{
