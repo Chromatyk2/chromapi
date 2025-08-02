@@ -685,6 +685,17 @@ app.post('/api/updateCompagnon',(req,res)=>{
         res.send(result)
     });
 });
+app.post('/api/activeCompagnon',(req,res)=>{
+
+    const pseudo = req.body.pseudo;
+    const pokemon = req.body.pokemon;
+
+    db.query("UPDATE compagnon SET actif = 1 WHERE pseudo = ? AND pokemon = ?",[pseudo, pokemon], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
 app.get("/api/getMyTokens/:pseudo", (req, res, next)=>{
 
     const pseudo = req.params.pseudo;
@@ -696,6 +707,7 @@ app.get("/api/getMyTokens/:pseudo", (req, res, next)=>{
             res.send(result)
         });
 });
+
 
 app.get("/api/getCanOpen/:pseudo", (req, res, next)=>{
 
