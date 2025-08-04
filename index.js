@@ -1473,16 +1473,16 @@ app.post('/api/addConsoleGame',(req,res)=>{
         console.log(result)
     });
 });
-// Route to delete a post
+app.post('/api/addGuess',(req,res)=>{
 
-app.delete('/api/delete/:id',(req,res)=>{
-    const id = req.params.id;
-
-    db.query("DELETE FROM posts WHERE id= ?", id, (err,result)=>{
+    const user = req.body.user;
+    const guess = req.body.guess;
+    db.query("INSERT INTO guess (pseudo,guess) VALUES (?,?)",[user,guess], (err,result)=>{
         if(err) {
-            console.log(err)
-        } }) })
-
+            console.log(err)   }
+        res.send(result)
+    });
+});
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
