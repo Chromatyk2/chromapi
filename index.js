@@ -466,7 +466,7 @@ app.post('/api/removeBerryLevelUp',(req,res)=>{
 
     const user = req.body.user;
     const win = req.body.win;
-    db.query("UPDATE profil SET berry = berry - ? WHERE pseudo = ?",[user,win,wins], (err,result)=>{
+    db.query("UPDATE profil SET berry = berry - ? WHERE pseudo = ?",[win,user], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
