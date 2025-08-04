@@ -1410,7 +1410,8 @@ app.get("/api/getFromId/:id", (req, res, next)=>{
                 console.log(err)
             }
             res.send(result)
-        });   });
+        });
+});
 
 // Route for creating the post
 app.options('/api/create')
@@ -1483,6 +1484,25 @@ app.post('/api/addGuess',(req,res)=>{
         res.send(result)
     });
 });
+app.get("/api/getGuess", (req, res, next)=>{
+    db.query("SELECT pseudo,guess FROM guess ",
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
+app.delete('/api/removeGuess',(req,res)=>{
+    db.query("TRUNCATE TABLE guess", (err,result)=>{
+        if(err) {
+            console.log(err)
+        }
+        res.send(result)
+    })
+})
+
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
