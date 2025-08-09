@@ -63,7 +63,7 @@ app.get("/api/getGuess/:id", (req, res, next)=>{
 });
 
 app.get("/api/getBoostersList", (req, res, next)=>{
-    db.query("SELECT name, gen, block, nameGuru, totalcards, fullName FROM booster_list ORDER BY id ASC",
+    db.query("SELECT name, gen, block, nameGuru, totalcards, fullName, blockName FROM booster_list ORDER BY id ASC",
         (err,result)=>{
             if(err) {
                 console.log(err)
