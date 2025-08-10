@@ -161,6 +161,19 @@ app.get("/api/getMyCardsBySetAndStade/:pseudo/:booster", (req, res, next)=>{
         });
 });
 
+app.get("/api/getMyCardsByStade/:pseudo", (req, res, next)=>{
+
+    const pseudo = req.params.pseudo;
+
+    db.query("SELECT DISTINCT card,booster, stade FROM cards WHERE user = ? AND stade > 0 GROUP BY card, stade", pseudo,
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
 app.get("/api/getMyNbDouble/:pseudo", (req, res, next)=>{
 
     const pseudo = req.params.pseudo;
