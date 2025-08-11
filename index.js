@@ -1360,7 +1360,7 @@ app.delete('/api/deleteGuess/:id',(req,res)=>{
 app.delete('/api/deleteShiny/:id/:pseudo',(req,res)=>{
     const id = req.params.id;
     const pseudo = req.params.pseudo;
-    db.query("DELETE FROM `captures` WHERE pseudo = ? AND pkmId = ? LIMIT 5;",[pseudo,id], (err,result)=>{
+    db.query("DELETE FROM `captures` WHERE pseudo = ? AND pkmId = ? AND shiny = 0 LIMIT 5;",[pseudo,id], (err,result)=>{
         if(err) {
             console.log(err)
         }
