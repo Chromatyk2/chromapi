@@ -6,6 +6,67 @@ const  PORT = 8080;
 app.use(express.json())
 app.use(cors());
 // Route to get all posts
+
+app.post('/api/updateIdProfil',(req,res)=>{
+
+    const idUser = req.body.idUser;
+    const user = req.body.user;
+    db.query("UPDATE profil SET idUser = ? WHERE pseudo = ?",[idUser,user], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
+app.post('/api/updateIdBadges',(req,res)=>{
+
+    const idUser = req.body.idUser;
+    const user = req.body.user;
+    db.query("UPDATE badges SET idUser = ? WHERE pseudo = ?",[idUser,user], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
+app.post('/api/updateIdCaptures',(req,res)=>{
+
+    const idUser = req.body.idUser;
+    const user = req.body.user;
+    db.query("UPDATE captures SET idUser = ? WHERE pseudo = ?",[idUser,user], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
+app.post('/api/updateIdCards',(req,res)=>{
+
+    const idUser = req.body.idUser;
+    const user = req.body.user;
+    db.query("UPDATE cards SET idUser = ? WHERE pseudo = ?",[idUser,user], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
+app.post('/api/updateIdCompagnon',(req,res)=>{
+
+    const idUser = req.body.idUser;
+    const user = req.body.user;
+    db.query("UPDATE compagnon SET idUser = ? WHERE pseudo = ?",[idUser,user], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
+app.post('/api/updateIdSkin',(req,res)=>{
+
+    const idUser = req.body.idUser;
+    const user = req.body.user;
+    db.query("UPDATE skin SET idUser = ? WHERE pseudo = ?",[idUser,user], (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
 app.get("/api/get", (req, res, next)=>{
     db.query("SELECT * FROM posts", (err,result)=>{
         if(err) {
