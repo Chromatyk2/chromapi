@@ -21,7 +21,7 @@ app.post('/api/updateIdBadges',(req,res)=>{
 
     const idUser = req.body.idUser;
     const user = req.body.user;
-    db.query("UPDATE badges SET idUser = ? WHERE pseudo = ?",[idUser,user], (err,result)=>{
+    db.query("UPDATE badges SET idUser = ? WHERE user = ?",[idUser,user], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -41,7 +41,7 @@ app.post('/api/updateIdCards',(req,res)=>{
 
     const idUser = req.body.idUser;
     const user = req.body.user;
-    db.query("UPDATE cards SET idUser = ? WHERE pseudo = ?",[idUser,user], (err,result)=>{
+    db.query("UPDATE cards SET idUser = ? WHERE user = ?",[idUser,user], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
