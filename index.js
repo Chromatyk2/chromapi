@@ -403,9 +403,10 @@ app.post('/api/addCard', function (req, res, next){
     const rarity = req.body.rarity;
     const grade = req.body.grade;
     const nb = req.body.nb;
+    const idUSer = req.body.idUser;
     const block = req.body.block;
 
-    db.query("INSERT INTO cards (user,card,booster,rarity,stade, number, block) VALUES (?,?,?,?,?,?,?)",[pseudo,idCard,booster,rarity,grade, nb, block], (err,result)=>{
+    db.query("INSERT INTO cards (user,card,booster,rarity,stade, number, block, idUSer) VALUES (?,?,?,?,?,?,?,?)",[pseudo,idCard,booster,rarity,grade, nb, block, idUSer], (err,result)=>{
         if(err) {
             console.log(err)
         }
@@ -419,9 +420,10 @@ app.post('/api/addBadge', function (req, res, next){
     const image = req.body.image;
     const stade = req.body.stade;
     const booster = req.body.booster;
+    const idUser = req.body.idUser;
     const description = req.body.description;
 
-    db.query("INSERT INTO badges (user,image,stade,description,booster) VALUES (?,?,?,?,?)",[pseudo,image,stade,description,booster], (err,result)=>{
+    db.query("INSERT INTO badges (user,image,stade,description,booster, idUser) VALUES (?,?,?,?,?,?)",[pseudo,image,stade,description,booster,idUser], (err,result)=>{
         if(err) {
             console.log(err)
         }
@@ -587,8 +589,9 @@ app.post('/api/addSkin',(req,res)=>{
 
     const skin = req.body.skin;
     const user = req.body.user;
+    const idUser = req.body.idUser;
 
-    db.query("INSERT INTO skin (pseudo,skin) VALUES (?,?) ",[user, skin], (err,result)=>{
+    db.query("INSERT INTO skin (pseudo,skin,idUser) VALUES (?,?,?) ",[user, skin, idUser], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -660,10 +663,11 @@ app.post('/api/removeBooster',(req,res)=>{
         res.send(result)
     })
 })
-app.post('/api/addCardsPoint/:pseudo',(req,res)=>{
+app.post('/api/addCardsPoint/:pseudo/:idUser',(req,res)=>{
 
     const pseudo = req.params.user;
-    db.query("INSERT INTO profil (pseudo,cardToken) VALUES (?,1) ON DUPLICATE KEY UPDATE cardToken = cardToken + 1 ",pseudo, (err,result)=>{
+    const idUser = req.params.idUser;
+    db.query("INSERT INTO profil (pseudo,cardToken,idUser) VALUES (?,1,?) ON DUPLICATE KEY UPDATE cardToken = cardToken + 1 ",[pseudo,idUser], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -672,7 +676,8 @@ app.post('/api/addCardsPoint/:pseudo',(req,res)=>{
 app.post('/api/addCardsPoint',(req,res)=>{
 
     const user = req.body.user;
-    db.query("INSERT INTO profil (pseudo,cardToken) VALUES (?,1) ON DUPLICATE KEY UPDATE cardToken = cardToken + 1 ",user, (err,result)=>{
+    const idUser = req.body.idUser;
+    db.query("INSERT INTO profil (pseudo,cardToken,idUser) VALUES (?,1,?) ON DUPLICATE KEY UPDATE cardToken = cardToken + 1 ",[user,idUser], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -683,7 +688,8 @@ app.post('/api/addCardsPointRoulette',(req,res)=>{
 
     const user = req.body.user;
     const nbToken = req.body.nbToken;
-    db.query("INSERT INTO profil (pseudo,cardToken) VALUES (?,?) ON DUPLICATE KEY UPDATE cardToken = cardToken + ? ",[user, nbToken, nbToken], (err,result)=>{
+    const idUser = req.body.idUser;
+    db.query("INSERT INTO profil (pseudo,cardToken,idUser) VALUES (?,?,?) ON DUPLICATE KEY UPDATE cardToken = cardToken + ? ",[user, nbToken,idUser, nbToken], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -693,7 +699,8 @@ app.post('/api/addPkmPointRoulette',(req,res)=>{
 
     const user = req.body.user;
     const nbToken = req.body.nbToken;
-    db.query("INSERT INTO profil (pseudo,pkmToken) VALUES (?,?) ON DUPLICATE KEY UPDATE pkmToken = pkmToken + ? ",[user,nbToken,nbToken], (err,result)=>{
+    const idUser = req.body.idUser;
+    db.query("INSERT INTO profil (pseudo,pkmToken,idUser) VALUES (?,?,?) ON DUPLICATE KEY UPDATE pkmToken = pkmToken + ? ",[user,nbToken,idUser,nbToken], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -729,7 +736,8 @@ app.post('/api/addBerry',(req,res)=>{
 app.post('/api/addPkmToken',(req,res)=>{
 
     const user = req.body.user;
-    db.query("INSERT INTO profil (pseudo,pkmToken) VALUES (?,1) ON DUPLICATE KEY UPDATE pkmToken = pkmToken + 1 ",user, (err,result)=>{
+    const idUser = req.body.idUser;
+    db.query("INSERT INTO profil (pseudo,pkmToken,idUser) VALUES (?,1,?) ON DUPLICATE KEY UPDATE pkmToken = pkmToken + 1 ",[user,idUser], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -739,7 +747,8 @@ app.post('/api/addPkmToken',(req,res)=>{
 app.post('/api/addCardsPointTw',(req,res)=>{
 
     const user = req.body.user;
-    db.query("INSERT INTO profil (pseudo,cardToken) VALUES (?,1) ON DUPLICATE KEY UPDATE cardToken = cardToken + 1 ",user, (err,result)=>{
+    const idUser = req.body.idUser;
+    db.query("INSERT INTO profil (pseudo,cardToken,idUser) VALUES (?,1,?) ON DUPLICATE KEY UPDATE cardToken = cardToken + 1 ",[user,idUser], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -750,7 +759,8 @@ app.post('/api/addXp',(req,res)=>{
     const user = req.body.user;
     const win = req.body.win;
     const wins = req.body.wins;
-    db.query("INSERT INTO profil (pseudo,xp,level,box) VALUES (?,?,1,1) ON DUPLICATE KEY UPDATE xp = xp + ? ",[user,win,wins], (err,result)=>{
+    const idUser = req.body.idUser;
+    db.query("INSERT INTO profil (pseudo,xp,level,box,idUser) VALUES (?,?,1,1,?) ON DUPLICATE KEY UPDATE xp = xp + ? ",[user,win,idUser,wins], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -791,7 +801,8 @@ app.post('/api/addPowder',(req,res)=>{
     const user = req.body.user;
     const win = req.body.win;
     const wins = req.body.wins;
-    db.query("INSERT INTO profil (pseudo,powder) VALUES (?,?) ON DUPLICATE KEY UPDATE powder = powder + ? ",[user,win,wins], (err,result)=>{
+    const idUser = req.body.idUser;
+    db.query("INSERT INTO profil (pseudo,powder,idUser) VALUES (?,?,?) ON DUPLICATE KEY UPDATE powder = powder + ? ",[user,win,idUser,wins], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -803,7 +814,8 @@ app.post('/api/addToken',(req,res)=>{
     const user = req.body.user;
     const win = req.body.win;
     const wins = req.body.wins;
-    db.query("INSERT INTO tokens (pseudo,token) VALUES (?,?) ON DUPLICATE KEY UPDATE token = token + ? ",[user,win,wins], (err,result)=>{
+    const idUser = req.body.idUser;
+    db.query("INSERT INTO tokens (pseudo,token,idUser) VALUES (?,?,?) ON DUPLICATE KEY UPDATE token = token + ? ",[user,win,idUser,wins], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -819,7 +831,8 @@ app.post('/api/addCompagnon',(req,res)=>{
     const shiny = req.body.shiny;
     const shine = req.body.shine;
     const actif = req.body.actif;
-    db.query("INSERT INTO compagnon (pseudo,pokemon, level, xp, shiny,actif) VALUES (?,?,?,?,?,?);",[user,pokemon,level,xp,shiny,actif], (err,result)=>{
+    const idUser = req.body.idUser;
+    db.query("INSERT INTO compagnon (pseudo,pokemon, level, xp, shiny,actif,idUser) VALUES (?,?,?,?,?,?,?);",[user,pokemon,level,xp,shiny,actif,idUser], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -1511,8 +1524,9 @@ app.post('/api/capture', (req, res, next)=> {
     const pkmId = req.body.pkmId;
     const shiny = req.body.shiny;
     const dateCapture = req.body.dateCapture;
+    const idUser = req.body.idUser;
 
-    db.query("INSERT INTO captures (pseudo, pkmName, pkmImage,pkmId, shiny, dateCapture) VALUES (?,?,?,?,?,?)",[pseudo,pkmName,pkmImage,pkmId,shiny,dateCapture], (err,result)=>{
+    db.query("INSERT INTO captures (pseudo, pkmName, pkmImage,pkmId, shiny, dateCapture,idUser) VALUES (?,?,?,?,?,?,?)",[pseudo,pkmName,pkmImage,pkmId,shiny,dateCapture,idUser], (err,result)=>{
         if(err) {
             console.log(err)
         }
