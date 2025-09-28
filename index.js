@@ -1141,7 +1141,7 @@ app.get("/api/getCountPropositionByTrade/:id", (req, res, next)=>{
 app.get("/api/getByUser/:pseudo", (req, res, next)=>{
 
     const pseudo = req.params.pseudo;
-    db.query("SELECT pkmId, pkmName, pkmImage,pkmId, shiny,negative, COUNT(*) as nbCapture, MAX(dateCapture) as  dateCapture FROM captures WHERE pseudo = ? GROUP BY pkmId, pkmName, pkmImage,pkmId, shiny, negative ORDER BY pkmId ASC", pseudo,
+    db.query("SELECT pkmId, pkmName, pkmImage,pkmId, shiny,negative, COUNT(*) as nbCapture, MAX(dateCapture) as  dateCapture FROM captures WHERE pseudo = ? GROUP BY pkmId, pkmName, pkmImage,pkmId, shiny, negative ORDER BY pkmId ASC, negative ASC", pseudo,
         (err,result)=>{
             if(err) {
                 console.log(err)
