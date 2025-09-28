@@ -552,7 +552,9 @@ app.post('/api/addXpPokemonLevelUp',(req,res)=>{
 
     const user = req.body.user;
     const pokemon = req.body.pokemon;
-    db.query("UPDATE compagnon SET xp = xp + 1 WHERE pseudo = ? AND pokemon = ? ",[user,pokemon], (err,result)=>{
+    const shiny = req.body.shiny;
+    const negative = req.body.negative;
+    db.query("UPDATE compagnon SET xp = xp + 1 WHERE pseudo = ? AND pokemon = ? AND shiny = ? AND negative = ? ",[user,pokemon,shiny,negative], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -770,7 +772,9 @@ app.post('/api/addXpPokemon',(req,res)=>{
 
     const user = req.body.user;
     const pokemon = req.body.pokemon;
-    db.query("UPDATE compagnon SET xp = xp + 1 WHERE pseudo = ? AND pokemon = ? ",[user,pokemon], (err,result)=>{
+    const shiny = req.body.shiny;
+    const negative = req.body.negative;
+    db.query("UPDATE compagnon SET xp = xp + 1 WHERE pseudo = ? AND pokemon = ? AND shiny = ? AND negative = ? ",[user,pokemon,shiny,negative], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -780,7 +784,9 @@ app.post('/api/addXpPokemonDix',(req,res)=>{
 
     const user = req.body.user;
     const pokemon = req.body.pokemon;
-    db.query("UPDATE compagnon SET xp = xp + 10 WHERE pseudo = ? AND pokemon = ? ",[user,pokemon], (err,result)=>{
+    const shiny = req.body.shiny;
+    const negative = req.body.negative;
+    db.query("UPDATE compagnon SET xp = xp + 10 WHERE pseudo = ? AND pokemon = ? AND shiny = ? AND negative = ? ",[user,pokemon,shiny,negative], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -790,7 +796,9 @@ app.post('/api/addXpPokemonCent',(req,res)=>{
 
     const user = req.body.user;
     const pokemon = req.body.pokemon;
-    db.query("UPDATE compagnon SET xp = xp + 100 WHERE pseudo = ? AND pokemon = ? ",[user,pokemon], (err,result)=>{
+    const shiny = req.body.shiny;
+    const negative = req.body.negative;
+    db.query("UPDATE compagnon SET xp = xp + 100 WHERE pseudo = ? AND pokemon = ? AND shiny = ? AND negative = ? ",[user,pokemon,shiny,negative], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -978,8 +986,10 @@ app.post('/api/lvlUpPokemon',(req,res)=>{
 
     const pseudo = req.body.pseudo;
     const pokemon = req.body.pokemon;
+    const shiny = req.body.shiny;
+    const negative = req.body.negative;
 
-    db.query("UPDATE compagnon SET level = level + 1, xp = 0 WHERE pseudo = ? AND pokemon = ?",[pseudo,pokemon], (err,result)=>{
+    db.query("UPDATE compagnon SET level = level + 1, xp = 0 WHERE pseudo = ? AND pokemon = ? AND shiny = ? AND negative = ?",[pseudo,pokemon,shiny,negative], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
