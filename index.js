@@ -829,10 +829,11 @@ app.post('/api/addCompagnon',(req,res)=>{
     const xp = req.body.xp;
     const pkm = req.body.pkm;
     const shiny = req.body.shiny;
+    const negative = req.body.negative;
     const shine = req.body.shine;
     const actif = req.body.actif;
     const idUser = req.body.idUser;
-    db.query("INSERT INTO compagnon (pseudo,pokemon, level, xp, shiny,actif,idUser) VALUES (?,?,?,?,?,?,?);",[user,pokemon,level,xp,shiny,actif,idUser], (err,result)=>{
+    db.query("INSERT INTO compagnon (pseudo,pokemon, level, xp, shiny,negative,actif,idUser) VALUES (?,?,?,?,?,?,?,?);",[user,pokemon,level,xp,shiny,negative, actif,idUser], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -841,7 +842,7 @@ app.post('/api/addCompagnon',(req,res)=>{
 
 app.get('/api/getCompagnon/:pseudo',(req,res)=>{
     const pseudo = req.params.pseudo;
-    db.query("SELECT pseudo, pokemon, level, xp, shiny FROM compagnon WHERE pseudo = ? AND actif = 1", pseudo, (err,result)=>{
+    db.query("SELECT pseudo, pokemon, level, xp, shiny, negative FROM compagnon WHERE pseudo = ? AND actif = 1", pseudo, (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
@@ -849,7 +850,7 @@ app.get('/api/getCompagnon/:pseudo',(req,res)=>{
 });
 app.get('/api/getCompagnonList/:pseudo',(req,res)=>{
     const pseudo = req.params.pseudo;
-    db.query("SELECT pseudo, pokemon, level, xp, shiny, actif FROM compagnon WHERE pseudo = ?", pseudo, (err,result)=>{
+    db.query("SELECT pseudo, pokemon, level, xp, shiny, actif, negative FROM compagnon WHERE pseudo = ?", pseudo, (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
