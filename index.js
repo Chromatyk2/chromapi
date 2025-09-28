@@ -870,8 +870,10 @@ app.post('/api/activeCompagnon',(req,res)=>{
 
     const pseudo = req.body.pseudo;
     const pokemon = req.body.pokemon;
+    const shiny = req.body.shiny;
+    const negative = req.body.negative;
 
-    db.query("UPDATE compagnon SET actif = 1 WHERE pseudo = ? AND pokemon = ?",[pseudo, pokemon], (err,result)=>{
+    db.query("UPDATE compagnon SET actif = 1 WHERE pseudo = ? AND pokemon = ? AND shiny = ? AND negative = ?",[pseudo, pokemon,shiny,negative], (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
