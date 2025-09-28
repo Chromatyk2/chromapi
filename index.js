@@ -1535,10 +1535,11 @@ app.post('/api/capture', (req, res, next)=> {
     const pkmImage = req.body.pkmImage;
     const pkmId = req.body.pkmId;
     const shiny = req.body.shiny;
+    const negative = req.body.negative;
     const dateCapture = req.body.dateCapture;
     const idUser = req.body.idUser;
 
-    db.query("INSERT INTO captures (pseudo, pkmName, pkmImage,pkmId, shiny, dateCapture,idUser) VALUES (?,?,?,?,?,?,?)",[pseudo,pkmName,pkmImage,pkmId,shiny,dateCapture,idUser], (err,result)=>{
+    db.query("INSERT INTO captures (pseudo, pkmName, pkmImage,pkmId, shiny,negative, dateCapture,idUser) VALUES (?,?,?,?,?,?,?,?)",[pseudo,pkmName,pkmImage,pkmId,shiny,negative,dateCapture,idUser], (err,result)=>{
         if(err) {
             console.log(err)
         }
