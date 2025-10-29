@@ -857,8 +857,7 @@ app.get('/api/getCompagnon/:pseudo',(req,res)=>{
     });
 });
 app.get('/api/getShinydex',(req,res)=>{
-    const pseudo = req.params.pseudo;
-    db.query("SELECT surnom, date, version, gen, description, lien,idPkm FROM shinydex ORDER BY idPkm ASC ", pseudo, (err,result)=>{
+    db.query("SELECT surnom, date, version, gen, description, lien,idPkm FROM shinydex ORDER BY idPkm ASC ", (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
