@@ -856,6 +856,14 @@ app.get('/api/getCompagnon/:pseudo',(req,res)=>{
         res.send(result)
     });
 });
+app.get('/api/getShinydex',(req,res)=>{
+    const pseudo = req.params.pseudo;
+    db.query("SELECT surnom, date, version, gen, description, lien,idPkm FROM shinydex ORDER BY idPkm ASC ", pseudo, (err,result)=>{
+        if(err) {
+            console.log(err)   }
+        res.send(result)
+    });
+});
 app.get('/api/getCompagnonList/:pseudo',(req,res)=>{
     const pseudo = req.params.pseudo;
     db.query("SELECT pseudo, pokemon, level, xp, shiny, actif, negative FROM compagnon WHERE pseudo = ?", pseudo, (err,result)=>{
