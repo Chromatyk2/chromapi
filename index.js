@@ -1172,7 +1172,7 @@ app.get("/api/getTotalPokemon/:pseudo", (req, res, next)=>{
 app.get("/api/getProfil/:pseudo", (req, res, next)=>{
 
     const pseudo = req.params.pseudo;
-    db.query("SELECT pseudo, xp, first_pokemon, second_pokemon, third_pokemon, fourth_pokemon, fifth_pokemon, sixth_pokemon, profil_picture, level, box, canOpen, lastOpening, pkmToken, badge, powder, berry FROM profil WHERE idUser = ?", pseudo,
+    db.query("SELECT pseudo, xp, first_pokemon, second_pokemon, third_pokemon, fourth_pokemon, fifth_pokemon, sixth_pokemon, profil_picture, level, box, canOpen, lastOpening, pkmToken, badge, powder, berry, firstNeg, secondNeg,thirdNeg,fourthNeg,fiveNeg,sixthNeg  FROM profil WHERE idUser = ?", pseudo,
         (err,result)=>{
             if(err) {
                 console.log(err)
