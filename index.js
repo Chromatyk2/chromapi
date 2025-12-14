@@ -1396,6 +1396,16 @@ app.post('/api/addBanger', function (req, res, next){
         res.send(result)
     });   })
 
+app.get("/api/getBanger", (req, res, next)=>{
+    db.query("SELECT console,viewer,number FROM banger",
+        (err,result)=>{
+            if(err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
 app.options('/api/viewersGuess')
 app.post('/api/viewersGuess', function (req, res, next){
 
