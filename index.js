@@ -1381,6 +1381,21 @@ app.post('/api/chromaGuess', function (req, res, next){
         res.send(result)
     });   })
 
+app.options('/api/addBanger')
+app.post('/api/addBanger', function (req, res, next){
+
+    const support = req.body.support;
+    const jeu = req.body.jeu;
+    const viewer = req.body.viewer;
+    const number = req.body.number;
+
+    db.query("INSERT INTO banger (console,jeu,viewer,number) VALUES (?,?,?,?)",[support,jeu,viewer,number], (err,result)=>{
+        if(err) {
+            console.log(err)
+        }
+        res.send(result)
+    });   })
+
 app.options('/api/viewersGuess')
 app.post('/api/viewersGuess', function (req, res, next){
 
