@@ -1397,7 +1397,7 @@ app.post('/api/addBanger', function (req, res, next){
     });   })
 
 app.get("/api/getBanger", (req, res, next)=>{
-    db.query("SELECT console,viewer,number FROM banger",
+    db.query("SELECT console,viewer,number FROM banger where number IS NOT NULL",
         (err,result)=>{
             if(err) {
                 console.log(err)
