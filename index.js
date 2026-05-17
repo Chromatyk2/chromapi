@@ -1680,6 +1680,18 @@ app.post('/api/addSafari', function (req, res, next) {
     });
 })
 
+app.get("/api/getSafari/:user", (req, res, next) => {
+
+    const user = req.params.user;
+    db.query("SELECT safari.user,safari.pokemon,safari.love,safari.shiny,safari.negative,pokemon.name,pokemon.tier FROM `safari` JOIN pokemon ON pokemon.number=safari.pokemon WHERE safari.user = ?;", user,
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
