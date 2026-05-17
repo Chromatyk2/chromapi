@@ -1692,6 +1692,15 @@ app.get("/api/getSafari/:user", (req, res, next) => {
             res.send(result)
         });
 });
+app.delete('/api/deleteSafari/:user', (req, res) => {
+    const user = req.params.user;
+    db.query("DELETE FROM `safari` WHERE `safari`.`user` = ?", user, (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    })
+})
 
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
