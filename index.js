@@ -1650,8 +1650,8 @@ app.delete('/api/removeGuess',(req,res)=>{
 })
 
 //Version 2
-app.get("/api/getRandomPokemon", (req, res, next) => {
-    const tier = req.body.tier;
+app.get("/api/getRandomPokemon/:tier", (req, res, next) => {
+    const id = req.params.tier;
     db.query("SELECT name, tier, number FROM pokemon WHERE tier= ? ORDER BY RAND() LIMIT 1 ",tier,
         (err, result) => {
             if (err) {
