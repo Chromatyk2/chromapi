@@ -1649,6 +1649,18 @@ app.delete('/api/removeGuess',(req,res)=>{
     })
 })
 
+//Version 2
+app.get("/api/getRandomPokemon", (req, res, next) => {
+    const tier = req.body.tier;
+    db.query("SELECT name, tier, number FROM pokemon WHERE tier= ? ORDER BY RAND() LIMIT 1 ",tier,
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
