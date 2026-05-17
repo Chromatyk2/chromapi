@@ -1668,9 +1668,9 @@ app.post('/api/addSafari', function (req, res, next) {
 
     const user = req.body.user;
     const pokemon = req.body.pokemon;
-    const love = req.body.booster;
-    const shiny = req.body.rarity;
-    const negative = req.body.grade;
+    const love = req.body.love;
+    const shiny = req.body.shiny;
+    const negative = req.body.negative;
 
     db.query("INSERT INTO safari (user,pokemon,love,shiny,negative) VALUES (?,?,?,?,?)", [user, pokemon, love, shiny, negative], (err, result) => {
         if (err) {
