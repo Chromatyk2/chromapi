@@ -411,7 +411,8 @@ app.post('/api/addCard', function (req, res, next){
             console.log(err)
         }
         res.send(result)
-    });   })
+    });
+})
 
 app.options('/api/addBadge')
 app.post('/api/addBadge', function (req, res, next){
@@ -1661,6 +1662,23 @@ app.get("/api/getRandomPokemon/:tier", (req, res, next) => {
             res.send(result)
         });
 });
+
+app.options('/api/addSafari')
+app.post('/api/addSafari', function (req, res, next) {
+
+    const user = req.body.user;
+    const pokemon = req.body.pokemon;
+    const love = req.body.booster;
+    const shiny = req.body.rarity;
+    const negative = req.body.grade;
+
+    db.query("INSERT INTO safari (user,pokemon,love,shiny,negative) VALUES (?,?,?,?,?)", [user, pokemon, love, shiny, negative], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+})
 
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
