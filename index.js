@@ -1663,23 +1663,20 @@ app.get("/api/getRandomPokemon/:tier", (req, res, next) => {
         });
 });
 
-app.options('/api/addSafari')
-app.post('/api/addSafari', function (req, res, next) {
-
+app.post('/api/addSafari', (req, res) => {
     const user = req.body.user;
     const pokemon = req.body.pokemon;
     const love = req.body.love;
     const shiny = req.body.shiny;
     const negative = req.body.negative;
     const tier = req.body.tier;
-
-    db.query("INSERT INTO safari (user,pokemon,love,shiny,negative,tier) VALUES (?,?,?,?,?,?)", [user, pokemon, love, shiny, negative,tier], (err, result) => {
+    db.query("INSERT INTO safari (user, pokemon, love,shiny,negative,tier) VALUES(?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE pokemon = VALUES(pokemon), love = VALUES(love), shiny = VALUES(shiny), negative = VALUES(negative), tier = VALUES(tier); ", [user, pokemon, love, shiny, negative, tier], (err, result) => {
         if (err) {
             console.log(err)
         }
         res.send(result)
     });
-})
+});
 
 app.get("/api/getSafari/:user", (req, res, next) => {
 
