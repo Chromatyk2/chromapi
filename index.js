@@ -1675,7 +1675,7 @@ app.post('/api/addHoney', (req, res) => {
     const honey = req.body.honey;
     const honeys = req.body.honeys;
     const user = req.body.user;
-    db.query("UPDATE zxd_inventaire SET ? = ? + 1 WHERE user = ?", [honey, honeys, user], (err, result) => {
+    db.query("UPDATE zxd_inventaire SET ?? = ? + 1 WHERE user = ?", [honey, honeys, user], (err, result) => {
         if (err) {
             console.log(err)
         }
