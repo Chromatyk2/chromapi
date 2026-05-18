@@ -1672,9 +1672,9 @@ app.post('/api/createInventory', (req, res) => {
     });
 });
 app.post('/api/addHoney', (req, res) => {
-    const user = req.params.user;
-    const item = req.params.item;
-    const slug = req.params.slug;
+    const user = req.body.user;
+    const item = req.body.item;
+    const slug = req.body.slug;
     db.query("INSERT INTO zxd_inventaire (user, item, quantity,slug) VALUES(?, '?', 0, '?') ON DUPLICATE KEY UPDATE quantity = quantity+1", [user, item, slug], (err, result) => {
         if (err) {
             console.log(err)
