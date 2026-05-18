@@ -1664,7 +1664,7 @@ app.get("/api/getRandomPokemon/:tier", (req, res, next) => {
 });
 app.post('/api/createInventory', (req, res) => {
     const user = req.body.user;
-    db.query("INSERT INTO zxd_safari (user, box, honey, legendary,shiny,negative,small,medium,large,pokeball,greatball,ultraball,masterball) VALUES(?, 0, 0, 0, 0, 0,0,0,0,0,0,0,0) ON DUPLICATE KEY UPDATE user = VALUES(user); ", [user], (err, result) => {
+    db.query("INSERT INTO zxd_inventaire (user, box, honey, legendary,shiny,negative,small,medium,large,pokeball,greatball,ultraball,masterball) VALUES(?, 0, 0, 0, 0, 0,0,0,0,0,0,0,0) ON DUPLICATE KEY UPDATE user = VALUES(user); ", [user], (err, result) => {
         if (err) {
             console.log(err)
         }
