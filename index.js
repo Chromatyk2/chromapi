@@ -1671,7 +1671,7 @@ app.post('/api/createInventory', (req, res) => {
         res.send(result)
     });
 });
-app.post('/api/addHoney', (req, res) => {
+app.post('/api/addItem', (req, res) => {
     const user = req.body.user;
     const item = req.body.item;
     const slug = req.body.slug;
