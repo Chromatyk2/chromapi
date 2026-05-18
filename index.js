@@ -1676,7 +1676,7 @@ app.post('/api/addItem', (req, res) => {
 app.post('/api/removeItem', (req, res) => {
     const user = req.body.user;
     const slug = req.body.slug;
-    db.query("UPDATE zxd_inventaire SET quantity = quantity - 1 WHERE pseudo = ? AND slug = ?", [user, slug], (err, result) => {
+    db.query("UPDATE zxd_inventaire SET quantity = quantity - 1 WHERE user = ? AND slug = ?", [user, slug], (err, result) => {
         if (err) {
             console.log(err)
         }
