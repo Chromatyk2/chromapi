@@ -1672,7 +1672,8 @@ app.post('/api/addItem', (req, res) => {
         }
         res.send(result)
     });
-}); app.post('/api/removeItem', (req, res) => {
+}); 
+app.post('/api/removeItem', (req, res) => {
     const user = req.body.user;
     const slug = req.body.slug;
     db.query("UPDATE zxd_inventaire SET quantity = quantity - 1 WHERE pseudo = ? AND slug = ?", [user, slug], (err, result) => {
@@ -1680,7 +1681,8 @@ app.post('/api/addItem', (req, res) => {
             console.log(err)
         }
         res.send(result)
-    })
+    });
+});
 app.get("/api/getInventory/:user", (req, res, next) => {
 
     const user = req.params.user;
