@@ -1662,15 +1662,6 @@ app.get("/api/getRandomPokemon/:tier", (req, res, next) => {
             res.send(result)
         });
 });
-app.post('/api/createInventory', (req, res) => {
-    const user = req.body.user;
-    db.query("INSERT INTO zxd_inventaire (user, box, honey, legendary,shiny,negative,small,medium,large,pokeball,greatball,ultraball,masterball) VALUES(?, 0, 0, 0, 0, 0,0,0,0,0,0,0,0) ON DUPLICATE KEY UPDATE user = VALUES(user); ", [user], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
 app.post('/api/addItem', (req, res) => {
     const user = req.body.user;
     const item = req.body.item;
@@ -1681,7 +1672,15 @@ app.post('/api/addItem', (req, res) => {
         }
         res.send(result)
     });
-});
+}); app.post('/api/removeItem', (req, res) => {
+    const user = req.body.user;
+    const slug = req.body.slug;
+    db.query("UPDATE zxd_inventaire SET quantity = quantity - 1 WHERE pseudo = ? AND slug = ?", [user, slug], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    })
 app.get("/api/getInventory/:user", (req, res, next) => {
 
     const user = req.params.user;
