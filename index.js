@@ -1691,7 +1691,7 @@ app.get("/api/getSafari/:user", (req, res, next) => {
 });
 app.delete('/api/deleteSafari/:user', (req, res) => {
     const user = req.params.user;
-    db.query("DELETE FROM `zxd_safari` WHERE `safari`.`user` = ?", user, (err, result) => {
+    db.query("DELETE FROM `zxd_safari` WHERE `zxd_safari`.`user` = ?", user, (err, result) => {
         if (err) {
             console.log(err)
         }
