@@ -1654,7 +1654,7 @@ app.delete('/api/removeGuess',(req,res)=>{
 app.get("/api/getRandomPokemon/:tier", (req, res, next) => {
 
     const tier = req.params.tier;
-    db.query("SELECT name, tier, number FROM pokemon WHERE tier= ? ORDER BY RAND() LIMIT 1", tier,
+    db.query("SELECT name, tier, number FROM zxd_pokemon WHERE tier= ? ORDER BY RAND() LIMIT 1", tier,
         (err, result) => {
             if (err) {
                 console.log(err)
@@ -1670,7 +1670,7 @@ app.post('/api/addSafari', (req, res) => {
     const shiny = req.body.shiny;
     const negative = req.body.negative;
     const tier = req.body.tier;
-    db.query("INSERT INTO safari (user, pokemon, love,shiny,negative,tier) VALUES(?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE pokemon = VALUES(pokemon), love = VALUES(love), shiny = VALUES(shiny), negative = VALUES(negative), tier = VALUES(tier); ", [user, pokemon, love, shiny, negative, tier], (err, result) => {
+    db.query("INSERT INTO zxd_safari (user, pokemon, love,shiny,negative,tier) VALUES(?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE pokemon = VALUES(pokemon), love = VALUES(love), shiny = VALUES(shiny), negative = VALUES(negative), tier = VALUES(tier); ", [user, pokemon, love, shiny, negative, tier], (err, result) => {
         if (err) {
             console.log(err)
         }
@@ -1681,7 +1681,7 @@ app.post('/api/addSafari', (req, res) => {
 app.get("/api/getSafari/:user", (req, res, next) => {
 
     const user = req.params.user;
-    db.query("SELECT safari.user,safari.pokemon,safari.love,safari.shiny,safari.negative,pokemon.name,pokemon.tier FROM `safari` JOIN pokemon ON pokemon.number=safari.pokemon WHERE safari.user = ?;", user,
+    db.query("SELECT zxd_safari.user,zxd_safari.pokemon,zxd_safari.love,zxd_safari.shiny,zxd_safari.negative,zxd_pokemon.name,zxd_pokemon.tier FROM `zxd_safari` JOIN zxd_pokemon ON zxd_pokemon.number=zxd_safari.pokemon WHERE zxd_safari.user = ?;", user,
         (err, result) => {
             if (err) {
                 console.log(err)
@@ -1691,7 +1691,7 @@ app.get("/api/getSafari/:user", (req, res, next) => {
 });
 app.delete('/api/deleteSafari/:user', (req, res) => {
     const user = req.params.user;
-    db.query("DELETE FROM `safari` WHERE `safari`.`user` = ?", user, (err, result) => {
+    db.query("DELETE FROM `zxd_safari` WHERE `safari`.`user` = ?", user, (err, result) => {
         if (err) {
             console.log(err)
         }
