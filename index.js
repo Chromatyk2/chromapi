@@ -1672,10 +1672,10 @@ app.post('/api/createInventory', (req, res) => {
     });
 });
 app.post('/api/addHoney', (req, res) => {
-    const honey = req.body.honey;
-    const honeys = req.body.honeys;
-    const user = req.body.user;
-    db.query("UPDATE zxd_inventaire SET ? = ? + 1 WHERE user = ?", [honey, honeys, user], (err, result) => {
+    const user = req.params.user;
+    const item = req.params.item;
+    const slug = req.params.slug;
+    db.query("INSERT INTO zxd_inventaire (user, item, quantity,slug) VALUES(?, '?', 0, '?') ON DUPLICATE KEY UPDATE quantity = quantity+1", [user, item, slug], (err, result) => {
         if (err) {
             console.log(err)
         }
@@ -1685,7 +1685,7 @@ app.post('/api/addHoney', (req, res) => {
 app.get("/api/getInventory/:user", (req, res, next) => {
 
     const user = req.params.user;
-    db.query("SELECT box, honey, legendary,shiny,negative,small,medium,large,pokeball,greatball,ultraball,masterball FROM zxd_inventaire WHERE user= ? ", user,
+    db.query("SELECT item, quantity, slug FROM zxd_inventaire WHERE user= ? ", user,
         (err, result) => {
             if (err) {
                 console.log(err)
