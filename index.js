@@ -1733,7 +1733,7 @@ app.delete('/api/deleteSafari/:user', (req, res) => {
         res.send(result)
     })
 })
-app.post('/api/getPokemon', (req, res) => {
+app.post('/api/addPokemon', (req, res) => {
     const user = req.body.user;
     const pokemon = req.body.pokemon;
     const shiny = req.body.shiny;
