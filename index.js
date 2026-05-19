@@ -1728,7 +1728,7 @@ app.post('/api/addSafari', (req, res) => {
 app.get("/api/getSafari/:user", (req, res, next) => {
 
     const user = req.params.user;
-    db.query("SELECT zxd_safari.user,zxd_safari.pokemon,zxd_safari.love,zxd_safari.shiny,zxd_safari.negative,zxd_pokemon.name,zxd_pokemon.tier FROM `zxd_safari` JOIN zxd_pokemon ON zxd_pokemon.number=zxd_safari.pokemon WHERE zxd_safari.user = ?;", user,
+    db.query("SELECT zxd_safari.user,zxd_safari.pokemon,zxd_safari.love,zxd_safari.shiny,zxd_safari.negative,zxd_pokemon.name,zxd_pokemon.tier,zxd_pokemon.gen, FROM `zxd_safari` JOIN zxd_pokemon ON zxd_pokemon.number=zxd_safari.pokemon WHERE zxd_safari.user = ?;", user,
         (err, result) => {
             if (err) {
                 console.log(err)
