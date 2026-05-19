@@ -858,7 +858,7 @@ app.get('/api/getCompagnon/:pseudo',(req,res)=>{
     });
 });
 app.get('/api/getShinydex',(req,res)=>{
-    db.query("SELECT id,pokemon, surnom, date, version, gen, description, lien,idPkm FROM shinydex ORDER BY idPkm ASC ", (err,result)=>{
+    db.query("SELECT id,pokemon, surnom, date, version, gen, description, lien,idPkm FROM zxd_shinydex ORDER BY idPkm ASC ", (err,result)=>{
         if(err) {
             console.log(err)   }
         res.send(result)
