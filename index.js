@@ -1701,7 +1701,7 @@ app.get("/api/getInventory/:user", (req, res, next) => {
 app.get("/api/getRandomPokemon/:tier", (req, res, next) => {
 
     const tier = req.params.tier;
-    db.query("SELECT name, tier, number FROM zxd_pokemon WHERE tier= ? ORDER BY RAND() LIMIT 1", tier,
+    db.query("SELECT name, tier, number,gen FROM zxd_pokemon WHERE tier= ? ORDER BY RAND() LIMIT 1", tier,
         (err, result) => {
             if (err) {
                 console.log(err)
@@ -1748,10 +1748,11 @@ app.delete('/api/deleteSafari/:user', (req, res) => {
 app.post('/api/addPokemon', (req, res) => {
     const user = req.body.user;
     const pokemon = req.body.pokemon;
+    const gen = req.body.gen;
     const shiny = req.body.shiny;
     const negative = req.body.negative;
     const date = req.body.date;
-    db.query("INSERT INTO zxd_capture (user, pokemon, shiny, negative, date) VALUES(?, ?, ?, ?, ?)", [user, pokemon, shiny, negative, date], (err, result) => {
+    db.query("INSERT INTO zxd_capture (user, pokemon,gen, shiny, negative, date) VALUES(?, ?,?, ?, ?, ?)", [user, pokemon,gen, shiny, negative, date], (err, result) => {
         if (err) {
             console.log(err)
         }
@@ -1763,7 +1764,7 @@ app.post('/api/addPokemon', (req, res) => {
 app.get("/api/getPokedex/:user", (req, res, next) => {
 
     const user = req.params.user;
-    db.query("SELECT pokemon, shiny, negative, date FROM `zxd_capture` WHERE user = ?;", user,
+    db.query("SELECT pokemon,gen, shiny, negative, date FROM `zxd_capture` WHERE user = ?;", user,
         (err, result) => {
             if (err) {
                 console.log(err)
