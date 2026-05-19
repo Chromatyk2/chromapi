@@ -1758,6 +1758,20 @@ app.post('/api/addPokemon', (req, res) => {
         res.send(result)
     });
 });
+
+/* Pokedex */
+app.get("/api/getPokedex/:user", (req, res, next) => {
+
+    const user = req.params.user;
+    db.query("SELECT pokemon, shiny, negative, date FROM `zxd_capture` WHERE user = ?;", user,
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
