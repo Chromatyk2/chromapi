@@ -1663,6 +1663,18 @@ app.post('/api/addItem', (req, res) => {
         res.send(result)
     });
 });
+app.post('/api/addCandy', (req, res) => {
+    const user = req.body.user;
+    const item = req.body.item;
+    const slug = req.body.slug;
+    const quantity = req.body.quantity;
+    db.query("INSERT INTO zxd_inventaire (user, item, quantity,slug) VALUES(?, ?, 1, ?) ON DUPLICATE KEY UPDATE quantity = quantity+?", [user, item, slug, quantity], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
 app.post('/api/removeItem', (req, res) => {
     const user = req.body.user;
     const slug = req.body.slug;
