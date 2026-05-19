@@ -1764,7 +1764,7 @@ app.post('/api/addPokemon', (req, res) => {
 app.get("/api/getPokedex/:user", (req, res, next) => {
 
     const user = req.params.user;
-    db.query("SELECT pokemon,gen, shiny, negative, date FROM `zxd_capture` WHERE user = ?;", user,
+    db.query("SSELECT zxd_capture.pokemon,zxd_capture.gen, zxd_capture.shiny, zxd_capture.negative, zxd_capture.date, zxd_pokemon.name FROM `zxd_capture` JOIN zxd_pokemon ON zxd_pokemon.number = zxd_capture.pokemon WHERE user = ?;", user,
         (err, result) => {
             if (err) {
                 console.log(err)
