@@ -1651,17 +1651,7 @@ app.delete('/api/removeGuess',(req,res)=>{
 })
 
 //Version 2
-app.get("/api/getRandomPokemon/:tier", (req, res, next) => {
-
-    const tier = req.params.tier;
-    db.query("SELECT name, tier, number FROM zxd_pokemon WHERE tier= ? ORDER BY RAND() LIMIT 1", tier,
-        (err, result) => {
-            if (err) {
-                console.log(err)
-            }
-            res.send(result)
-        });
-});
+/** Inventaire **/
 app.post('/api/addItem', (req, res) => {
     const user = req.body.user;
     const item = req.body.item;
@@ -1672,7 +1662,7 @@ app.post('/api/addItem', (req, res) => {
         }
         res.send(result)
     });
-}); 
+});
 app.post('/api/removeItem', (req, res) => {
     const user = req.body.user;
     const slug = req.body.slug;
@@ -1694,6 +1684,20 @@ app.get("/api/getInventory/:user", (req, res, next) => {
             res.send(result)
         });
 });
+
+/** Safari **/
+app.get("/api/getRandomPokemon/:tier", (req, res, next) => {
+
+    const tier = req.params.tier;
+    db.query("SELECT name, tier, number FROM zxd_pokemon WHERE tier= ? ORDER BY RAND() LIMIT 1", tier,
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
 app.post('/api/addSafari', (req, res) => {
     const user = req.body.user;
     const pokemon = req.body.pokemon;
@@ -1729,7 +1733,19 @@ app.delete('/api/deleteSafari/:user', (req, res) => {
         res.send(result)
     })
 })
-
+app.post('/api/getPokemon', (req, res) => {
+    const user = req.body.user;
+    const pokemon = req.body.pokemon;
+    const shiny = req.body.shiny;
+    const negative = req.body.negative;
+    const date = req.body.date;
+    db.query("INSERT INTO zxd_capture (user, pokemon, shiny, negative, date) VALUES(?, ?, ?, ?, ?)", [user, pokemon, shiny, negative, date], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
