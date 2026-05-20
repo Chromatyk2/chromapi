@@ -1866,7 +1866,22 @@ app.get("/api/getMaxLevelCompagnon/:user", (req, res, next) => {
             res.send(result)
         });
 });
-
+app.post('/api/nexCompagnon', (req, res) => {
+    const user = req.body.user;
+    const number = req.body.number;
+    const pokemon = req.body.pokemon;
+    const shiny = req.body.shiny;
+    const negative = req.body.negative;
+    const level = req.body.level;
+    const xp = req.body.xp;
+    const active = req.body.active;
+    db.query("INSERT INTO `zxd_compagnon` (`user`, `number`, `pokemon`, `shiny`, `negative`, `level`, `xp`, `active`) VALUES (?, ?, ?, ?, ?, '?, ?, ?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), pokemon = VALUES(pokemon), shiny = VALUES(shiny), negative = VALUES(negative), level = VALUES(level), xp = VALUES(xp), active = VALUES(active);", [user, number, pokemon, shiny, negative, level, xp,active], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
 /* Leaderboard */
 app.get("/api/getLeaderBoard", (req, res, next) => {
     db.query("SELECT zxd_profil.login, zxd_profil.level, zxd_profil.skin,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_profil LEFT JOIN zxd_compagnon ON zxd_compagnon.number = zxd_profil.compagnon ORDER BY zxd_profil.level DESC ;",
