@@ -1842,6 +1842,19 @@ app.get("/api/getPokedex/:user", (req, res, next) => {
         });
 });
 
+app.get("/api/getActiveCompagnon/:user", (req, res, next) => {
+
+    const user = req.params.user;
+    db.query("SELECT zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level FROM zxd_compagnon JOIN zxd_profil ON zxd_compagnon.user = zxd_profil.user WHERE zxd_profil.user = ?;", user,
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
+/* Compagnon */
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
