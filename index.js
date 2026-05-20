@@ -1667,7 +1667,7 @@ app.post('/api/addProfil', (req, res) => {
     });
 });
 
-app.post('/api/addXp', (req, res) => {
+app.post('/api/updateXp', (req, res) => {
     const user = req.body.user;
     const xp = req.body.xp;
     db.query("UPDATE zxd_profil SET xp = xp + ? WHERE user = ?", [xp, user], (err, result) => {
