@@ -1752,7 +1752,7 @@ app.post('/api/addPokemon', (req, res) => {
     const shiny = req.body.shiny;
     const negative = req.body.negative;
     const date = req.body.date;
-    db.query("INSERT INTO zxd_capture (user, pokemon,gen, shiny, negative, date) VALUES(?, ?,?, ?, ?, ?)", [user, pokemon,gen, shiny, negative, date], (err, result) => {
+    db.query("INSERT INTO zxd_capture (user, pokemon, gen,shiny,negative,date) VALUES(?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE shiny = VALUES(shiny), negative = VALUES(negative), date = VALUES(date);", [user, pokemon,gen, shiny, negative, date], (err, result) => {
         if (err) {
             console.log(err)
         }
