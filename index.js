@@ -1666,6 +1666,17 @@ app.post('/api/addProfil', (req, res) => {
         res.send(result)
     });
 });
+
+app.post('/api/addXp', (req, res) => {
+    const user = req.body.user;
+    const xp = req.body.xp;
+    db.query("UPDATE zxd_profil SET xp = xp + ? WHERE user = ?", [xp, user], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
 app.post('/api/addNewSkin', (req, res) => {
     const user = req.body.user;
     db.query("INSERT INTO `zxd_skin` (`skin`, `user`) VALUES (ROUND( RAND() * 2154 ) + 1, ?)", [user], (err, result) => {
