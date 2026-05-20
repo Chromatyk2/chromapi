@@ -1866,6 +1866,15 @@ app.get("/api/getMaxLevelCompagnon/:user", (req, res, next) => {
             res.send(result)
         });
 });
+app.post('/api/updateCurrentCompagnon', (req, res) => {
+    const user = req.body.user;
+    db.query("UPDATE `zxd_compagnon`SET active = 0 WHERE user = ?", [user], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
 app.post('/api/newCompagnon', (req, res) => {
     const user = req.body.user;
     const number = req.body.number;
@@ -1881,6 +1890,16 @@ app.post('/api/newCompagnon', (req, res) => {
         }
         res.send(result)
     });
+});
+app.get("/api/getCurrentCompagnon/:user", (req, res, next) => {
+    const user = req.params.user;
+    db.query("SELECT zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_compagnon WHERE zxd_compagnon.user = ? AND zxd_compagnon.active = 1 ORDER BY id DESC LIMIT 1;", [user],
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
 });
 /* Leaderboard */
 app.get("/api/getLeaderBoard", (req, res, next) => {
