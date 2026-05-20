@@ -1667,7 +1667,7 @@ app.post('/api/addProfil', (req, res) => {
     });
 });
 
-app.get("/api/getSkin/:id", (req, res, next) => {
+app.get("/api/getSkins/:id", (req, res, next) => {
 
     const id = req.params.id;
     db.query("SELECT zxd_skin FROM skin WHERE user = ?", id,
