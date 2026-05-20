@@ -1666,6 +1666,15 @@ app.post('/api/addProfil', (req, res) => {
         res.send(result)
     });
 });
+app.post('/api/addNewSkin', (req, res) => {
+    const user = req.body.user;
+    db.query("INSERT INTO `zxd_skin` (`skin`, `user`) VALUES (ROUND( RAND() * 2154 ) + 1, ?)", [user], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
 
 app.get("/api/getTrainers/:id", (req, res, next) => {
 
