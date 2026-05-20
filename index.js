@@ -1651,6 +1651,45 @@ app.delete('/api/removeGuess',(req,res)=>{
 })
 
 //Version 2
+
+/* Profil */
+app.post('/api/addProfil', (req, res) => {
+    const user = req.body.user;
+    const login = req.body.login;
+    const level = req.body.level;
+    const xp = req.body.xp;
+    const skin = req.body.skin;
+    db.query("INSERT INTO zxd_profil (user, login, level,xp,skin) VALUES(?, ?, ?, ?,?) ON DUPLICATE KEY UPDATE user = VALUES(user),login = VALUES(login),level = VALUES(level),xp = VALUES(xp),skin = VALUES(skin),", [user, login, level,xp,skin], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
+
+app.get("/api/getSkin/:id", (req, res, next) => {
+
+    const id = req.params.id;
+    db.query("SELECT zxd_skin FROM skin WHERE user = ?", id,
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+app.get("/api/getProfil/:id", (req, res, next) => {
+
+    const id = req.params.id;
+    db.query("SELECT zxd_profil.user,zxd_profil.login,zxd_profil.level,zxd_profil.xp,zxd_profil.skin,zxd_capture.pokemon,zxd_capture.shiny,zxd_capture.negative FROM zxd_profil JOIN zxd_capture ON zxd_capture.user = zxd_profil.user WHERE zxd_profil.user = ?", id,
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
 /** Inventaire **/
 app.post('/api/addItem', (req, res) => {
     const user = req.body.user;
