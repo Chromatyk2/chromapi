@@ -1659,7 +1659,7 @@ app.post('/api/addProfil', (req, res) => {
     const level = req.body.level;
     const xp = req.body.xp;
     const skin = req.body.skin;
-    db.query("INSERT INTO zxd_profil (user, login, level,xp,skin) VALUES(?, ?, ?, ?,?) ON DUPLICATE KEY UPDATE user = VALUES(user),login = VALUES(login),level = VALUES(level),xp = VALUES(xp),skin = VALUES(skin),", [user, login, level,xp,skin], (err, result) => {
+    db.query("INSERT INTO zxd_profil (user, login, level,xp,skin) VALUES(?, ?, ?, ?,?) ON DUPLICATE KEY UPDATE user = VALUES(user),login = VALUES(login),level = VALUES(level),xp = VALUES(xp),skin = VALUES(skin)", [user, login, level,xp,skin], (err, result) => {
         if (err) {
             console.log(err)
         }
@@ -1667,7 +1667,7 @@ app.post('/api/addProfil', (req, res) => {
     });
 });
 
-app.get("/api/getSkins/:id", (req, res, next) => {
+app.get("/api/getTrainers/:id", (req, res, next) => {
 
     const id = req.params.id;
     db.query("SELECT user, skin FROM zxd_skin WHERE user = ?", id,
