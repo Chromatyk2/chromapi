@@ -1679,8 +1679,8 @@ app.post('/api/updateXp', (req, res) => {
 });
 app.post('/api/updateLevel', (req, res) => {
     const user = req.body.user;
-    const xp = req.body.xp;
-    db.query("UPDATE zxd_profil SET level = ? WHERE user = ?", [xp, user], (err, result) => {
+    const level = req.body.level;
+    db.query("UPDATE zxd_profil SET level = ? WHERE user = ?", [level, user], (err, result) => {
         if (err) {
             console.log(err)
         }
