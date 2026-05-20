@@ -1678,7 +1678,7 @@ app.get("/api/getSkin/:id", (req, res, next) => {
             res.send(result)
         });
 });
-app.get("/api/getProfil/:id", (req, res, next) => {
+app.get("/api/getUser/:id", (req, res, next) => {
 
     const id = req.params.id;
     db.query("SELECT zxd_profil.user,zxd_profil.login,zxd_profil.level,zxd_profil.xp,zxd_profil.skin,zxd_capture.pokemon,zxd_capture.shiny,zxd_capture.negative FROM zxd_profil JOIN zxd_capture ON zxd_capture.user = zxd_profil.user WHERE zxd_profil.user = ?", id,
