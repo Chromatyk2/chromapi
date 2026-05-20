@@ -1866,7 +1866,7 @@ app.get("/api/getMaxLevelCompagnon/:user", (req, res, next) => {
             res.send(result)
         });
 });
-app.post('/api/nexCompagnon', (req, res) => {
+app.post('/api/newCompagnon', (req, res) => {
     const user = req.body.user;
     const number = req.body.number;
     const pokemon = req.body.pokemon;
