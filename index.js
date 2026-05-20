@@ -1866,6 +1866,18 @@ app.get("/api/getMaxLevelCompagnon/:user", (req, res, next) => {
             res.send(result)
         });
 });
+
+/* Leaderboard */
+app.get("/api/getLeaderBoard", (req, res, next) => {
+    db.query("SELECT zxd_profil.login, zxd_profil.level, zxd_profil.skin,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_profil JOIN zxd_compagnon ON zxd_compagnon.number = zxd_profil.compagnon;",
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
