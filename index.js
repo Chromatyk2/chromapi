@@ -1670,7 +1670,7 @@ app.post('/api/addProfil', (req, res) => {
 app.get("/api/getSkins/:id", (req, res, next) => {
 
     const id = req.params.id;
-    db.query("SELECT skin FROM zxd_skin WHERE user = ?", id,
+    db.query("SELECT user, skin FROM zxd_skin WHERE user = ?", id,
         (err, result) => {
             if (err) {
                 console.log(err)
