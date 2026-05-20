@@ -1856,7 +1856,7 @@ app.get("/api/getActiveCompagnon/:user/:number", (req, res, next) => {
         });
 });
 
-app.get("/api/getMaxLevelCompagnon/:user/:number", (req, res, next) => {
+app.get("/api/getMaxLevelCompagnon/:user", (req, res, next) => {
     const user = req.params.user;
     db.query("SELECT zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_compagnon WHERE zxd_compagnon.user = ? AND zxd_compagnon.level = 100;", [user],
         (err, result) => {
