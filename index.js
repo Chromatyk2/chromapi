@@ -1884,7 +1884,7 @@ app.post('/api/newCompagnon', (req, res) => {
     const level = req.body.level;
     const xp = req.body.xp;
     const active = req.body.active;
-    db.query("INSERT INTO `zxd_compagnon` (`user`, `number`, `pokemon`, `shiny`, `negative`, `level`, `xp`, `active`) VALUES (?, ?, ?, ?, ?, '?, ?, ?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), pokemon = VALUES(pokemon), shiny = VALUES(shiny), negative = VALUES(negative), level = VALUES(level), xp = VALUES(xp), active = VALUES(active);", [user, number, pokemon, shiny, negative, level, xp,active], (err, result) => {
+    db.query("INSERT INTO `zxd_compagnon` (`user`, `number`, `pokemon`, `shiny`, `negative`, `level`, `xp`, `active`) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), pokemon = VALUES(pokemon), shiny = VALUES(shiny), negative = VALUES(negative), level = VALUES(level), xp = VALUES(xp), active = VALUES(active);", [user, number, pokemon, shiny, negative, level, xp,active], (err, result) => {
         if (err) {
             console.log(err)
         }
