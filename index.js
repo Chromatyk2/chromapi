@@ -1843,10 +1843,11 @@ app.get("/api/getPokedex/:user", (req, res, next) => {
         });
 });
 
+/* Compagnon */
 app.get("/api/getActiveCompagnon/:user/:number", (req, res, next) => {
     const user = req.params.user;
     const number = req.params.number;
-    db.query("SELECT zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_compagnon WHERE zxd_compagnon.user = ? AND zxd_compagnon.number = ?;", [user,number],
+    db.query("SELECT zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_compagnon WHERE zxd_compagnon.user = ? AND zxd_compagnon.number = ?;", [user, number],
         (err, result) => {
             if (err) {
                 console.log(err)
@@ -1855,7 +1856,16 @@ app.get("/api/getActiveCompagnon/:user/:number", (req, res, next) => {
         });
 });
 
-/* Compagnon */
+app.get("/api/getMaxLevelCompagnon/:user/:number", (req, res, next) => {
+    const user = req.params.user;
+    db.query("SELECT zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_compagnon WHERE zxd_compagnon.user = ? AND zxd_compagnon.level = 100;", [user],
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
