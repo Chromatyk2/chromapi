@@ -1659,7 +1659,8 @@ app.post('/api/addProfil', (req, res) => {
     const level = req.body.level;
     const xp = req.body.xp;
     const skin = req.body.skin;
-    db.query("INSERT INTO zxd_profil (user, login, level,xp,skin) VALUES(?, ?, ?, ?,?) ON DUPLICATE KEY UPDATE user = VALUES(user),login = VALUES(login),level = VALUES(level),xp = VALUES(xp),skin = VALUES(skin)", [user, login, level,xp,skin], (err, result) => {
+    const compagnon = req.body.compagnon;
+    db.query("INSERT INTO zxd_profil (user, login, level,xp,skin,compagnon) VALUES(?, ?, ?, ?,?,?) ON DUPLICATE KEY UPDATE user = VALUES(user),login = VALUES(login),level = VALUES(level),xp = VALUES(xp),skin = VALUES(skin),compagnon = VALUES(compagnon)", [user, login, level, xp, skin, compagnon], (err, result) => {
         if (err) {
             console.log(err)
         }
@@ -1711,7 +1712,7 @@ app.get("/api/getTrainers/:id", (req, res, next) => {
 app.get("/api/getUser/:id", (req, res, next) => {
 
     const id = req.params.id;
-    db.query("SELECT zxd_profil.user,zxd_profil.login,zxd_profil.level,zxd_profil.xp,zxd_profil.skin,zxd_capture.pokemon,zxd_capture.shiny,zxd_capture.negative FROM zxd_profil JOIN zxd_capture ON zxd_capture.user = zxd_profil.user WHERE zxd_profil.user = ?", id,
+    db.query("SELECT zxd_profil.user,zxd_profil.login,zxd_profil.level,zxd_profil.xp,zxd_profil.skin,zxd_profil.compagnon,zxd_capture.pokemon,zxd_capture.shiny,zxd_capture.negative FROM zxd_profil JOIN zxd_capture ON zxd_capture.user = zxd_profil.user WHERE zxd_profil.user = ?", id,
         (err, result) => {
             if (err) {
                 console.log(err)
@@ -1842,10 +1843,10 @@ app.get("/api/getPokedex/:user", (req, res, next) => {
         });
 });
 
-app.get("/api/getActiveCompagnon/:user", (req, res, next) => {
-
+app.get("/api/getActiveCompagnon/:user/:number", (req, res, next) => {
     const user = req.params.user;
-    db.query("SELECT zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level FROM zxd_compagnon JOIN zxd_profil ON zxd_compagnon.user = zxd_profil.user WHERE zxd_profil.user = ?;", user,
+    const number = req.params.number;
+    db.query("SELECT zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_compagnon WHERE zxd_compagnon.user = ? AND zxd_compagnon.number = ?;", [user,number],
         (err, result) => {
             if (err) {
                 console.log(err)
