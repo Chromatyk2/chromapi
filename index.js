@@ -1912,7 +1912,7 @@ app.get("/api/getCurrentCompagnon/:user", (req, res, next) => {
 });
 /* Leaderboard */
 app.get("/api/getLeaderBoard", (req, res, next) => {
-    db.query("SELECT zxd_profil.login, zxd_profil.level, zxd_profil.skin,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_profil LEFT JOIN zxd_compagnon ON zxd_compagnon.number = zxd_profil.compagnon ORDER BY zxd_profil.level DESC ;",
+    db.query("SELECT zxd_profil.user, zxd_profil.login, zxd_profil.level, zxd_profil.skin,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_profil LEFT JOIN zxd_compagnon ON zxd_compagnon.number = zxd_profil.compagnon ORDER BY zxd_profil.level DESC ;",
         (err, result) => {
             if (err) {
                 console.log(err)
