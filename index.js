@@ -1983,8 +1983,8 @@ app.delete('/api/deleteExpedition/:id', (req, res) => {
         res.send(result)
     })
 })
-app.post('/api/closeExpedition', (req, res) => {
-    const id = req.body.id;
+app.post('/api/closeExpedition/:id', (req, res) => {
+    const id = req.params.id;
     db.query("UPDATE `zxd_expedition`SET active = 0 WHERE number = ?", [id], (err, result) => {
         if (err) {
             console.log(err)
