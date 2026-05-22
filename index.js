@@ -1858,7 +1858,7 @@ app.get("/api/getActiveCompagnon/:user/:number", (req, res, next) => {
 
 app.get("/api/getMaxLevelCompagnon/:user", (req, res, next) => {
     const user = req.params.user;
-    db.query("SELECT zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_compagnon WHERE zxd_compagnon.user = ? AND zxd_compagnon.level = 100;", [user],
+    db.query("SELECT zxd_compagnon.tier,zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_compagnon WHERE zxd_compagnon.user = ? AND zxd_compagnon.level = 100;", [user],
         (err, result) => {
             if (err) {
                 console.log(err)
@@ -1902,7 +1902,8 @@ app.post('/api/newCompagnon', (req, res) => {
     const level = req.body.level;
     const xp = req.body.xp;
     const active = req.body.active;
-    db.query("INSERT INTO `zxd_compagnon` (`user`, `number`, `pokemon`, `shiny`, `negative`, `level`, `xp`, `active`) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), pokemon = VALUES(pokemon), shiny = VALUES(shiny), negative = VALUES(negative), level = VALUES(level), xp = VALUES(xp), active = VALUES(active);", [user, number, pokemon, shiny, negative, level, xp,active], (err, result) => {
+    const tier = req.body.tier;
+    db.query("INSERT INTO `zxd_compagnon` (`user`, `number`, `pokemon`, `shiny`, `negative`, `level`, `xp`, `active`,`tier`) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), pokemon = VALUES(pokemon), shiny = VALUES(shiny), negative = VALUES(negative), level = VALUES(level), xp = VALUES(xp), active = VALUES(active), tier = VALUES(tier);", [user, number, pokemon, shiny, negative, level, xp,active,tier], (err, result) => {
         if (err) {
             console.log(err)
         }
