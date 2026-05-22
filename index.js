@@ -1947,16 +1947,26 @@ app.post('/api/newExpedition', (req, res) => {
     const number = req.body.number;
     const user = req.body.user;
     const tier = req.body.tier;
-    db.query("INSERT INTO `zxd_expedition` (`date`, `number`, `user`, `tier`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), date = VALUES(date), tier = VALUES(tier);", [date, number, user, tier], (err, result) => {
+    db.query("INSERT INTO `zxd_expedition` (`date`, `number`, `user`, `tier`, `active`) VALUES (?, ?, ?, ?,1) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), date = VALUES(date), tier = VALUES(tier);", [date, number, user, tier], (err, result) => {
         if (err) {
             console.log(err)
         }
         res.send(result)
     });
 });
+app.get("/api/getAllExpedition/:user", (req, res, next) => {
+    const user = req.params.user;
+    db.query("SELECT zxd_compagnon.tier,zxd_expedition.id,zxd_expedition.date,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition JOIN zxd_compagnon ON zxd_compagnon.user = zxd_expedition.user WHERE zxd_expedition.user = ?;", user,
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
 app.get("/api/getExpedition/:user", (req, res, next) => {
     const user = req.params.user;
-    db.query("SELECT zxd_compagnon.tier,zxd_expedition.id,zxd_expedition.date,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition JOIN zxd_compagnon ON zxd_compagnon.user = zxd_expedition.user WHERE zxd_expedition.user = ?;",user,
+    db.query("SELECT zxd_compagnon.tier,zxd_expedition.id,zxd_expedition.date,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition JOIN zxd_compagnon ON zxd_compagnon.user = zxd_expedition.user WHERE zxd_expedition.user = ? AND active = 1;",user,
         (err, result) => {
             if (err) {
                 console.log(err)
@@ -1966,13 +1976,22 @@ app.get("/api/getExpedition/:user", (req, res, next) => {
 });
 app.delete('/api/deleteExpedition/:id', (req, res) => {
     const id = req.params.id;
-    db.query("DELETE FROM `zxd_expedition` WHERE `zxd_expedition`.`user` = ?", id, (err, result) => {
+    db.query("DELETE FROM `zxd_expedition` WHERE `zxd_expedition`.`number` = ?", id, (err, result) => {
         if (err) {
             console.log(err)
         }
         res.send(result)
     })
 })
+app.post('/api/closeExpedition', (req, res) => {
+    const id = req.body.id;
+    db.query("UPDATE `zxd_expedition`SET active = 0 WHERE number = ?", [id], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
 
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
