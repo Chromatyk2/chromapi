@@ -1935,7 +1935,7 @@ app.post('/api/newExpedition', (req, res) => {
     const date = req.body.date;
     const number = req.body.number;
     const user = req.body.user;
-    db.query("INSERT INTO `zxd_expedition` (`date`, `number`, `user`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), date = VALUES(date);", [user, number, date], (err, result) => {
+    db.query("INSERT INTO `zxd_expedition` (`date`, `number`, `user`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), date = VALUES(date);", [date, number, user], (err, result) => {
         if (err) {
             console.log(err)
         }
