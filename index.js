@@ -1943,7 +1943,7 @@ app.get("/api/getExpedition/:user", (req, res, next) => {
 });
 app.delete('/api/deleteExpedition/:id', (req, res) => {
     const id = req.params.id;
-    db.query("DELETE FROM `zxd_expedition` WHERE `zxd_expedition`.`id` = ?", id, (err, result) => {
+    db.query("DELETE FROM `zxd_expedition` WHERE `zxd_expedition`.`user` = ?", id, (err, result) => {
         if (err) {
             console.log(err)
         }
