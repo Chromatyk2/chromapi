@@ -1931,6 +1931,17 @@ app.get("/api/getLeaderBoard", (req, res, next) => {
 });
 
 /* Expedition */
+app.post('/api/newExpedition', (req, res) => {
+    const date = req.body.date;
+    const number = req.body.number;
+    const user = req.body.user;
+    db.query("INSERT INTO `zxd_expedition` (`date`, `number`, `user`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), date = VALUES(date);", [user, number, date], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
 app.get("/api/getExpedition/:user", (req, res, next) => {
     const user = req.params.user;
     db.query("SELECT zxd_expedition.id,zxd_expedition.date,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition JOIN zxd_compagnon ON zxd_compagnon.user = zxd_expedition.user WHERE zxd_expedition.user = ?;",user,
