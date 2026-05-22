@@ -1884,6 +1884,15 @@ app.post('/api/levelupCompagnon', (req, res) => {
         res.send(result)
     });
 });
+app.post('/api/levelMaxCompagnon', (req, res) => {
+    const id = req.body.id;
+    db.query("UPDATE `zxd_compagnon`SET level = 100 WHERE id = ?", [id], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
 app.post('/api/newCompagnon', (req, res) => {
     const user = req.body.user;
     const number = req.body.number;
