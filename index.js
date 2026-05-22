@@ -1933,7 +1933,7 @@ app.get("/api/getLeaderBoard", (req, res, next) => {
 /* Expedition */
 app.get("/api/getExpedition/:user", (req, res, next) => {
     const user = req.params.user;
-    db.query("SELECT zxd_expedition.date,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition JOIN zxd_compagnon ON zxd_compagnon.user = zxd_expedition.user WHERE zxd_expedition.user = ?;",user,
+    db.query("SELECT zxd_expedition.id,zxd_expedition.date,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition JOIN zxd_compagnon ON zxd_compagnon.user = zxd_expedition.user WHERE zxd_expedition.user = ?;",user,
         (err, result) => {
             if (err) {
                 console.log(err)
@@ -1941,6 +1941,15 @@ app.get("/api/getExpedition/:user", (req, res, next) => {
             res.send(result)
         });
 });
+app.delete('/api/deleteExpedition/:id', (req, res) => {
+    const id = req.params.id;
+    db.query("DELETE FROM `zxd_expedition` WHERE `zxd_expedition`.`id` = ?", id, (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    })
+})
 
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
