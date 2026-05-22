@@ -1755,6 +1755,16 @@ app.post('/api/removeItem', (req, res) => {
         res.send(result)
     });
 });
+app.post('/api/removeFragement', (req, res) => {
+    const user = req.body.user;
+    const slug = req.body.slug;
+    db.query("UPDATE zxd_inventaire SET quantity = quantity - 100 WHERE user = ? AND slug = ?", [user, slug], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
 app.get("/api/getInventory/:user", (req, res, next) => {
 
     const user = req.params.user;
