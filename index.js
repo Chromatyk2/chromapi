@@ -1936,8 +1936,7 @@ app.post('/api/newExpedition', (req, res) => {
     const date = req.body.date;
     const number = req.body.number;
     const user = req.body.user;
-    const tier = req.body.tier;
-    db.query("INSERT INTO `zxd_expedition` (`date`, `number`, `user`,`tier`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), date = VALUES(date), tier = VALUES(tier);", [date, number, user, tier], (err, result) => {
+    db.query("INSERT INTO `zxd_expedition` (`date`, `number`, `user`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), date = VALUES(date);", [date, number, user], (err, result) => {
         if (err) {
             console.log(err)
         }
@@ -1946,7 +1945,7 @@ app.post('/api/newExpedition', (req, res) => {
 });
 app.get("/api/getExpedition/:user", (req, res, next) => {
     const user = req.params.user;
-    db.query("SELECT zxd_expedition.id,zxd_expedition.date,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition JOIN zxd_compagnon ON zxd_compagnon.user = zxd_expedition.user WHERE zxd_expedition.user = ?;",user,
+    db.query("SELECT zxd_compagnon.tier,zxd_expedition.id,zxd_expedition.date,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition JOIN zxd_compagnon ON zxd_compagnon.user = zxd_expedition.user WHERE zxd_expedition.user = ?;",user,
         (err, result) => {
             if (err) {
                 console.log(err)
