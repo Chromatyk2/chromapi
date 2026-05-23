@@ -1993,8 +1993,24 @@ app.post('/api/closeExpedition/:id', (req, res) => {
         res.send(result)
     });
 });
-cron.schedule("* * * * *", () => {
-    console.log("Toutes les minutes");
+
+cron.schedule("0 0 1 * *", () => {
+    console.log("Suppression des anciennes expéditions");
+
+    db.query(
+        `
+    DELETE FROM zxd_expedition
+    WHERE date < DATE_FORMAT(NOW(), '%Y-%m-01')
+    `,
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+
+            console.log(`${result.affectedRows} expéditions supprimées`);
+        }
+    );
 });
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
