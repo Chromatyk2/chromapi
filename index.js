@@ -1949,7 +1949,7 @@ app.post('/api/newExpedition', (req, res) => {
     const user = req.body.user;
     const tier = req.body.tier;
     const endDate = req.body.endDate;
-    db.query("INSERT INTO `zxd_expedition` (`date`,`endDate`, `number`, `user`, `tier`, `active`) VALUES (?,?, ?, ?, ?,1) ON DUPLICATE KEY UPDATE endDate = VALUES(endDate), user = VALUES(user), VALUES(user), number = VALUES(number), date = VALUES(date), tier = VALUES(tier);", [date, endDate, number, user, tier], (err, result) => {
+    db.query("INSERT INTO `zxd_expedition` (`date`,`endDate`, `number`, `user`, `tier`, `active`) VALUES (?,?, ?, ?, ?,1) ON DUPLICATE KEY UPDATE endDate = VALUES(endDate), user = VALUES(user), number = VALUES(number), date = VALUES(date), tier = VALUES(tier);", [date, endDate, number, user, tier], (err, result) => {
         if (err) {
             console.log(err)
         }
