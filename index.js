@@ -1958,7 +1958,7 @@ app.post('/api/newExpedition', (req, res) => {
 });
 app.get("/api/getAllExpedition/:user", (req, res, next) => {
     const user = req.params.user;
-    db.query("SELECT zxd_compagnon.tier,zxd_expedition.active,zxd_expedition.id,zxd_expedition.date,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition INNER JOIN zxd_compagnon ON zxd_compagnon.number = zxd_expedition.number WHERE zxd_expedition.user = ?;", user,
+    db.query("SELECT zxd_compagnon.tier,zxd_expedition.active,zxd_expedition.id,zxd_expedition.date,zxd_expedition.endDate,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition INNER JOIN zxd_compagnon ON zxd_compagnon.number = zxd_expedition.number WHERE zxd_expedition.user = ?;", user,
         (err, result) => {
             if (err) {
                 console.log(err)
@@ -1968,7 +1968,7 @@ app.get("/api/getAllExpedition/:user", (req, res, next) => {
 });
 app.get("/api/getExpedition/:user", (req, res, next) => {
     const user = req.params.user;
-    db.query("SELECT zxd_compagnon.tier,zxd_expedition.id,zxd_expedition.date,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition JOIN zxd_compagnon ON zxd_compagnon.user = zxd_expedition.user WHERE zxd_expedition.user = ? AND active = 1;",user,
+    db.query("SELECT zxd_compagnon.tier,zxd_expedition.id,zxd_expedition.date,zxd_expedition.endDate,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition JOIN zxd_compagnon ON zxd_compagnon.user = zxd_expedition.user WHERE zxd_expedition.user = ? AND active = 1;",user,
         (err, result) => {
             if (err) {
                 console.log(err)
