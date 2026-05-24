@@ -2013,6 +2013,21 @@ cron.schedule("0 0 1 * *", () => {
         }
     );
 });
+
+cron.schedule("0 0 * * *", () => {
+    db.query(
+        `UPDATE zxd_inventaire 
+         SET quantity = quantity + 1 
+         WHERE slug = 'box'`,
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+        }
+    );
+});
+
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
