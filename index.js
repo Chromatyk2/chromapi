@@ -2014,7 +2014,7 @@ cron.schedule("0 0 1 * *", () => {
     );
 });
 
-cron.schedule("0 0 * * *", () => {
+cron.schedule("0 0,12 * * *", () => {
     db.query(
         `UPDATE zxd_inventaire 
          SET quantity = quantity + 1 
@@ -2024,6 +2024,8 @@ cron.schedule("0 0 * * *", () => {
                 console.log(err);
                 return;
             }
+
+            console.log("Quantité box mise à jour");
         }
     );
 });
