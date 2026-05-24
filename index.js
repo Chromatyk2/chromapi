@@ -2018,7 +2018,7 @@ cron.schedule("0 0,12 * * *", () => {
     db.query(
         `UPDATE zxd_inventaire 
          SET quantity = quantity + 1 
-         WHERE slug = 'box'`,
+         WHERE slug = 'box' AND quantity < 2`,
         (err, result) => {
             if (err) {
                 console.log(err);
