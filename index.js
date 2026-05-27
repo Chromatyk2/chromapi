@@ -2012,7 +2012,11 @@ cron.schedule("0 0 1 * *", () => {
             console.log(`${result.affectedRows} expéditions supprimées`);
         }
     );
-});
+},
+{
+    timezone: "Europe/Paris",
+    }
+);
 
 cron.schedule("0 0,12 * * *", () => {
     db.query(
@@ -2028,7 +2032,11 @@ cron.schedule("0 0,12 * * *", () => {
             console.log("Quantité box mise à jour");
         }
     );
-});
+},
+{
+    timezone: "Europe/Paris",
+}
+);
 
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
