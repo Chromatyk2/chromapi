@@ -2001,7 +2001,7 @@ cron.schedule("0 0 1 * *", () => {
     db.query(
         `
     DELETE FROM zxd_expedition
-    WHERE endDate < DATE_FORMAT(NOW(), '%Y-%m-01')
+    WHERE endDate < DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 2 HOUR), '%Y-%m-01');
     `,
         (err, result) => {
             if (err) {
