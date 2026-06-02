@@ -1888,7 +1888,17 @@ app.post('/api/updateCurrentCompagnon', (req, res) => {
 });
 app.post('/api/levelupCompagnon', (req, res) => {
     const id = req.body.id;
-    db.query("UPDATE `zxd_compagnon`SET level = level+1 WHERE id = ?", [id], (err, result) => {
+    db.query("UPDATE `zxd_compagnon`SET level = level+1, xp = 0 WHERE id = ?", [id], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
+app.post('/api/updateXpCompagnon', (req, res) => {
+    const xp = req.body.xp;
+    const id = req.body.id;
+    db.query("UPDATE `zxd_compagnon`SET xp = xp+?, xp = 0 WHERE id = ?", [xp,id], (err, result) => {
         if (err) {
             console.log(err)
         }
@@ -1933,7 +1943,7 @@ app.get("/api/getAllCompagnon/:user", (req, res, next) => {
 });
 app.get("/api/getCurrentCompagnon/:user", (req, res, next) => {
     const user = req.params.user;
-    db.query("SELECT zxd_compagnon.id,zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative,zxd_pokemon.tier FROM zxd_compagnon JOIN zxd_pokemon ON zxd_pokemon.number = zxd_compagnon.number WHERE zxd_compagnon.user = ? AND zxd_compagnon.active = 1 ORDER BY id DESC LIMIT 1;", [user],
+    db.query("SELECT zxd_compagnon.id,zxd_compagnon.xp,zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative,zxd_pokemon.tier FROM zxd_compagnon JOIN zxd_pokemon ON zxd_pokemon.number = zxd_compagnon.number WHERE zxd_compagnon.user = ? AND zxd_compagnon.active = 1 ORDER BY id DESC LIMIT 1;", [user],
         (err, result) => {
             if (err) {
                 console.log(err)
