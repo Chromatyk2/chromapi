@@ -1898,7 +1898,7 @@ app.post('/api/levelupCompagnon', (req, res) => {
 app.post('/api/updateXpCompagnon', (req, res) => {
     const xp = req.body.xp;
     const id = req.body.id;
-    db.query("UPDATE `zxd_compagnon`SET xp = xp+?, xp = 0 WHERE id = ?", [xp,id], (err, result) => {
+    db.query("UPDATE `zxd_compagnon`SET xp = xp + ? WHERE id = ?", [xp,id], (err, result) => {
         if (err) {
             console.log(err)
         }
