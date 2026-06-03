@@ -2265,35 +2265,122 @@ async function syncSets() {
     }
 }
 
+async function syncSetCards(setTcgdexId) {
+
+    try {
+
+        const { data: setData } =
+            await axios.get(
+                `https://api.tcgdex.net/v2/fr/sets/${setTcgdexId}`
+            );
+
+        for (const card of setData.cards) {
+
+            const { data: cardData } =
+                await axios.get(
+                    `https://api.tcgdex.net/v2/fr/cards/${card.id}`
+                );
+
+            await query(`
+                INSERT INTO zxd_card
+                (
+                    tcgdex_id,
+                    set_tcgdex_id,
+                    rarity,
+                    image
+                )
+                VALUES (?, ?, ?, ?)
+
+                ON DUPLICATE KEY UPDATE
+                    rarity = VALUES(rarity),
+                    image = VALUES(image)
+            `, [
+                cardData.id,
+                setTcgdexId,
+                cardData.rarity,
+                cardData.image
+            ]);
+
+        }
+
+        await query(`
+            UPDATE zxd_card_set
+            SET cards_synced = 1
+            WHERE tcgdex_id = ?
+        `, [setTcgdexId]);
+
+        console.log(
+            `[TCG] ${setTcgdexId} synchronisé`
+        );
+
+    } catch (err) {
+
+        console.error(err);
+
+    }
+
+}
+
 //Créer une nouvelle rotation de set
 
 async function createRotation() {
 
     // Set le plus récent
     const latestSet = await query(`
-        SELECT id
+        SELECT
+            id,
+            tcgdex_id,
+            cards_synced
         FROM zxd_card_set
         ORDER BY release_date DESC
         LIMIT 1
     `);
 
-    const latestSetId = latestSet[0].id;
+    const latestSetData = latestSet[0];
 
     // Deux sets aléatoires
     const randomSets = await query(`
-        SELECT id
+        SELECT
+            id,
+            tcgdex_id,
+            cards_synced
         FROM zxd_card_set
         WHERE id != ?
         AND active = 1
         ORDER BY RAND()
         LIMIT 2
-    `, [latestSetId]);
+    `, [latestSetData.id]);
+
+    // Les 3 sets de la rotation
+    const selectedSets = [
+        latestSetData,
+        ...randomSets
+    ];
+
+    // Synchronisation des cartes si nécessaire
+    for (const set of selectedSets) {
+
+        if (!Number(set.cards_synced)) {
+
+            console.log(
+                `[TCG] Sync ${set.tcgdex_id}`
+            );
+
+            await syncSetCards(
+                set.tcgdex_id
+            );
+
+        }
+
+    }
 
     // Création de la rotation
     const startDate = new Date();
 
     const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 14);
+    endDate.setDate(
+        endDate.getDate() + 14
+    );
 
     const result = await query(`
         INSERT INTO zxd_card_rotation
@@ -2304,20 +2391,11 @@ async function createRotation() {
         VALUES (?, ?)
     `, [startDate, endDate]);
 
-    const rotationId = result.insertId;
+    const rotationId =
+        result.insertId;
 
-    // Association des sets
-
-    await query(`
-        INSERT INTO zxd_card_rotation_set
-        (
-            rotation_id,
-            set_id
-        )
-        VALUES (?, ?)
-    `, [rotationId, latestSetId]);
-
-    for (const set of randomSets) {
+    // Association des sets à la rotation
+    for (const set of selectedSets) {
 
         await query(`
             INSERT INTO zxd_card_rotation_set
@@ -2326,13 +2404,17 @@ async function createRotation() {
                 set_id
             )
             VALUES (?, ?)
-        `, [rotationId, set.id]);
+        `, [
+            rotationId,
+            set.id
+        ]);
 
     }
 
     console.log(
         `[TCG] Rotation #${rotationId} créée`
     );
+
 }
 
 async function createRotationIfNeeded() {
@@ -2376,7 +2458,22 @@ cron.schedule("0 3 * * 1", async () => {
     }
 
 });
+(async () => {
 
+    try {
+
+        await syncSets();
+        await createRotationIfNeeded();
+
+        console.log("[TCG] Test terminé");
+
+    } catch (err) {
+
+        console.error(err);
+
+    }
+
+})();
 cron.schedule("0 0 1 * *", () => {
     console.log("Suppression des anciennes expéditions");
 
