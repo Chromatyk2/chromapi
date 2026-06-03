@@ -2480,22 +2480,6 @@ cron.schedule("0 3 * * 1", async () => {
     }
 
 });
-(async () => {
-
-    try {
-
-        await syncSets();
-        await createRotationIfNeeded();
-
-        console.log("[TCG] Test terminé");
-
-    } catch (err) {
-
-        console.error(err);
-
-    }
-
-})();
 cron.schedule("0 0 1 * *", () => {
     console.log("Suppression des anciennes expéditions");
 
