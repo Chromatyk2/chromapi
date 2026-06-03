@@ -2170,7 +2170,8 @@ app.get("/api/card/init/:profilId", (req, res) => {
                                                                 ).toFixed(1)
                                                             )
                                                     };
-                                                    const ownedSets = await query(`
+                                                    db.query(
+                                                        `
                                                         SELECT
                                                             s.tcgdex_id,
                                                             s.name,
@@ -2199,17 +2200,27 @@ app.get("/api/card/init/:profilId", (req, res) => {
                                                             s.card_count
 
                                                         ORDER BY s.release_date DESC
-                                                    `, [profilId]);
-                                                    ownedSets.forEach(set => {
-                                                        set.percent =
-                                                            Number(
-                                                                (
-                                                                    set.owned /
-                                                                    set.card_count *
-                                                                    100
-                                                                ).toFixed(1)
-                                                            );
-                                                    });
+                                                        `,
+                                                        [profilId],
+                                                        (err, ownedSets) => {
+
+                                                            if (err) {
+                                                                console.log(err);
+                                                                return res.status(500).send(err);
+                                                            }
+
+                                                            ownedSets.forEach(set => {
+
+                                                                set.percent =
+                                                                    Number(
+                                                                        (
+                                                                            set.owned /
+                                                                            set.card_count *
+                                                                            100
+                                                                        ).toFixed(1)
+                                                                    );
+
+                                                            });
                                                     res.send({
                                                         rotationSets,
                                                         collection,
