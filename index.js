@@ -2404,25 +2404,55 @@ app.post("/api/card/openBooster", async (req, res) => {
                 );
 
         });
+        const globalOwned = await query(`
+            SELECT
+                COUNT(
+                    DISTINCT card_tcgdex_id
+                ) AS total
+            FROM zxd_card_collection
+            WHERE profil_id = ?
+        `, [userId]);
+
+        const globalTotal = await query(`
+            SELECT
+                SUM(card_count) AS total
+            FROM zxd_card_set
+            WHERE active = 1
+        `);
+
+        const globalProgress = {
+
+            owned:
+                globalOwned[0]?.total || 0,
+
+            total:
+                globalTotal[0]?.total || 0,
+
+            percent:
+                Number(
+                    (
+                        (
+                            globalOwned[0]?.total || 0
+                        ) /
+                        (
+                            globalTotal[0]?.total || 1
+                        ) * 100
+                    ).toFixed(1)
+                )
+
+        };
         res.send({
-
             success: true,
-
             boosterCurrency:
                 boosterCurrency - 1,
-
             openedCards,
-
-            progress
-
+            progress,
+            globalProgress
         });
 
     } catch (err) {
-
         console.error(err);
-
         res.status(500).send(err);
-
     }
 
 });
