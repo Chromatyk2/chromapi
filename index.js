@@ -2716,7 +2716,7 @@ function weightedRandom(items) {
 }
 
 // Automatisations
-cron.schedule("0 3 * * 1", async () => {
+cron.schedule("0 0 * * 4", async () => {
 
     try {
 
@@ -2730,8 +2730,8 @@ cron.schedule("0 3 * * 1", async () => {
         console.error(err);
 
     }
-
-});
+}
+);
 cron.schedule("0 0 1 * *", () => {
     console.log("Suppression des anciennes expéditions");
 
