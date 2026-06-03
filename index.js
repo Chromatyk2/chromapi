@@ -2068,10 +2068,110 @@ async function syncSets() {
         console.error(err);
     }
 }
+async function syncCards() {
+
+    try {
+
+        // Récupération des sets
+        db.query(
+            "SELECT id, tcgdex_id FROM zxd_card_set",
+            async (err, sets) => {
+
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+
+                // Mapping des sets
+                const setMap = {};
+
+                sets.forEach(set => {
+                    setMap[set.tcgdex_id] = set.id;
+                });
+
+                // Récupération des raretés
+                db.query(
+                    "SELECT id, name FROM zxd_card_rarity",
+                    async (err, rarities) => {
+
+                        if (err) {
+                            console.log(err);
+                            return;
+                        }
+
+                        const rarityMap = {};
+
+                        rarities.forEach(rarity => {
+                            rarityMap[rarity.name] = rarity.id;
+                        });
+
+                        // Parcours de tous les sets
+                        for (const tcgdexId of Object.keys(setMap)) {
+
+                            console.log(
+                                `Import des cartes du set ${tcgdexId}`
+                            );
+
+                            const { data: set } = await axios.get(
+                                `https://api.tcgdex.net/v2/fr/sets/${tcgdexId}`
+                            );
+
+                            if (!set.cards) continue;
+
+                            for (const card of set.cards) {
+
+                                const rarityId =
+                                    rarityMap[card.rarity] || null;
+
+                                db.query(
+                                    `
+                                        INSERT INTO zxd_card
+                                        (
+                                            tcgdex_id,
+                                            set_id,
+                                            rarity_id,
+                                            local_id,
+                                            name,
+                                            image
+                                        )
+                                        VALUES (?, ?, ?, ?, ?, ?)
+                                        ON DUPLICATE KEY UPDATE
+                                            rarity_id = VALUES(rarity_id),
+                                            local_id = VALUES(local_id),
+                                            name = VALUES(name),
+                                            image = VALUES(image)
+                                        `,
+                                    [
+                                        card.id,
+                                        setMap[tcgdexId],
+                                        rarityId,
+                                        card.localId || null,
+                                        card.name,
+                                        card.image + '/high.webp'
+                                    ]
+                                );
+                            }
+                        }
+
+                        console.log("Cartes synchronisées");
+                    }
+                );
+            }
+        );
+
+    } catch (err) {
+
+        console.error(err);
+
+    }
+}
 
 // Automatisations
 cron.schedule("0 3 * * 1", async () => {
     await syncSets();
+    setTimeout(async () => {
+        await syncCards();
+    }, 5000);
 });
 
 cron.schedule("0 0 1 * *", () => {
@@ -2121,6 +2221,9 @@ app.listen(3001, async () => {
     console.log("Serveur démarré");
 
     await syncSets();
+    setTimeout(async () => {
+        await syncCards();
+    }, 5000);
 
 });
 app.listen(process.env.PORT || PORT, ()=>{
