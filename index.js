@@ -2018,6 +2018,7 @@ app.post('/api/closeExpedition/:id', (req, res) => {
 });
 
 // Fonctions
+//Synchronise les sets de l'API TCGDEX avec ma BDD
 async function syncSets() {
 
     try {
@@ -2068,110 +2069,116 @@ async function syncSets() {
         console.error(err);
     }
 }
-async function syncCards() {
+
+//Créer une nouvelle rotation de set
+
+async function createRotation() {
+
+    // Set le plus récent
+    const latestSet = await query(`
+        SELECT id
+        FROM zxd_card_set
+        ORDER BY release_date DESC
+        LIMIT 1
+    `);
+
+    const latestSetId = latestSet[0].id;
+
+    // Deux sets aléatoires
+    const randomSets = await query(`
+        SELECT id
+        FROM zxd_card_set
+        WHERE id != ?
+        ORDER BY RAND()
+        LIMIT 2
+    `, [latestSetId]);
+
+    // Création de la rotation
+    const startDate = new Date();
+
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 14);
+
+    const result = await query(`
+        INSERT INTO zxd_card_rotation
+        (
+            start_date,
+            end_date
+        )
+        VALUES (?, ?)
+    `, [startDate, endDate]);
+
+    const rotationId = result.insertId;
+
+    // Association des sets
+
+    await query(`
+        INSERT INTO zxd_card_rotation_set
+        (
+            rotation_id,
+            set_id
+        )
+        VALUES (?, ?)
+    `, [rotationId, latestSetId]);
+
+    for (const set of randomSets) {
+
+        await query(`
+            INSERT INTO zxd_card_rotation_set
+            (
+                rotation_id,
+                set_id
+            )
+            VALUES (?, ?)
+        `, [rotationId, set.id]);
+
+    }
+
+    console.log(
+        `[TCG] Rotation #${rotationId} créée`
+    );
+}
+
+async function createRotationIfNeeded() {
+
+    db.query(
+        `
+        SELECT *
+        FROM zxd_card_rotation
+        WHERE NOW()
+        BETWEEN start_date
+        AND end_date
+        LIMIT 1
+        `,
+        async (err, result) => {
+
+            if (result.length > 0) {
+                return;
+            }
+
+            await createRotation();
+
+        }
+    );
+
+}
+
+// Automatisations
+cron.schedule("0 3 * * 1", async () => {
 
     try {
 
-        // Récupération des sets
-        db.query(
-            "SELECT id, tcgdex_id FROM zxd_card_set",
-            async (err, sets) => {
+        await syncSets();
+        await createRotationIfNeeded();
 
-                if (err) {
-                    console.log(err);
-                    return;
-                }
-
-                // Mapping des sets
-                const setMap = {};
-
-                sets.forEach(set => {
-                    setMap[set.tcgdex_id] = set.id;
-                });
-
-                // Récupération des raretés
-                db.query(
-                    "SELECT id, name FROM zxd_card_rarity",
-                    async (err, rarities) => {
-
-                        if (err) {
-                            console.log(err);
-                            return;
-                        }
-
-                        const rarityMap = {};
-
-                        rarities.forEach(rarity => {
-                            rarityMap[rarity.name] = rarity.id;
-                        });
-
-                        // Parcours de tous les sets
-                        for (const tcgdexId of Object.keys(setMap)) {
-
-                            console.log(
-                                `Import des cartes du set ${tcgdexId}`
-                            );
-
-                            const { data: set } = await axios.get(
-                                `https://api.tcgdex.net/v2/fr/sets/${tcgdexId}`
-                            );
-
-                            if (!set.cards) continue;
-
-                            for (const card of set.cards) {
-
-                                const rarityId =
-                                    rarityMap[card.rarity] || null;
-
-                                db.query(
-                                    `
-                                        INSERT INTO zxd_card
-                                        (
-                                            tcgdex_id,
-                                            set_id,
-                                            rarity_id,
-                                            local_id,
-                                            name,
-                                            image
-                                        )
-                                        VALUES (?, ?, ?, ?, ?, ?)
-                                        ON DUPLICATE KEY UPDATE
-                                            rarity_id = VALUES(rarity_id),
-                                            local_id = VALUES(local_id),
-                                            name = VALUES(name),
-                                            image = VALUES(image)
-                                        `,
-                                    [
-                                        card.id,
-                                        setMap[tcgdexId],
-                                        rarityId,
-                                        card.localId || null,
-                                        card.name,
-                                        card.image + '/high.webp'
-                                    ]
-                                );
-                            }
-                        }
-
-                        console.log("Cartes synchronisées");
-                    }
-                );
-            }
-        );
+        console.log("[TCG] Rotation créée");
 
     } catch (err) {
 
         console.error(err);
 
     }
-}
 
-// Automatisations
-cron.schedule("0 3 * * 1", async () => {
-    await syncSets();
-    setTimeout(async () => {
-        await syncCards();
-    }, 5000);
 });
 
 cron.schedule("0 0 1 * *", () => {
@@ -2221,9 +2228,6 @@ app.listen(3001, async () => {
     console.log("Serveur démarré");
 
     await syncSets();
-    setTimeout(async () => {
-        await syncCards();
-    }, 5000);
 
 });
 app.listen(process.env.PORT || PORT, ()=>{
