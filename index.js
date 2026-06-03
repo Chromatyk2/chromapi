@@ -2263,7 +2263,19 @@ app.post("/api/card/openBooster", async (req, res) => {
         // Ajout collection
 
         for (const card of openedCards) {
+            const existing = await query(`
+                SELECT id
+                FROM zxd_card_collection
+                WHERE profil_id = ?
+                AND card_tcgdex_id = ?
+                LIMIT 1
+            `, [
+                        userId,
+                        card.tcgdex_id
+                    ]);
 
+                    card.isNew =
+                existing.length === 0;
             await query(`
                 INSERT INTO zxd_card_collection
                 (
