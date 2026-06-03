@@ -2016,7 +2016,114 @@ app.post('/api/closeExpedition/:id', (req, res) => {
         res.send(result)
     });
 });
+//Cartes
+app.get("/api/card/init/:profilId", (req, res) => {
 
+    const profilId = req.params.profilId;
+
+    // 1. Récupération des sets de la rotation active
+    db.query(
+        `
+        SELECT s.*
+        FROM zxd_card_set s
+        INNER JOIN zxd_card_rotation_set rs
+            ON rs.set_id = s.id
+        INNER JOIN zxd_card_rotation r
+            ON r.id = rs.rotation_id
+        WHERE NOW() BETWEEN r.start_date
+                        AND r.end_date
+        `,
+        (err, rotationSets) => {
+
+            if (err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
+
+            // 2. Collection complète du joueur
+            db.query(
+                `
+                SELECT *
+                FROM zxd_card_collection
+                WHERE profil_id = ?
+                `,
+                [profilId],
+                (err, collection) => {
+
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).send(err);
+                    }
+
+                    // 3. Progression par set
+                    db.query(
+                        `
+                        SELECT
+                            set_id,
+                            COUNT(DISTINCT card_tcgdex_id) AS owned
+                        FROM zxd_card_collection
+                        WHERE profil_id = ?
+                        GROUP BY set_id
+                        `,
+                        [profilId],
+                        (err, progressRows) => {
+
+                            if (err) {
+                                console.log(err);
+                                return res.status(500).send(err);
+                            }
+
+                            const progress = {};
+
+                            progressRows.forEach(row => {
+
+                                progress[row.set_id] = {
+                                    owned: row.owned
+                                };
+
+                            });
+
+                            // 4. Ajout du total de cartes du set
+                            rotationSets.forEach(set => {
+
+                                if (!progress[set.id]) {
+
+                                    progress[set.id] = {
+                                        owned: 0
+                                    };
+
+                                }
+
+                                progress[set.id].total =
+                                    set.card_count;
+
+                                progress[set.id].percent =
+                                    Number(
+                                        (
+                                            progress[set.id].owned /
+                                            set.card_count *
+                                            100
+                                        ).toFixed(1)
+                                    );
+
+                            });
+
+                            res.send({
+                                rotationSets,
+                                collection,
+                                progress
+                            });
+
+                        }
+                    );
+
+                }
+            );
+
+        }
+    );
+
+});
 // Fonctions
 //Synchronise les sets de l'API TCGDEX avec ma BDD
 async function syncSets() {
