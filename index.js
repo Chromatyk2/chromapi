@@ -2221,6 +2221,7 @@ app.get("/api/card/init/:profilId", (req, res) => {
                                                                     );
 
                                                             });
+                                                        });
                                                     res.send({
                                                         rotationSets,
                                                         collection,
