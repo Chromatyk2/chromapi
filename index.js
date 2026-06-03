@@ -2024,7 +2024,8 @@ app.get("/api/card/init/:profilId", (req, res) => {
     // 1. Récupération des sets de la rotation active
     db.query(
         `
-        SELECT s.*
+        SELECT s.*,
+            r.end_date
         FROM zxd_card_set s
         INNER JOIN zxd_card_rotation_set rs
             ON rs.set_id = s.id
@@ -2105,6 +2106,37 @@ app.get("/api/card/init/:profilId", (req, res) => {
                                         ).toFixed(1)
                                     );
                             });
+
+                            db.query(
+                                `
+                                SELECT quantity
+                                FROM zxd_inventaire
+                                WHERE user = ?
+                                AND slug = 'booster'
+                                LIMIT 1
+                                `,
+                                [profilId],
+                                (err, boosterRow) => {
+
+                                    if (err) {
+                                        console.log(err);
+                                        return res.status(500).send(err);
+                                    }
+
+                                    const boosterCurrency =
+                                        boosterRow.length > 0
+                                            ? boosterRow[0].quantity
+                                            : 0;
+
+                                    res.send({
+                                        rotationSets,
+                                        collection,
+                                        progress,
+                                        boosterCurrency
+                                    });
+
+                                }
+                            );
 
                             res.send({
                                 rotationSets,
