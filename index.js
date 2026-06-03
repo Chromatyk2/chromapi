@@ -2148,6 +2148,70 @@ app.get("/api/card/init/:profilId", (req, res) => {
     );
 
 });
+app.post("/api/card/openBooster", (req, res) => {
+
+    const userId = req.body.userId;
+    const setTcgdexId = req.body.setTcgdexId;
+
+    db.query(
+        `
+        SELECT quantity
+        FROM zxd_inventaire
+        WHERE user = ?
+        AND slug = 'booster'
+        LIMIT 1
+        `,
+        [userId],
+        (err, result) => {
+
+            if (err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
+
+            const boosterCurrency =
+                result.length > 0
+                    ? result[0].quantity
+                    : 0;
+
+            if (boosterCurrency <= 0) {
+
+                return res.send({
+                    success: false,
+                    message: "Aucun booster disponible"
+                });
+
+            }
+
+            db.query(
+                `
+                UPDATE zxd_inventaire
+                SET quantity = quantity - 1
+                WHERE user = ?
+                AND slug = 'booster'
+                AND quantity > 0
+                `,
+                [userId],
+                (err) => {
+
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).send(err);
+                    }
+
+                    res.send({
+                        success: true,
+                        boosterCurrency:
+                            boosterCurrency - 1
+                    });
+
+                }
+            );
+
+        }
+    );
+
+});
 // Fonctions
 //Synchronise les sets de l'API TCGDEX avec ma BDD
 async function syncSets() {
