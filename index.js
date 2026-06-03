@@ -2190,7 +2190,8 @@ app.post("/api/card/openBooster", async (req, res) => {
         // 2 cartes tier 1
 
         const commonCards = await query(`
-            SELECT c.*
+            SELECT c.*,
+    r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
                 ON r.name = c.rarity
@@ -2203,7 +2204,8 @@ app.post("/api/card/openBooster", async (req, res) => {
         // 2 cartes tier 2
 
         const uncommonCards = await query(`
-            SELECT c.*
+            SELECT c.*,
+    r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
                 ON r.name = c.rarity
@@ -2233,7 +2235,8 @@ app.post("/api/card/openBooster", async (req, res) => {
         // Carte premium
 
         const premiumCard = await query(`
-            SELECT *
+            SELECT *,
+    r.tier
             FROM zxd_card
             WHERE set_tcgdex_id = ?
             AND rarity = ?
