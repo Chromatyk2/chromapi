@@ -2132,49 +2132,39 @@ app.get("/api/card/init/:profilId", (req, res) => {
 
                                     db.query(
                                         `
-    SELECT
-        COUNT(
-            DISTINCT card_tcgdex_id
-        ) AS owned
-    FROM zxd_card_collection
-    WHERE profil_id = ?
-    `,
+                                        SELECT
+                                            COUNT(
+                                                DISTINCT card_tcgdex_id
+                                            ) AS owned
+                                        FROM zxd_card_collection
+                                        WHERE profil_id = ?
+                                        `,
                                         [profilId],
                                         (err, ownedRows) => {
-
                                             if (err) {
                                                 console.log(err);
                                                 return res.status(500).send(err);
                                             }
-
                                             // Nombre total de cartes existantes
-
                                             db.query(
                                                 `
-            SELECT
-                SUM(card_count) AS total
-            FROM zxd_card_set
-            WHERE active = 1
-            `,
+                                                SELECT
+                                                    SUM(card_count) AS total
+                                                FROM zxd_card_set
+                                                WHERE active = 1
+                                                `,
                                                 (err, totalRows) => {
-
                                                     if (err) {
                                                         console.log(err);
                                                         return res.status(500).send(err);
                                                     }
-
                                                     const owned =
                                                         ownedRows[0]?.owned || 0;
-
                                                     const total =
                                                         totalRows[0]?.total || 0;
-
                                                     const globalProgress = {
-
                                                         owned,
-
                                                         total,
-
                                                         percent:
                                                             Number(
                                                                 (
@@ -2185,19 +2175,12 @@ app.get("/api/card/init/:profilId", (req, res) => {
                                                             )
 
                                                     };
-
                                                     res.send({
-
                                                         rotationSets,
-
                                                         collection,
-
                                                         progress,
-
                                                         boosterCurrency,
-
                                                         globalProgress
-
                                                     });
 
 
