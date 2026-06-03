@@ -2027,7 +2027,7 @@ app.get("/api/card/init/:profilId", (req, res) => {
         SELECT s.*
         FROM zxd_card_set s
         INNER JOIN zxd_card_rotation_set rs
-            ON rs.set_tcgdex_id = s.set_tcgdex_id
+            ON rs.set_id = s.id
         INNER JOIN zxd_card_rotation r
             ON r.id = rs.rotation_id
         WHERE NOW() BETWEEN r.start_date
