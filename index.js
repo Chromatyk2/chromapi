@@ -2017,236 +2017,32 @@ app.post('/api/closeExpedition/:id', (req, res) => {
     });
 });
 //Cartes
-app.get("/api/card/init/:profilId", (req, res) => {
-
-    const profilId = req.params.profilId;
-
-    // 1. Récupération des sets de la rotation active
-    db.query(
-        `
-        SELECT s.*,
-            r.end_date
-        FROM zxd_card_set s
-        INNER JOIN zxd_card_rotation_set rs
-            ON rs.set_id = s.id
-        INNER JOIN zxd_card_rotation r
-            ON r.id = rs.rotation_id
-        WHERE NOW() BETWEEN r.start_date
-                        AND r.end_date
-        `,
-        (err, rotationSets) => {
-
-            if (err) {
-                console.log(err);
-                return res.status(500).send(err);
-            }
-
-            // 2. Collection complète du joueur
-            db.query(
-                `
-                SELECT *
-                FROM zxd_card_collection
-                WHERE profil_id = ?
-                `,
-                [profilId],
-                (err, collection) => {
-
-                    if (err) {
-                        console.log(err);
-                        return res.status(500).send(err);
-                    }
-
-                    // 3. Progression par set
-                    db.query(
-                        `
-                        SELECT
-                            set_tcgdex_id,
-                            COUNT(DISTINCT card_tcgdex_id) AS owned
-                        FROM zxd_card_collection
-                        WHERE profil_id = ?
-                        GROUP BY set_tcgdex_id
-                        `,
-                        [profilId],
-                        (err, progressRows) => {
-
-                            if (err) {
-                                console.log(err);
-                                return res.status(500).send(err);
-                            }
-
-                            const progress = {};
-
-                            progressRows.forEach(row => {
-
-                                progress[row.set_tcgdex_id] = {
-                                    owned: row.owned
-                                };
-
-                            });
-
-                            // 4. Ajout du total de cartes du set
-                            rotationSets.forEach(set => {
-
-                                if (!progress[set.tcgdex_id]) {
-
-                                    progress[set.tcgdex_id] = {
-                                        owned: 0
-                                    };
-
-                                }
-                                progress[set.tcgdex_id].total =
-                                    set.card_count;
-
-                                progress[set.tcgdex_id].percent =
-                                    Number(
-                                        (
-                                            progress[set.tcgdex_id].owned /
-                                            set.card_count *
-                                            100
-                                        ).toFixed(1)
-                                    );
-                            });
-
-                            db.query(
-                                `
-                                SELECT quantity
-                                FROM zxd_inventaire
-                                WHERE user = ?
-                                AND slug = 'booster'
-                                LIMIT 1
-                                `,
-                                [profilId],
-                                (err, boosterRow) => {
-                                    if (err) {
-                                        console.log(err);
-                                        return res.status(500).send(err);
-                                    }
-                                    const boosterCurrency =
-                                        boosterRow.length > 0
-                                            ? boosterRow[0].quantity
-                                            : 0;
-                                    // Nombre de cartes uniques possédées
-                                    db.query(
-                                        `
-                                        SELECT
-                                            COUNT(
-                                                DISTINCT card_tcgdex_id
-                                            ) AS owned
-                                        FROM zxd_card_collection
-                                        WHERE profil_id = ?
-                                        `,
-                                        [profilId],
-                                        (err, ownedRows) => {
-                                            if (err) {
-                                                console.log(err);
-                                                return res.status(500).send(err);
-                                            }
-                                            // Nombre total de cartes existantes
-                                            db.query(
-                                                `
-                                                SELECT
-                                                    SUM(card_count) AS total
-                                                FROM zxd_card_set
-                                                WHERE active = 1
-                                                `,
-                                                (err, totalRows) => {
-                                                    if (err) {
-                                                        console.log(err);
-                                                        return res.status(500).send(err);
-                                                    }
-                                                    const owned =
-                                                        ownedRows[0]?.owned || 0;
-                                                    const total =
-                                                        totalRows[0]?.total || 0;
-                                                    const globalProgress = {
-                                                        owned,
-                                                        total,
-                                                        percent:
-                                                            Number(
-                                                                (
-                                                                    owned /
-                                                                    (total || 1)
-                                                                    * 100
-                                                                ).toFixed(1)
-                                                            )
-                                                    };
-                                                    db.query(
-                                                        `
-                                                        SELECT
-                                                            s.tcgdex_id,
-                                                            s.name,
-                                                            s.logo,
-                                                            s.card_count,
-                                                            COUNT(
-                                                                DISTINCT c.card_tcgdex_id
-                                                            ) AS owned,
-
-                                                            JSON_ARRAYAGG(
-                                                                c.card_tcgdex_id
-                                                            ) AS cards
-
-                                                        FROM zxd_card_set s
-
-                                                        INNER JOIN zxd_card_collection c
-                                                            ON c.set_tcgdex_id =
-                                                                s.tcgdex_id
-
-                                                        WHERE c.profil_id = ?
-
-                                                        GROUP BY
-                                                            s.tcgdex_id,
-                                                            s.name,
-                                                            s.logo,
-                                                            s.card_count
-
-                                                        ORDER BY s.release_date DESC
-                                                        `,
-                                                        [profilId],
-                                                        (err, ownedSets) => {
-
-                                                            if (err) {
-                                                                console.log(err);
-                                                                return res.status(500).send(err);
-                                                            }
-
-                                                            ownedSets.forEach(set => {
-
-                                                                set.percent =
-                                                                    Number(
-                                                                        (
-                                                                            set.owned /
-                                                                            set.card_count *
-                                                                            100
-                                                                        ).toFixed(1)
-                                                                    );
-
-                                                            });
-                                                        });
-                                                    res.send({
-                                                        rotationSets,
-                                                        collection,
-                                                        progress,
-                                                        boosterCurrency,
-                                                        globalProgress,
-                                                        ownedSets
-                                                    });
-                                                }
-                                            );
-                                        }
-                                    );
-
-                                }
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
-        }
-    );
-
+app.get("/api/card/init/:profilId", async (req, res) => {
+    try {
+        const profilId = req.params.profilId; // Rotation active 
+        const rotationSets = await query(` SELECT s.*, r.end_date FROM zxd_card_set s INNER JOIN zxd_card_rotation_set rs ON rs.set_id = s.id INNER JOIN zxd_card_rotation r ON r.id = rs.rotation_id WHERE NOW() BETWEEN r.start_date AND r.end_date `);
+        // Collection 
+        const collection = await query(` SELECT * FROM zxd_card_collection WHERE profil_id = ? `, [profilId]);
+        // Progression rotation 
+        const progressRows = await query(` SELECT set_tcgdex_id, COUNT( DISTINCT card_tcgdex_id ) AS owned FROM zxd_card_collection WHERE profil_id = ? GROUP BY set_tcgdex_id `, [profilId]);
+        const progress = {}; progressRows.forEach(row => { progress[row.set_tcgdex_id] = { owned: row.owned }; });
+        rotationSets.forEach(set => { if (!progress[set.tcgdex_id]) { progress[set.tcgdex_id] = { owned: 0 }; } progress[set.tcgdex_id].total = set.card_count; progress[set.tcgdex_id].percent = Number((progress[set.tcgdex_id].owned / set.card_count * 100).toFixed(1)); });
+        // Monnaie booster 
+        const boosterRow = await query(` SELECT quantity FROM zxd_inventaire WHERE user = ? AND slug = 'booster' LIMIT 1 `, [profilId]);
+        const boosterCurrency = boosterRow?.[0]?.quantity || 0;
+        // Progression globale 
+        const globalOwned = await query(` SELECT COUNT( DISTINCT card_tcgdex_id ) AS total FROM zxd_card_collection WHERE profil_id = ? `, [profilId]);
+        const globalTotal = await query(` SELECT SUM(card_count) AS total FROM zxd_card_set WHERE active = 1 `);
+        const globalProgress = { owned: globalOwned[0]?.total || 0, total: globalTotal[0]?.total || 0, percent: Number(((globalOwned[0]?.total || 0) / (globalTotal[0]?.total || 1) * 100).toFixed(1)) };
+        // Sets possédés 
+        const ownedSets = await query(` SELECT s.tcgdex_id, s.name, s.logo, s.card_count, COUNT( DISTINCT c.card_tcgdex_id ) AS owned, JSON_ARRAYAGG( c.card_tcgdex_id ) AS cards FROM zxd_card_set s INNER JOIN zxd_card_collection c ON c.set_tcgdex_id = s.tcgdex_id WHERE c.profil_id = ? GROUP BY s.tcgdex_id, s.name, s.logo, s.card_count ORDER BY s.release_date DESC `, [profilId]);
+        ownedSets.forEach(set => { set.percent = Number((set.owned / set.card_count * 100).toFixed(1)); });
+        res.send({ rotationSets, collection, progress, boosterCurrency, globalProgress, ownedSets });
+    }
+    catch (err)
+    {
+        console.error(err); res.status(500).send(err);
+    }
 });
 app.post("/api/card/openBooster", async (req, res) => {
 
