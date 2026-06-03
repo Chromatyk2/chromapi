@@ -3,7 +3,9 @@ const db = require('./config/db')
 const cors = require('cors');
 const cron = require("node-cron");
 const app = express();
-const  PORT = 8080;
+const PORT = 8080;
+const axios = require('axios');
+
 app.use(express.json())
 app.use(cors());
 // Route to get all posts
@@ -2013,6 +2015,63 @@ app.post('/api/closeExpedition/:id', (req, res) => {
         }
         res.send(result)
     });
+});
+
+// Fonctions
+async function syncSets() {
+
+    try {
+
+        const { data: sets } = await axios.get(
+            "https://api.tcgdex.net/v2/fr/sets"
+        );
+
+        for (const set of sets) {
+
+            const { data: details } = await axios.get(
+                `https://api.tcgdex.net/v2/fr/sets/${set.id}`
+            );
+
+            db.query(
+                `
+                INSERT INTO zxd_card_set
+                (
+                    tcgdex_id,
+                    name,
+                    logo,
+                    release_date,
+                    card_count
+                )
+                VALUES (?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    name = VALUES(name),
+                    logo = VALUES(logo),
+                    release_date = VALUES(release_date),
+                    card_count = VALUES(card_count)
+                `,
+                [
+                    details.id,
+                    details.name,
+                    details.logo || null,
+                    details.releaseDate || null,
+                    details.cardCount?.total || 0
+                ],
+                (err) => {
+                    if (err) console.log(err);
+                }
+            );
+        }
+
+        console.log("Sets synchronisés");
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// Automatisations
+cron.schedule("0 3 * * 1", async () => {
+    await syncSets();
 });
 
 cron.schedule("0 0 1 * *", () => {
