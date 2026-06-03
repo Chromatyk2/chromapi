@@ -2148,68 +2148,166 @@ app.get("/api/card/init/:profilId", (req, res) => {
     );
 
 });
-app.post("/api/card/openBooster", (req, res) => {
+app.post("/api/card/openBooster", async (req, res) => {
 
-    const userId = req.body.userId;
-    const setTcgdexId = req.body.setTcgdexId;
+    try {
 
-    db.query(
-        `
-        SELECT quantity
-        FROM zxd_inventaire
-        WHERE user = ?
-        AND slug = 'booster'
-        LIMIT 1
-        `,
-        [userId],
-        (err, result) => {
+        const userId = req.body.userId;
+        const setTcgdexId = req.body.setTcgdexId;
 
-            if (err) {
-                console.log(err);
-                return res.status(500).send(err);
-            }
+        // Vérification monnaie
 
-            const boosterCurrency =
-                result.length > 0
-                    ? result[0].quantity
-                    : 0;
+        const inventory = await query(`
+            SELECT quantity
+            FROM zxd_inventaire
+            WHERE user = ?
+            AND slug = 'booster'
+            LIMIT 1
+        `, [userId]);
 
-            if (boosterCurrency <= 0) {
+        const boosterCurrency =
+            inventory?.[0]?.quantity || 0;
 
-                return res.send({
-                    success: false,
-                    message: "Aucun booster disponible"
-                });
+        if (boosterCurrency <= 0) {
 
-            }
-
-            db.query(
-                `
-                UPDATE zxd_inventaire
-                SET quantity = quantity - 1
-                WHERE user = ?
-                AND slug = 'booster'
-                AND quantity > 0
-                `,
-                [userId],
-                (err) => {
-
-                    if (err) {
-                        console.log(err);
-                        return res.status(500).send(err);
-                    }
-
-                    res.send({
-                        success: true,
-                        boosterCurrency:
-                            boosterCurrency - 1
-                    });
-
-                }
-            );
+            return res.send({
+                success: false,
+                message: "Aucun booster disponible"
+            });
 
         }
-    );
+
+        // Consommation
+
+        await query(`
+            UPDATE zxd_inventaire
+            SET quantity = quantity - 1
+            WHERE user = ?
+            AND slug = 'booster'
+            AND quantity > 0
+        `, [userId]);
+
+        // 2 cartes tier 1
+
+        const commonCards = await query(`
+            SELECT c.*
+            FROM zxd_card c
+            INNER JOIN zxd_card_rarity r
+                ON r.name = c.rarity
+            WHERE c.set_tcgdex_id = ?
+            AND r.tier = 1
+            ORDER BY RAND()
+            LIMIT 2
+        `, [setTcgdexId]);
+
+        // 2 cartes tier 2
+
+        const uncommonCards = await query(`
+            SELECT c.*
+            FROM zxd_card c
+            INNER JOIN zxd_card_rarity r
+                ON r.name = c.rarity
+            WHERE c.set_tcgdex_id = ?
+            AND r.tier = 2
+            ORDER BY RAND()
+            LIMIT 2
+        `, [setTcgdexId]);
+
+        // Pool premium
+
+        const rarityPool = await query(`
+            SELECT
+                r.name AS rarity,
+                r.weight
+            FROM zxd_card_rarity r
+            INNER JOIN zxd_card c
+                ON c.rarity = r.name
+            WHERE c.set_tcgdex_id = ?
+            AND r.tier >= 3
+            GROUP BY r.name
+        `, [setTcgdexId]);
+
+        const selectedRarity =
+            weightedRandom(rarityPool);
+
+        // Carte premium
+
+        const premiumCard = await query(`
+            SELECT *
+            FROM zxd_card
+            WHERE set_tcgdex_id = ?
+            AND rarity = ?
+            ORDER BY RAND()
+            LIMIT 1
+        `, [
+            setTcgdexId,
+            selectedRarity
+        ]);
+
+        // Booster final
+
+        const openedCards = [
+
+            ...commonCards,
+            ...uncommonCards,
+            ...premiumCard
+
+        ];
+
+        // Ajout collection
+
+        for (const card of openedCards) {
+
+            await query(`
+                INSERT INTO zxd_card_collection
+                (
+                    profil_id,
+                    set_tcgdex_id,
+                    card_tcgdex_id,
+                    quantity,
+                    first_obtained_at,
+                    last_obtained_at
+                )
+                VALUES
+                (
+                    ?, ?, ?, 1,
+                    NOW(),
+                    NOW()
+                )
+
+                ON DUPLICATE KEY UPDATE
+
+                    quantity =
+                        quantity + 1,
+
+                    last_obtained_at =
+                        NOW()
+            `, [
+                userId,
+                card.set_tcgdex_id,
+                card.tcgdex_id
+            ]);
+
+        }
+
+        res.send({
+
+            success: true,
+
+            boosterCurrency:
+                boosterCurrency - 1,
+
+            openedCards
+
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).send(err);
+
+    }
 
 });
 // Fonctions
@@ -2460,6 +2558,33 @@ async function createRotationIfNeeded() {
 
         }
     );
+
+}
+function weightedRandom(items) {
+
+    const totalWeight =
+        items.reduce(
+            (sum, item) =>
+                sum + item.weight,
+            0
+        );
+
+    let random =
+        Math.random() * totalWeight;
+
+    for (const item of items) {
+
+        random -= item.weight;
+
+        if (random <= 0) {
+
+            return item.rarity;
+
+        }
+
+    }
+
+    return items[0].rarity;
 
 }
 
