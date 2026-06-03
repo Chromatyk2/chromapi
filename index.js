@@ -2052,7 +2052,7 @@ async function syncSets() {
                 [
                     details.id,
                     details.name,
-                    details.logo || null,
+                    `/bossters/${details.id}.png`,
                     details.releaseDate || null,
                     details.cardCount?.total || 0
                 ],
