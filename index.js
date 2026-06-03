@@ -2170,12 +2170,53 @@ app.get("/api/card/init/:profilId", (req, res) => {
                                                                 ).toFixed(1)
                                                             )
                                                     };
+                                                    const ownedSets = await query(`
+                                                        SELECT
+                                                            s.tcgdex_id,
+                                                            s.name,
+                                                            s.logo,
+                                                            s.card_count,
+                                                            COUNT(
+                                                                DISTINCT c.card_tcgdex_id
+                                                            ) AS owned,
+
+                                                            JSON_ARRAYAGG(
+                                                                c.card_tcgdex_id
+                                                            ) AS cards
+
+                                                        FROM zxd_card_set s
+
+                                                        INNER JOIN zxd_card_collection c
+                                                            ON c.set_tcgdex_id =
+                                                                s.tcgdex_id
+
+                                                        WHERE c.profil_id = ?
+
+                                                        GROUP BY
+                                                            s.tcgdex_id,
+                                                            s.name,
+                                                            s.logo,
+                                                            s.card_count
+
+                                                        ORDER BY s.release_date DESC
+                                                    `, [profilId]);
+                                                    ownedSets.forEach(set => {
+                                                        set.percent =
+                                                            Number(
+                                                                (
+                                                                    set.owned /
+                                                                    set.card_count *
+                                                                    100
+                                                                ).toFixed(1)
+                                                            );
+                                                    });
                                                     res.send({
                                                         rotationSets,
                                                         collection,
                                                         progress,
                                                         boosterCurrency,
-                                                        globalProgress
+                                                        globalProgress,
+                                                        ownedSets
                                                     });
                                                 }
                                             );
