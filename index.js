@@ -2194,6 +2194,7 @@ async function createRotation() {
         SELECT id
         FROM zxd_card_set
         WHERE id != ?
+        AND active = 1
         ORDER BY RAND()
         LIMIT 2
     `, [latestSetId]);
