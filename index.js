@@ -2182,19 +2182,15 @@ app.get("/api/card/init/:profilId", (req, res) => {
                                                         boosterCurrency,
                                                         globalProgress
                                                     });
+                                                });
 
+                                });
 
-                                }
-                            );
+                        });
 
-                        }
-                    );
+                });
 
-                }
-            );
-
-        }
-    );
+        });
 
 });
 app.post("/api/card/openBooster", async (req, res) => {
