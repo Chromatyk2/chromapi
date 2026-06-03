@@ -2716,7 +2716,7 @@ function weightedRandom(items) {
 }
 
 // Automatisations
-cron.schedule("0 0 * * 4", async () => {
+cron.schedule("0 22 * * 3", async () => {
 
     try {
 
