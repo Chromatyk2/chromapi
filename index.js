@@ -2235,14 +2235,17 @@ app.post("/api/card/openBooster", async (req, res) => {
         // Carte premium
 
         const premiumCard = await query(`
-            SELECT *,
-    r.tier
-            FROM zxd_card
-            WHERE set_tcgdex_id = ?
-            AND rarity = ?
-            ORDER BY RAND()
-            LIMIT 1
-        `, [
+    SELECT
+        c.*,
+        r.tier
+    FROM zxd_card c
+    INNER JOIN zxd_card_rarity r
+        ON r.name = c.rarity
+    WHERE c.set_tcgdex_id = ?
+    AND c.rarity = ?
+    ORDER BY RAND()
+    LIMIT 1
+`, [
             setTcgdexId,
             selectedRarity
         ]);
