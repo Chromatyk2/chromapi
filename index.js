@@ -2116,7 +2116,13 @@ cron.schedule("0 0,12 * * *", () => {
     timezone: "Europe/Paris",
 }
 );
+app.listen(3001, async () => {
+
+    console.log("Serveur démarré");
+
+    await syncSets();
+
+});
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
-    await syncSets();
 })
