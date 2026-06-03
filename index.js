@@ -2027,7 +2027,7 @@ app.get("/api/card/init/:profilId", (req, res) => {
         SELECT s.*
         FROM zxd_card_set s
         INNER JOIN zxd_card_rotation_set rs
-            ON rs.set_id = s.id
+            ON rs.set_tcgdex_id = s.set_tcgdex_id
         INNER JOIN zxd_card_rotation r
             ON r.id = rs.rotation_id
         WHERE NOW() BETWEEN r.start_date
@@ -2059,11 +2059,11 @@ app.get("/api/card/init/:profilId", (req, res) => {
                     db.query(
                         `
                         SELECT
-                            set_id,
+                            set_tcgdex_id,
                             COUNT(DISTINCT card_tcgdex_id) AS owned
                         FROM zxd_card_collection
                         WHERE profil_id = ?
-                        GROUP BY set_id
+                        GROUP BY set_tcgdex_id
                         `,
                         [profilId],
                         (err, progressRows) => {
