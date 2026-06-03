@@ -2077,7 +2077,7 @@ app.get("/api/card/init/:profilId", (req, res) => {
 
                             progressRows.forEach(row => {
 
-                                progress[row.set_id] = {
+                                progress[row.set_tcgdex_id] = {
                                     owned: row.owned
                                 };
 
@@ -2086,26 +2086,24 @@ app.get("/api/card/init/:profilId", (req, res) => {
                             // 4. Ajout du total de cartes du set
                             rotationSets.forEach(set => {
 
-                                if (!progress[set.id]) {
+                                if (!progress[set.tcgdex_id]) {
 
-                                    progress[set.id] = {
+                                    progress[set.tcgdex_id] = {
                                         owned: 0
                                     };
 
                                 }
-
-                                progress[set.id].total =
+                                progress[set.tcgdex_id].total =
                                     set.card_count;
 
-                                progress[set.id].percent =
+                                progress[set.tcgdex_id].percent =
                                     Number(
                                         (
-                                            progress[set.id].owned /
+                                            progress[set.tcgdex_id].owned /
                                             set.card_count *
                                             100
                                         ).toFixed(1)
                                     );
-
                             });
 
                             res.send({
@@ -2160,7 +2158,7 @@ async function syncSets() {
                 [
                     details.id,
                     details.name,
-                    `/bossters/${details.id}.png`,
+                    `/boosters/${details.id}.png`,
                     details.releaseDate || null,
                     details.cardCount?.total || 0
                 ],
