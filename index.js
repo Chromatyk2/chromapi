@@ -2214,6 +2214,28 @@ app.post("/api/card/openBooster", (req, res) => {
 });
 // Fonctions
 //Synchronise les sets de l'API TCGDEX avec ma BDD
+function query(sql, params = []) {
+
+    return new Promise((resolve, reject) => {
+
+        db.query(
+            sql,
+            params,
+            (err, result) => {
+
+                if (err) {
+                    reject(err);
+                    return;
+                }
+
+                resolve(result);
+
+            }
+        );
+
+    });
+
+}
 async function syncSets() {
 
     try {
