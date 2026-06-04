@@ -9,7 +9,7 @@ require('dotenv').config();
 
 app.use(express.json())
 app.use(cors());
-// Route to get all posts
+// TWITCH
 app.post("/api/auth/twitch", async (req, res) => {
     try {
 
@@ -62,6 +62,53 @@ app.post("/api/auth/twitch", async (req, res) => {
 
         res.status(500).json({
             success: false
+        });
+    }
+});
+app.get("/api/twitch/live", async (req, res) => {
+
+    try {
+
+        const tokenResponse = await axios.post(
+            "https://id.twitch.tv/oauth2/token",
+            null,
+            {
+                params: {
+                    client_id: TWITCH_CLIENT_ID,
+                    client_secret: TWITCH_CLIENT_SECRET,
+                    grant_type: "client_credentials"
+                }
+            }
+        );
+
+        const accessToken =
+            tokenResponse.data.access_token;
+
+        const streamResponse = await axios.get(
+            "https://api.twitch.tv/helix/streams?user_login=chromatyk",
+            {
+                headers: {
+                    "Client-Id": TWITCH_CLIENT_ID,
+                    Authorization: `Bearer ${accessToken}`
+                }
+            }
+        );
+
+        const stream =
+            streamResponse.data.data[0];
+
+        res.json({
+            live: !!stream,
+            title: stream?.title || null,
+            viewers: stream?.viewer_count || 0
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.json({
+            live: false
         });
     }
 });
