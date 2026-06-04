@@ -2044,6 +2044,48 @@ app.get("/api/card/init/:profilId", async (req, res) => {
         console.error(err); res.status(500).send(err);
     }
 });
+app.get("/api/card/globalProgress/:profilId", async (req, res) => {
+
+    try {
+
+        const profilId =
+            req.params.profilId;
+        const result =
+            await query(`
+                SELECT
+                    (SELECT COUNT(DISTINCT card_tcgdex_id)
+                        FROM zxd_card_collection
+                        WHERE profil_id = ?
+                    ) AS owned,
+                    (
+                        SELECT COUNT(*)
+                        FROM zxd_card
+                    ) AS total
+            `, [profilId]);
+        const owned =
+            result[0].owned;
+        const total =
+            result[0].total;
+        res.send({
+            owned,
+            total,
+            percent:
+                Number(
+                    (
+                        owned /
+                        total *
+                        100
+                    ).toFixed(1)
+                )
+
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(err);
+    }
+
+});
 app.post("/api/card/openBooster", async (req, res) => {
 
     try {
@@ -2412,17 +2454,20 @@ async function syncSetCards(setTcgdexId) {
                 (
                     tcgdex_id,
                     set_tcgdex_id,
+                    local_id,
                     rarity,
                     image
                 )
-                VALUES (?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?)
 
                 ON DUPLICATE KEY UPDATE
+                    local_id = VALUES(local_id),
                     rarity = VALUES(rarity),
                     image = VALUES(image)
             `, [
                 cardData.id,
                 setTcgdexId,
+                cardData.localId,
                 cardData.rarity,
                 imageUrl
             ]);
