@@ -16,6 +16,8 @@ let twitchCache = {
     viewers: 0,
     updatedAt: null
 };
+const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
+const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 async function updateTwitchCache() {
 
     try {
@@ -123,52 +125,10 @@ app.post("/api/auth/twitch", async (req, res) => {
         });
     }
 });
-app.get("/api/twitch/live", async (req, res) => {
+app.get("/api/twitch/live", (req, res) => {
 
-    try {
+    res.json(twitchCache);
 
-        const tokenResponse = await axios.post(
-            "https://id.twitch.tv/oauth2/token",
-            null,
-            {
-                params: {
-                    client_id: TWITCH_CLIENT_ID,
-                    client_secret: TWITCH_CLIENT_SECRET,
-                    grant_type: "client_credentials"
-                }
-            }
-        );
-
-        const accessToken =
-            tokenResponse.data.access_token;
-
-        const streamResponse = await axios.get(
-            "https://api.twitch.tv/helix/streams?user_login=chromatyk",
-            {
-                headers: {
-                    "Client-Id": TWITCH_CLIENT_ID,
-                    Authorization: `Bearer ${accessToken}`
-                }
-            }
-        );
-
-        const stream =
-            streamResponse.data.data[0];
-
-        res.json({
-            live: !!stream,
-            title: stream?.title || null,
-            viewers: stream?.viewer_count || 0
-        });
-
-    } catch (err) {
-
-        console.error(err);
-
-        res.json({
-            live: false
-        });
-    }
 });
 app.post('/api/updateIdProfil',(req,res)=>{
 
@@ -2859,10 +2819,6 @@ cron.schedule("0 0,12 * * *", () => {
     timezone: "Europe/Paris",
 }
 );
-setInterval(
-    updateTwitchCache,
-    60000
-);
 app.listen(3001, async () => {
 
     console.log("Serveur démarré");
@@ -2870,6 +2826,11 @@ app.listen(3001, async () => {
     await syncSets();
 
 });
+updateTwitchCache();
+setInterval(
+    updateTwitchCache,
+    30000
+);
 app.listen(process.env.PORT || PORT, ()=>{
     console.log(`Server is running on ＄{PORT}`)
 })
