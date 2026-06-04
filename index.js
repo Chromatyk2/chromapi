@@ -10,6 +10,64 @@ require('dotenv').config();
 app.use(express.json())
 app.use(cors());
 // TWITCH
+let twitchCache = {
+    live: false,
+    title: "",
+    viewers: 0,
+    updatedAt: null
+};
+async function updateTwitchCache() {
+
+    try {
+
+        const tokenResponse = await axios.post(
+            "https://id.twitch.tv/oauth2/token",
+            null,
+            {
+                params: {
+                    client_id: TWITCH_CLIENT_ID,
+                    client_secret: TWITCH_CLIENT_SECRET,
+                    grant_type: "client_credentials"
+                }
+            }
+        );
+
+        const accessToken =
+            tokenResponse.data.access_token;
+
+        const streamResponse = await axios.get(
+            "https://api.twitch.tv/helix/streams?user_login=chromatyk",
+            {
+                headers: {
+                    "Client-Id": TWITCH_CLIENT_ID,
+                    Authorization: `Bearer ${accessToken}`
+                }
+            }
+        );
+
+        const stream =
+            streamResponse.data.data[0];
+
+        twitchCache = {
+            live: !!stream,
+            title: stream?.title || "",
+            viewers: stream?.viewer_count || 0,
+            updatedAt: new Date()
+        };
+
+        console.log(
+            `[TWITCH CACHE] Live=${twitchCache.live}`
+        );
+
+    } catch (err) {
+
+        console.error(
+            "[TWITCH CACHE]",
+            err.response?.data || err.message
+        );
+
+    }
+}
 app.post("/api/auth/twitch", async (req, res) => {
     try {
 
@@ -2800,6 +2858,10 @@ cron.schedule("0 0,12 * * *", () => {
 {
     timezone: "Europe/Paris",
 }
+);
+setInterval(
+    updateTwitchCache,
+    60000
 );
 app.listen(3001, async () => {
 
