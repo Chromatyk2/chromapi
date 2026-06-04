@@ -2035,8 +2035,8 @@ app.get("/api/card/init/:profilId", async (req, res) => {
         const globalTotal = await query(` SELECT SUM(card_count) AS total FROM zxd_card_set WHERE active = 1 `);
         const globalProgress = { owned: globalOwned[0]?.total || 0, total: globalTotal[0]?.total || 0, percent: Number(((globalOwned[0]?.total || 0) / (globalTotal[0]?.total || 1) * 100).toFixed(1)) };
         // Sets possédés 
-        const ownedSets = await query(` SELECT s.tcgdex_id, s.name, s.logo, s.card_count, COUNT( DISTINCT c.card_tcgdex_id ) AS owned, JSON_ARRAYAGG( c.card_tcgdex_id ) AS cards FROM zxd_card_set s INNER JOIN zxd_card_collection c ON c.set_tcgdex_id = s.tcgdex_id WHERE c.profil_id = ? GROUP BY s.tcgdex_id, s.name, s.logo, s.card_count ORDER BY s.release_date DESC `, [profilId]);
-        ownedSets.forEach(set => { set.percent = Number((set.owned / set.card_count * 100).toFixed(1)); });
+        const ownedSets = await query(`SELECT s.tcgdex_id, s.name, s.logo, s.card_count, COUNT(DISTINCT c.card_tcgdex_id) AS owned, JSON_ARRAYAGG(JSON_OBJECT('id', c.card_tcgdex_id, 'quantity', c.quantity, 'image', card.image, 'rarity', card.rarity, 'tier', rarity.tier)) AS cards FROM zxd_card_set s INNER JOIN zxd_card_collection c ON c.set_tcgdex_id = s.tcgdex_id INNER JOIN zxd_card card ON card.tcgdex_id = c.card_tcgdex_id LEFT JOIN zxd_card_rarity rarity ON rarity.name = card.rarity WHERE c.profil_id = ? GROUP BY s.tcgdex_id, s.name, s.logo, s.card_count ORDER BY s.release_date DESC`, [profilId]);
+        ownedSets.forEach(set => { set.percent = Number((set.owned / set.card_count * 100).toFixed(1)); set.cards = typeof set.cards === "string" ? JSON.parse(set.cards) : set.cards; });
         res.send({ rotationSets, collection, progress, boosterCurrency, globalProgress, ownedSets });
     }
     catch (err)
