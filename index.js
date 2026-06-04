@@ -5,11 +5,66 @@ const cron = require("node-cron");
 const app = express();
 const PORT = 8080;
 const axios = require('axios');
+require('dotenv').config();
 
 app.use(express.json())
 app.use(cors());
 // Route to get all posts
+app.post("/api/auth/twitch", async (req, res) => {
+    try {
 
+        const { code } = req.body;
+
+        const tokenResponse = await axios.post(
+            "https://id.twitch.tv/oauth2/token",
+            null,
+            {
+                params: {
+                    client_id: process.env.TWITCH_CLIENT_ID,
+                    client_secret: process.env.TWITCH_CLIENT_SECRET,
+                    code,
+                    grant_type: "authorization_code",
+                    redirect_uri: "https://chromatyk.fr/log"
+                }
+            }
+        );
+
+        const accessToken =
+            tokenResponse.data.access_token;
+
+        const userResponse = await axios.get(
+            "https://api.twitch.tv/helix/users",
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Client-Id": process.env.TWITCH_CLIENT_ID
+                }
+            }
+        );
+
+        const user =
+            userResponse.data.data[0];
+
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                login: user.login,
+                display_name: user.display_name,
+                profile_image_url:
+                    user.profile_image_url
+            }
+        });
+
+    } catch (err) {
+
+        console.error(err.response?.data || err);
+
+        res.status(500).json({
+            success: false
+        });
+    }
+});
 app.post('/api/updateIdProfil',(req,res)=>{
 
     const idUser = req.body.idUser;
