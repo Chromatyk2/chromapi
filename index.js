@@ -2058,8 +2058,9 @@ app.get("/api/card/globalProgress/:profilId", async (req, res) => {
                         WHERE profil_id = ?
                     ) AS owned,
                     (
-                        SELECT COUNT(*)
-                        FROM zxd_card
+                        SELECT SUM(card_count)
+                        FROM zxd_card_set
+		                WHERE active = 1
                     ) AS total
             `, [profilId]);
         const owned =
