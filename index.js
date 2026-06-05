@@ -321,7 +321,7 @@ app.get(
             const {
                 getLevelFromXp
             } = require(
-                "./utils/level"
+                "./utils/levels"
             );
             const profile =
                 await query(
