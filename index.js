@@ -597,6 +597,62 @@ app.post(
         }
     }
 );
+app.post(
+    "/api/changeCompagnon",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const compagnon =
+                req.body.compagnon;
+            const owned =
+                await query(
+                    `
+                    SELECT 1
+                    FROM zxd_compagnon
+                    WHERE user = ?
+                    AND number = ?
+                    `,
+                    [
+                        user,
+                        compagnon
+                    ]
+                );
+            if (
+                owned.length === 0
+            ) {
+                return res
+                    .status(403)
+                    .send({
+                        error:
+                            "Compagnon non possédé"
+                    });
+
+            }
+            await query(
+                `
+                UPDATE zxd_profil
+                SET compagnon = ?
+                WHERE user = ?
+                `,
+                [
+                    compagnon,
+                    user
+                ]
+            );
+            res.send({
+                success: true
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur lors du changement de compagnon"
+            });
+        }
+    }
+);
 /* Profil Old*/
 app.post('/api/addProfil', (req, res) => {
     const user = req.body.user;
