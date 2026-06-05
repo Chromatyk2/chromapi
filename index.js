@@ -660,39 +660,107 @@ app.post(
         try {
             const user =
                 req.user.id;
+            const number =
+                req.body.number;
+            const companion =
+                await query(                    `
+                    SELECT
+                        number,
+                        tier,
+                        shiny,
+                        negative
+                    FROM zxd_compagnon
+                    WHERE user = ?
+                    AND number = ?
+                    `,
+                    [
+                        user,
+                        number
+                    ]
+                );
+            if (
+                companion.length === 0
+            ) {
+                return res
+                    .status(404)
+                    .send({
+                        error:
+                            "Compagnon introuvable"
+                    });
+            }
+            const alreadyUsed =
+                await query(
+                    `
+                    SELECT 1
+                    FROM zxd_expedition
+                    WHERE number = ?
+                    LIMIT 1
+                    `,
+                    [number]
+                );
+            if (
+                alreadyUsed.length > 0
+            ) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Ce compagnon a déjà effectué une expédition"
+                    });
+            }
             const {
-                number,
                 tier,
-                endDate
-            } = req.body;
-            const now =
+                shiny,
+                negative
+            } = companion[0];
+            const hours =
+                negative === 1
+                    ? 3 + tier
+                    : shiny === 1
+                        ? 2 + tier
+                        : 1 + tier;
+            const startDate =
                 new Date();
+            const endDate =
+                new Date(
+                    Date.now() +
+                    hours *
+                    60 *
+                    60 *
+                    1000
+                );
             await query(
                 `
                 INSERT INTO zxd_expedition
                 (
                     user,
                     number,
+                    tier,
                     active,
                     date,
                     endDate
                 )
                 VALUES
-                (?, ?, 1, ?, ?)
+                (?, ?, ?, 1, ?, ?)
                 `,
                 [
                     user,
                     number,
-                    now,
+                    tier,
+                    startDate,
                     endDate
                 ]
             );
             res.send({
-                success: true
+                success: true,
+                endDate
             });
         } catch (err) {
             console.error(err);
-            res.status(500).send(err);
+            res.status(500).send({
+                error:
+                    "Erreur création expédition"
+            });
         }
     }
 );
