@@ -384,6 +384,55 @@ app.post(
         }
     }
 );
+pp.post(
+    "/api/changeSkin",
+    authMiddleware,
+    async (req, res) => {
+        const user =
+            req.user.id;
+        const skin =
+            req.body.skin;
+        const owned =
+            await query(
+                `
+                SELECT 1
+                FROM zxd_skin
+                WHERE user = ?
+                AND skin = ?
+                `,
+                [
+                    user,
+                    skin
+                ]
+            );
+        if (
+            owned.length === 0
+        ) {
+            return res
+                .status(403)
+                .send({
+                    error:
+                        "Skin non possédé"
+                });
+
+        }
+        await query(
+            `
+            UPDATE zxd_profil
+            SET skin = ?
+            WHERE user = ?
+            `,
+            [
+                skin,
+                user
+            ]
+        );
+        res.send({
+            success: true
+        });
+
+    }
+);
 /* Profil Old*/
 app.post('/api/addProfil', (req, res) => {
     const user = req.body.user;
