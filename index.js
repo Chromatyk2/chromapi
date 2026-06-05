@@ -1242,7 +1242,36 @@ app.post(
         }
     }
 );
+async function addItem(
+    user,
+    item,
+    slug,
+    quantity
+) {
+    await query(
+        `
+        INSERT INTO zxd_inventaire
+        (
+            user,
+            item,
+            slug,
+            quantity
+        )
+        VALUES
+        (?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            quantity =
+                quantity + VALUES(quantity)
+        `,
+        [
+            user,
+            item,
+            slug,
+            quantity
+        ]
+    );
 
+}
 /* Pokedex */
 app.get(
     "/api/pokedex/:id",
