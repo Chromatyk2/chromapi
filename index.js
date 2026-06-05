@@ -523,6 +523,75 @@ app.post(
 
     }
 );
+app.post(
+    "/api/addSkin",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const profile =
+                await query(
+                    `
+                    SELECT xp
+                    FROM zxd_profil
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            const skins =
+                await query(
+                    `
+                    SELECT COUNT(*)
+                    AS total
+                    FROM zxd_skin
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            const level =
+                getLevelFromXp(
+                    profile[0].xp
+                );
+            if (
+                skins[0].total >= level
+            ) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Limite atteinte"
+                    });
+            }
+            const skin =
+                Math.floor(
+                    Math.random() * 1398
+                ) + 1;
+            await query(
+                `
+                INSERT INTO zxd_skin
+                (
+                    user,
+                    skin
+                )
+                VALUES
+                (?, ?)
+                `,
+                [
+                    user,
+                    skin
+                ]
+            );
+            res.send({
+                success: true,
+                skin
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send(err);
+        }
+    }
+);
 /* Profil Old*/
 app.post('/api/addProfil', (req, res) => {
     const user = req.body.user;
