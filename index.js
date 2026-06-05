@@ -2185,7 +2185,20 @@ function weightedRandom(items) {
     return items[0].rarity;
 
 }
+const SERVER_START =
+    Date.now();
 
+app.get(
+    "/api/version",
+    (req, res) => {
+
+        res.send({
+            version:
+                SERVER_START
+        });
+
+    }
+);
 // Automatisations
 cron.schedule("0 22 * * 3", async () => {
 
