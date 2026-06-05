@@ -1380,15 +1380,17 @@ app.get(
                 await query(
                     `
                     SELECT
-                        pokemon,
-                        name,
-                        love,
-                        shiny,
-                        negative,
-                        tier,
-                        gen
-                    FROM zxd_safari
-                    WHERE user = ?
+                        s.pokemon,
+                        s.love,
+                        s.shiny,
+                        s.negative,
+                        s.tier,
+                        p.name,
+                        p.gen
+                    FROM zxd_safari s
+                    INNER JOIN zxd_pokemon p
+                        ON p.number = s.pokemon
+                    WHERE s.user = ?
                     `,
                     [user]
                 );
