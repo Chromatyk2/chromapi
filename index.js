@@ -1970,6 +1970,124 @@ app.get(
         }
     }
 );
+app.post(
+    "/api/compagnon/change",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const {
+                pokemon,
+                shiny,
+                negative
+            } = req.body;
+            await query(
+                `
+                UPDATE zxd_compagnon
+                SET active = 0
+                WHERE user = ?
+                `,
+                [user]
+            );
+            let companion =
+                (
+                    await query(
+                        `
+                        SELECT *
+                        FROM zxd_compagnon
+                        WHERE user = ?
+                        AND number = ?
+                        AND shiny = ?
+                        AND negative = ?
+                        `,
+                        [
+                            user,
+                            pokemon,
+                            shiny,
+                            negative
+                        ]
+                    )
+                )[0];
+            if (!companion) {
+                const poke =
+                    (
+                        await query(
+                            `
+                            SELECT
+                                name,
+                                tier
+                            FROM zxd_pokemon
+                            WHERE number = ?
+                            `,
+                            [pokemon]
+                        )
+                    )[0];
+                await query(
+                    `
+                    INSERT INTO
+                    zxd_compagnon
+                    (
+                        user,
+                        number,
+                        pokemon,
+                        shiny,
+                        negative,
+                        level,
+                        xp,
+                        active,
+                        tier
+                    )
+                    VALUES
+                    (
+                        ?, ?, ?, ?, ?, 1, 0, 1, ?
+                    )
+                    `,
+                    [
+                        user,
+                        pokemon,
+                        poke.name,
+                        shiny,
+                        negative,
+                        poke.tier
+                    ]
+                );
+            } else {
+                await query(
+                    `
+                    UPDATE zxd_compagnon
+                    SET active = 1
+                    WHERE id = ?
+                    `,
+                    [companion.id]
+                );
+            }
+            const active =
+                (
+                    await query(
+                        `
+                        SELECT *
+                        FROM zxd_compagnon
+                        WHERE user = ?
+                        AND active = 1
+                        `,
+                        [user]
+                    )
+                )[0];
+            res.send(
+                active
+            );
+        } catch (err) {
+            console.error(
+                err
+            );
+            res.status(500).send({
+                error:
+                    "Erreur changement compagnon"
+            });
+        }
+    }
+);
 /* Old Compagnon */
 app.get("/api/getActiveCompagnon/:user/:number", (req, res, next) => {
     const user = req.params.user;
