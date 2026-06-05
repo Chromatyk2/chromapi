@@ -8,7 +8,13 @@ const axios = require('axios');
 require('dotenv').config();
 
 app.use(express.json())
-app.use(cors());
+app.use(
+    cors({
+        origin:
+            "https://chromatyk.fr",
+        credentials: true
+    })
+);
 // TWITCH
 let twitchCache = {
     live: false,
