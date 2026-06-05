@@ -882,7 +882,7 @@ app.post(
                     ?,
                     'Fragment de Pack',
                     ?,
-                    'fragment'
+                    'fragement'
                 )
                 ON DUPLICATE KEY UPDATE
                     quantity =
