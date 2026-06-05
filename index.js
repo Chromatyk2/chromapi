@@ -779,10 +779,9 @@ app.post(
                     SELECT
                         number,
                         tier,
-                        shiny,
-                        negative,
                         active,
-                        endDate
+                        endDate,
+                        date
                     FROM zxd_expedition
                     WHERE user = ?
                     AND number = ?
