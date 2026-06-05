@@ -18,6 +18,32 @@ let twitchCache = {
 };
 const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
 const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
+const session =  require("express-session");
+
+app.use(
+    session({
+        secret:
+            process.env.SESSION_SECRET,
+
+        resave: false,
+
+        saveUninitialized: false,
+
+        cookie: {
+
+            httpOnly: true,
+
+            secure: true,
+
+            sameSite: "lax",
+
+            maxAge:
+                1000 * 60 * 60 * 24 * 30
+
+        }
+
+    })
+);
 async function updateTwitchCache() {
 
     try {
@@ -105,6 +131,18 @@ app.post("/api/auth/twitch", async (req, res) => {
         const user =
             userResponse.data.data[0];
 
+        req.session.user = {
+
+            id:
+                user.id,
+
+            login:
+                user.login,
+
+            display_name:
+                user.display_name
+
+        };
         res.json({
             success: true,
             user: {
@@ -130,7 +168,55 @@ app.get("/api/twitch/live", (req, res) => {
     res.json(twitchCache);
 
 });
+app.get(
+    "/api/me",
+    (req, res) => {
 
+        if (
+            !req.session.user
+        ) {
+
+            return res
+                .status(401)
+                .json({
+                    authenticated: false
+                });
+
+        }
+
+        res.json({
+            authenticated: true,
+            user:
+                req.session.user
+        });
+
+    }
+);
+function authMiddleware(
+    req,
+    res,
+    next
+) {
+
+    if (
+        !req.session.user
+    ) {
+
+        return res
+            .status(401)
+            .json({
+                error:
+                    "Not authenticated"
+            });
+
+    }
+
+    req.user =
+        req.session.user;
+
+    next();
+
+}
 //Version 2
 
 app.get('/api/getShinydex', (req, res) => {
