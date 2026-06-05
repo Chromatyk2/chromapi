@@ -468,10 +468,8 @@ app.post(
     "/api/changeSkin",
     authMiddleware,
     async (req, res) => {
-        const user =
-            req.user.id;
-        const skin =
-            req.body.skin;
+        const user =req.user.id;
+        const skin = req.body.skin;
         const owned =
             await query(
                 `
@@ -494,7 +492,6 @@ app.post(
                     error:
                         "Skin non possédé"
                 });
-
         }
         await query(
             `
@@ -529,26 +526,7 @@ app.post('/api/addProfil', (req, res) => {
     });
 });
 
-app.post('/api/updateXp', (req, res) => {
-    const user = req.body.user;
-    const xp = req.body.xp;
-    db.query("UPDATE zxd_profil SET xp = xp + ? WHERE user = ?", [xp, user], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-app.post('/api/updateLevel', (req, res) => {
-    const user = req.body.user;
-    const level = req.body.level;
-    db.query("UPDATE zxd_profil SET level = ? WHERE user = ?", [level, user], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
+
 app.post('/api/addNewSkin', (req, res) => {
     const user = req.body.user;
     db.query("INSERT INTO `zxd_skin` (`skin`, `user`) VALUES (ROUND( RAND() * 2154 ) + 1, ?)", [user], (err, result) => {
@@ -639,6 +617,70 @@ app.get("/api/getInventory/:user", (req, res, next) => {
 });
 
 /** Safari **/
+app.post(
+    "/api/addXp",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const xpToAdd =
+                Number(req.body.xp);
+            await query(
+                `
+                UPDATE zxd_profil
+                SET xp = xp + ?
+                WHERE user = ?
+                `,
+                [
+                    xpToAdd,
+                    user
+                ]
+            );
+            const result =
+                await query(
+                    `
+                    SELECT xp
+                    FROM zxd_profil
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            const xp =
+                result[0].xp;
+            const level =
+                Math.floor(
+                    (
+                        Math.sqrt(
+                            1 +
+                            (16 * xp) / 100
+                        ) - 1
+                    ) / 2 + 1
+                );
+            await query(
+                `
+                UPDATE zxd_profil
+                SET level = ?
+                WHERE user = ?
+                `,
+                [
+                    level,
+                    user
+                ]
+            );
+            res.send({
+                success: true,
+                xp,
+                level
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                success: false
+            });
+        }
+    }
+);
 app.get("/api/getRandomPokemon/:tier", (req, res, next) => {
 
     const tier = req.params.tier;
