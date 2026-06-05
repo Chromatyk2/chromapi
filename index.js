@@ -1239,61 +1239,6 @@ app.post(
         }
     }
 );
-/** Old Inventaire **/
-app.post('/api/addItem', (req, res) => {
-    const user = req.body.user;
-    const item = req.body.item;
-    const slug = req.body.slug;
-    db.query("INSERT INTO zxd_inventaire (user, item, quantity,slug) VALUES(?, ?, 1, ?) ON DUPLICATE KEY UPDATE quantity = quantity+1", [user, item, slug], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-app.post('/api/addCandy', (req, res) => {
-    const user = req.body.user;
-    const item = req.body.item;
-    const slug = req.body.slug;
-    const quantity = req.body.quantity;
-    db.query("INSERT INTO zxd_inventaire (user, item, quantity,slug) VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE quantity = quantity+?", [user, item, quantity, slug, quantity], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-app.post('/api/removeItem', (req, res) => {
-    const user = req.body.user;
-    const slug = req.body.slug;
-    db.query("UPDATE zxd_inventaire SET quantity = quantity - 1 WHERE user = ? AND slug = ?", [user, slug], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-app.post('/api/removeFragement', (req, res) => {
-    const user = req.body.user;
-    const slug = req.body.slug;
-    db.query("UPDATE zxd_inventaire SET quantity = quantity - 100 WHERE user = ? AND slug = ?", [user, slug], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-app.get("/api/getInventory/:user", (req, res, next) => {
-
-    const user = req.params.user;
-    db.query("SELECT item, quantity, slug FROM zxd_inventaire WHERE user= ? ", user,
-        (err, result) => {
-            if (err) {
-                console.log(err)
-            }
-            res.send(result)
-        });
-});
 
 /** Safari **/
 app.post(
