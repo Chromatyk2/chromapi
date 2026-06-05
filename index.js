@@ -25,7 +25,10 @@ let twitchCache = {
 const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
 const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 const session =  require("express-session");
-
+app.set(
+    "trust proxy",
+    1
+);
 app.use(
     session({
         secret:
