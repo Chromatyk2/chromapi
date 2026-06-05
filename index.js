@@ -659,7 +659,6 @@ app.post(
                     `,
                     [user]
                 );
-            );
             res.send({
                 success: true,
                 xp,
