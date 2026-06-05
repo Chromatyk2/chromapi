@@ -764,6 +764,156 @@ app.post(
         }
     }
 );
+app.post(
+    "/api/recoverExpeditionReward/:number",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const number =
+                req.params.number;
+            const expedition =
+                await query(
+                    `
+                    SELECT
+                        number,
+                        tier,
+                        shiny,
+                        negative,
+                        active,
+                        endDate
+                    FROM zxd_expedition
+                    WHERE user = ?
+                    AND number = ?
+                    `,
+                    [
+                        user,
+                        number
+                    ]
+                );
+            if (
+                expedition.length === 0
+            ) {
+                return res
+                    .status(404)
+                    .send({
+                        error:
+                            "Expédition introuvable"
+                    });
+            }
+            const current =
+                expedition[0];
+            if (
+                current.active !== 1
+            ) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Récompense déjà récupérée"
+                    });
+            }
+            if (
+                new Date() <
+                new Date(
+                    current.endDate
+                )
+            ) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Expédition non terminée"
+                    });
+            }
+            const rewards = {
+                normal: {
+                    1: [1, 3],
+                    2: [2, 4],
+                    3: [4, 6],
+                    4: [6, 8]
+                },
+
+                shiny: {
+                    1: [2, 4],
+                    2: [4, 6],
+                    3: [7, 10],
+                    4: [11, 14]
+                },
+
+                negative: {
+                    1: [3, 5],
+                    2: [6, 8],
+                    3: [11, 14],
+                    4: [27, 31]
+                }
+
+            };
+            const form =
+                current.negative === 1
+                    ? "negative"
+                    : current.shiny === 1
+                        ? "shiny"
+                        : "normal";
+            const [min, max] =
+                rewards[form][
+                current.tier
+                ];
+            const amount =
+                Math.floor(
+                    Math.random() *
+                    (
+                        max -
+                        min +
+                        1
+                    )
+                ) + min;
+            await query(
+                `
+                INSERT INTO zxd_inventaire
+                (
+                    user,
+                    item,
+                    quantity,
+                    slug
+                )
+                VALUES
+                (
+                    ?,
+                    'Fragment de Pack',
+                    ?,
+                    'fragment'
+                )
+                ON DUPLICATE KEY UPDATE
+                    quantity =
+                    quantity +
+                    VALUES(quantity)
+                `,
+                [
+                    user,
+                    amount
+                ]
+            );
+            await query(
+                `
+                UPDATE zxd_expedition
+                SET active = 0
+                WHERE number = ?
+                `,
+                [number]
+            );
+            res.send({
+                success: true,
+                reward:
+                    amount
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send(err);
+        }
+    }
+);
 /* Profil Old*/
 app.post('/api/addProfil', (req, res) => {
     const user = req.body.user;
