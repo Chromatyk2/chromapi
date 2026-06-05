@@ -15,6 +15,7 @@ app.use(
         credentials: true
     })
 );
+
 // TWITCH
 let twitchCache = {
     live: false,
@@ -231,6 +232,7 @@ function authMiddleware(req, res, next) {
     req.user = req.session.user;
     next();
 }
+
 //Version 2
 app.post(
     "/api/createAccount",
@@ -311,6 +313,7 @@ app.get('/api/getShinydex', (req, res) => {
         res.send(result)
     });
 });
+
 /* Profil */
 app.get(
     "/api/profile/:id",
@@ -1297,7 +1300,583 @@ app.get(
         }
     }
 );
-/** Safari **/
+
+/* Safari */
+app.get(
+    "/api/safari",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const profile =
+                await query(
+                    `
+                    SELECT
+                        user,
+                        login,
+                        xp,
+                        skin,
+                        compagnon
+                    FROM zxd_profil
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            const pokedex =
+                await query(
+                    `
+                    SELECT
+                        pokemon,
+                        shiny,
+                        negative
+                    FROM zxd_capture
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            const inventory =
+                await query(
+                    `
+                    SELECT
+                        item,
+                        slug,
+                        quantity
+                    FROM zxd_inventaire
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            const safari =
+                await query(
+                    `
+                    SELECT
+                        pokemon,
+                        name,
+                        love,
+                        shiny,
+                        negative,
+                        tier,
+                        gen
+                    FROM zxd_safari
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            res.send({
+                profile:
+                    profile[0] || null,
+                pokedex,
+                inventory,
+                safari:
+                    safari[0] || null
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur chargement safari"
+            });
+        }
+    }
+);
+
+app.post(
+    "/api/safari/useHoney",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const honey =
+                req.body.honey;
+            const inventory =
+                await query(                    `
+                    SELECT quantity
+                    FROM zxd_inventaire
+                    WHERE user = ?
+                    AND slug = ?
+                    `,
+                    [
+                        user,
+                        honey
+                    ]
+                );
+            if (
+                inventory.length === 0 ||
+                inventory[0].quantity < 1
+            ) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Miel indisponible"
+                    });
+            }
+            await query(
+                `
+                UPDATE zxd_inventaire
+                SET quantity =
+                    quantity - 1
+                WHERE user = ?
+                AND slug = ?
+                `,
+                [
+                    user,
+                    honey
+                ]
+            );
+            let tier;
+            let shiny = 0;
+            let negative = 0;
+            let maxLove;
+            if (
+                honey === "legendary"
+            ) {
+                tier = 4;
+            } else {
+                const tierRoll =
+                    Math.random();
+                if (
+                    tierRoll < 0.01
+                ) {
+                    tier = 4;
+                } else if (
+                    tierRoll < 0.11
+                ) {
+                    tier = 3;
+                } else if (
+                    tierRoll < 0.41
+                ) {
+                    tier = 2;
+                } else {
+                    tier = 1;
+                }
+            }
+            if (
+                honey === "shiny"
+            ) {
+                shiny = 1;
+            } else if (
+                honey === "negative"
+            ) {
+                negative = 1;
+            } else {
+                const shinyRoll =
+                    Math.floor(
+                        Math.random() * 4096
+                    ) + 1;
+                const negativeRoll =
+                    Math.floor(
+                        Math.random() * 8192
+                    ) + 1;
+                if (
+                    negativeRoll === 16
+                ) {
+                    negative = 1;
+                } else if (
+                    shinyRoll === 16
+                ) {
+                    shiny = 1;
+                }
+            }
+            const pokemon =
+                (
+                    await query(
+                        `
+                        SELECT *
+                        FROM zxd_pokemon
+                        WHERE tier = ?
+                        ORDER BY RAND()
+                        LIMIT 1
+                        `,
+                        [tier]
+                    )
+                )[0];
+            switch (
+            tier
+            ) {
+                case 1:
+                    maxLove = 125;
+                    break;
+                case 2:
+                    maxLove = (
+                        negative
+                            ? 375
+                            : 250
+                    );
+                    break;
+                case 3:
+                    maxLove = (
+                        negative
+                            ? 650
+                            : 500
+                    );
+                    break;
+                default:
+                    maxLove = 1000;
+            }
+            await query(
+                `
+                REPLACE INTO
+                zxd_safari
+                (
+                    user,
+                    pokemon,
+                    love,
+                    shiny,
+                    negative,
+                    tier
+                )
+                VALUES
+                (
+                    ?, ?, 0, ?, ?, ?
+                )
+                `,
+                [
+                    user,
+                    pokemon.number,
+                    shiny,
+                    negative,
+                    tier
+                ]
+            );
+            res.send({
+                pokemon,
+                shiny,
+                negative,
+                tier,
+                maxLove
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur safari"
+            });
+        }
+    }
+);
+
+app.post(
+    "/api/safari/addLove",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const candy =
+                req.body.candy;
+            const values = {
+                exps: 25,
+                expm: 50,
+                expl: 200
+            };
+            const loveGain =
+                values[candy];
+            if (!loveGain) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Bonbon invalide"
+                    });
+            }
+            const item =
+                await query(
+                    `
+                    SELECT quantity
+                    FROM zxd_inventaire
+                    WHERE user = ?
+                    AND slug = ?
+                    `,
+                    [
+                        user,
+                        candy
+                    ]
+                );
+            if (
+                item.length === 0 ||
+                item[0].quantity < 1
+            ) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Bonbon indisponible"
+                    });
+            }
+            await query(
+                `
+                UPDATE zxd_inventaire
+                SET quantity =
+                    quantity - 1
+                WHERE user = ?
+                AND slug = ?
+                `,
+                [
+                    user,
+                    candy
+                ]
+            );
+            await query(
+                `
+                UPDATE zxd_safari
+                SET love =
+                    love + ?
+                WHERE user = ?
+                `,
+                [
+                    loveGain,
+                    user
+                ]
+            );
+            const safari =
+                (
+                    await query(
+                        `
+                        SELECT love
+                        FROM zxd_safari
+                        WHERE user = ?
+                        `,
+                        [user]
+                    )
+                )[0];
+            res.send({
+                success: true,
+                love:
+                    safari.love
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur ajout affection"
+            });
+        }
+    }
+);
+app.post(
+    "/api/safari/catch",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const ball =
+                req.body.ball;
+            const safari =
+                (
+                    await query(
+                        `
+                        SELECT *
+                        FROM zxd_safari
+                        WHERE user = ?
+                        `,
+                        [user]
+                    )
+                )[0];
+            if (!safari) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Aucun safari actif"
+                    });
+            }
+            const catchRates = {
+                1: {
+                    ball: 0.50,
+                    great: 0.75,
+                    ultra: 0.95
+                },
+                2: {
+                    ball: 0.30,
+                    great: 0.65,
+                    ultra: 0.85
+                },
+                3: {
+                    ball: 0.20,
+                    great: 0.50,
+                    ultra: 0.75
+                },
+                4: {
+                    ball: 0.10,
+                    great: 0.35,
+                    ultra: 0.60
+                }
+            };
+            const inventory =
+                await query(
+                    `
+                    SELECT quantity
+                    FROM zxd_inventaire
+                    WHERE user = ?
+                    AND slug = ?
+                    `,
+                    [
+                        user,
+                        ball
+                    ]
+                );
+            if (
+                inventory.length === 0 ||
+                inventory[0].quantity < 1
+            ) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Ball indisponible"
+                    });
+            }
+            await query(
+                `
+                UPDATE zxd_inventaire
+                SET quantity =
+                    quantity - 1
+                WHERE user = ?
+                AND slug = ?
+                `,
+                [
+                    user,
+                    ball
+                ]
+            );
+            const success =
+                ball === "master"
+                    ? true
+                    : Math.random() <
+                    catchRates[
+                    safari.tier
+                    ][ball];
+            if (success) {
+                await query(
+                    `
+                    INSERT INTO
+                    zxd_capture
+                    (
+                        user,
+                        pokemon,
+                        gen,
+                        shiny,
+                        negative,
+                        date
+                    )
+                    VALUES
+                    (?, ?, ?, ?, ?, NOW())
+                    `,
+                    [
+                        user,
+                        safari.pokemon,
+                        safari.gen,
+                        safari.shiny,
+                        safari.negative
+                    ]
+                );
+                let bonusXP =
+                    0;
+                if (
+                    safari.shiny === 1
+                ) {
+                    bonusXP = 100;
+
+                } else if (
+                    safari.negative === 1
+                ) {
+                    bonusXP = 500;
+                }
+                const xp =
+                    Math.floor(
+                        Math.random() *
+                        (
+                            safari.tier *
+                            50 +
+                            1
+                        )
+                    ) +
+                    (
+                        safari.tier *
+                        100
+                    ) +
+                    bonusXP;
+                await query(
+                    `
+                    UPDATE zxd_profil
+                    SET xp =
+                        xp + ?
+                    WHERE user = ?
+                    `,
+                    [
+                        xp,
+                        user
+                    ]
+                );
+                await query(
+                    `
+                    DELETE FROM
+                    zxd_safari
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+                return res.send({
+                    success: true,
+                    xp
+                });
+            }
+            const flee =
+                Math.random() <
+                0.10;
+            if (flee) {
+                await query(
+                    `
+                    DELETE FROM
+                    zxd_safari
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            }
+            res.send({
+                success: false,
+                flee
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur capture"
+            });
+        }
+    }
+);
+app.delete(
+    "/api/safari/flee",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            await query(
+                `
+                DELETE FROM
+                zxd_safari
+                WHERE user = ?
+                `,
+                [req.user.id]
+            );
+            res.send({
+                success: true
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur fuite"
+            });
+        }
+    }
+);
+/** Old Safari **/
 app.post(
     "/api/addXp",
     authMiddleware,
