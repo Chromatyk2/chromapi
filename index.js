@@ -1698,11 +1698,15 @@ app.post(
                 req.body.ball;
             const safari =
                 (
-                    await query(
-                        `
-                        SELECT *
-                        FROM zxd_safari
-                        WHERE user = ?
+                    await query(                        `
+                        SELECT
+                            s.*,
+                            p.gen,
+                            p.name
+                        FROM zxd_safari s
+                        INNER JOIN zxd_pokemon p
+                            ON p.number = s.pokemon
+                        WHERE s.user = ?
                         `,
                         [user]
                     )
