@@ -164,9 +164,7 @@ app.post("/api/auth/twitch", async (req, res) => {
     }
 });
 app.get("/api/twitch/live", (req, res) => {
-
     res.json(twitchCache);
-
 });
 app.get(
     "/api/me",
@@ -192,30 +190,14 @@ app.get(
 
     }
 );
-function authMiddleware(
-    req,
-    res,
-    next
-) {
-
-    if (
-        !req.session.user
-    ) {
-
-        return res
-            .status(401)
-            .json({
-                error:
-                    "Not authenticated"
-            });
-
+function authMiddleware(req, res, next) {
+    if (!req.session?.user) {
+        return res.status(401).json({
+            error: "Not authenticated"
+        });
     }
-
-    req.user =
-        req.session.user;
-
+    req.user = req.session.user;
     next();
-
 }
 //Version 2
 
