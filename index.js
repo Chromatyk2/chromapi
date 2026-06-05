@@ -140,11 +140,21 @@ app.post("/api/auth/twitch", async (req, res) => {
 
         const user =
             userResponse.data.data[0];
-
+        const profile =
+            await query(                `
+                SELECT theme
+                FROM zxd_profil
+                WHERE user = ?
+                `,
+                [user.id]
+            );
         req.session.user = {
             id: user.id,
             login: user.login,
-            display_name: user.display_name
+            display_name: user.display_name,
+            theme:
+                profile[0]?.theme ||
+                "defaut"
         };
 
         console.log(
