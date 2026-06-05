@@ -318,6 +318,11 @@ app.get(
         try {
             const user =
                 req.params.id;
+            const {
+                getLevelFromXp
+            } = require(
+                "./utils/level"
+            );
             const profile =
                 await query(
                     `
@@ -432,9 +437,17 @@ app.get(
                 progress[0]?.owned || 0;
             const total =
                 progress[0]?.total || 0;
+            const profileData =
+                profile[0] || null;
+            if (profileData) {
+                profileData.level =
+                    getLevelFromXp(
+                        profileData.xp
+                    );
+            }
             res.send({
                 profile:
-                    profile[0] || null,
+                    profileData,
                 skins,
                 activeCompanion:
                     activeCompanion[0] || null,
@@ -646,27 +659,6 @@ app.post(
                     `,
                     [user]
                 );
-            const xp =
-                result[0].xp;
-            const level =
-                Math.floor(
-                    (
-                        Math.sqrt(
-                            1 +
-                            (16 * xp) / 100
-                        ) - 1
-                    ) / 2 + 1
-                );
-            await query(
-                `
-                UPDATE zxd_profil
-                SET level = ?
-                WHERE user = ?
-                `,
-                [
-                    level,
-                    user
-                ]
             );
             res.send({
                 success: true,
