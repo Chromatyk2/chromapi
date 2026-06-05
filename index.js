@@ -913,57 +913,333 @@ app.post(
         }
     }
 );
-/* Profil Old*/
-app.post('/api/addProfil', (req, res) => {
-    const user = req.body.user;
-    const login = req.body.login;
-    const level = req.body.level;
-    const xp = req.body.xp;
-    const skin = req.body.skin;
-    const compagnon = req.body.compagnon;
-    db.query("INSERT INTO zxd_profil (user, login, level,xp,skin,compagnon) VALUES(?, ?, ?, ?,?,?) ON DUPLICATE KEY UPDATE user = VALUES(user),login = VALUES(login),level = VALUES(level),xp = VALUES(xp),skin = VALUES(skin),compagnon = VALUES(compagnon)", [user, login, level, xp, skin, compagnon], (err, result) => {
-        if (err) {
-            console.log(err)
+
+/* Inventaire */
+app.get(
+    "/api/inventory",
+    authMiddleware,
+    async (req, res) => {
+
+        const inventory =
+            await query(
+                `
+                SELECT
+                    item,
+                    slug,
+                    quantity
+                FROM zxd_inventaire
+                WHERE user = ?
+                `,
+                [req.user.id]
+            );
+
+        res.send(inventory);
+
+    }
+);
+app.post(
+    "/api/createLootbox",
+    authMiddleware,
+    async (req, res) => {
+        const user =
+            req.user.id;
+        const fragments =
+            await query(
+                `
+                SELECT quantity
+                FROM zxd_inventaire
+                WHERE user = ?
+                AND slug = 'fragement'
+                `,
+                [user]
+            );
+        if (
+            !fragments.length ||
+            fragments[0].quantity < 100
+        ) {
+            return res
+                .status(400)
+                .send({
+                    error:
+                        "Fragments insuffisants"
+                });
         }
-        res.send(result)
-    });
-});
-
-
-app.post('/api/addNewSkin', (req, res) => {
-    const user = req.body.user;
-    db.query("INSERT INTO `zxd_skin` (`skin`, `user`) VALUES (ROUND( RAND() * 2154 ) + 1, ?)", [user], (err, result) => {
-        if (err) {
-            console.log(err)
+        await query(
+            `
+            UPDATE zxd_inventaire
+            SET quantity =
+                quantity - 100
+            WHERE user = ?
+            AND slug = 'fragement'
+            `,
+            [user]
+        );
+        await query(
+            `
+            INSERT INTO zxd_inventaire
+            (
+                user,
+                item,
+                quantity,
+                slug
+            )
+            VALUES
+            (
+                ?,
+                'Pack Safari',
+                1,
+                'box'
+            )
+            ON DUPLICATE KEY UPDATE
+                quantity =
+                quantity + 1
+            `,
+            [user]
+        );
+        res.send({
+            success: true
+        });
+    }
+);
+app.post(
+    "/api/openLootbox",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const box =
+                await query(
+                    `
+                    SELECT quantity
+                    FROM zxd_inventaire
+                    WHERE user = ?
+                    AND slug = 'box'
+                    `,
+                    [user]
+                );
+            if (
+                !box.length ||
+                box[0].quantity < 1
+            ) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Aucun Pack Safari"
+                    });
+            }
+            await query(
+                `
+                UPDATE zxd_inventaire
+                SET quantity =
+                    quantity - 1
+                WHERE user = ?
+                AND slug = 'box'
+                `,
+                [user]
+            );
+            const rewards = [];
+            // BONBONS XP
+            const candyTier =
+                Math.random();
+            let item;
+            let slug;
+            let quantity;
+            if (candyTier < 0.10) {
+                item = "Bonbon L";
+                slug = "expl";
+                quantity =
+                    Math.floor(
+                        Math.random() * 5
+                    ) + 1;
+            } else if (
+                candyTier < 0.40
+            ) {
+                item = "Bonbon M";
+                slug = "expm";
+                quantity =
+                    Math.floor(
+                        Math.random() * 10
+                    ) + 1;
+            } else {
+                item = "Bonbon S";
+                slug = "exps";
+                quantity =
+                    Math.floor(
+                        Math.random() * 10
+                    ) + 5;
+            }
+            await addItem(
+                user,
+                item,
+                slug,
+                quantity
+            );
+            rewards.push({
+                item,
+                quantity
+            });
+            // BALLS
+            const ballTier =
+                Math.random();
+            if (ballTier < 0.001) {
+                item =
+                    "Master Ball";
+                slug =
+                    "master";
+                quantity = 1;
+            } else if (
+                ballTier < 0.101909
+            ) {
+                item =
+                    "Hyper Ball";
+                slug =
+                    "ultra";
+                quantity =
+                    Math.floor(
+                        Math.random() * 5
+                    ) + 1;
+            } else if (
+                ballTier < 0.404636
+            ) {
+                item =
+                    "Super Ball";
+                slug =
+                    "great";
+                quantity =
+                    Math.floor(
+                        Math.random() * 5
+                    ) + 1;
+            } else {
+                item =
+                    "Poke Ball";
+                slug =
+                    "ball";
+                quantity =
+                    Math.floor(
+                        Math.random() * 5
+                    ) + 1;
+            }
+            await addItem(
+                user,
+                item,
+                slug,
+                quantity
+            );
+            rewards.push({
+                item,
+                quantity
+            });
+            // MIEL
+            const honeyTier =
+                Math.random();
+            if (
+                honeyTier <
+                1 / 6000
+            ) {
+                item =
+                    "Miel Obscure";
+                slug =
+                    "negative";
+            } else if (
+                honeyTier <
+                (1 / 6000) +
+                (1 / 3000)
+            ) {
+                item =
+                    "Miel Chromatique";
+                slug =
+                    "shiny";
+            } else if (
+                honeyTier <
+                (1 / 6000) +
+                (1 / 3000) +
+                0.0001
+            ) {
+                item =
+                    "Miel Légendaire";
+                slug =
+                    "legendary";
+            } else {
+                item =
+                    "Miel Ordinaire";
+                slug =
+                    "honey";
+            }
+            await addItem(
+                user,
+                item,
+                slug,
+                1
+            );
+            rewards.push({
+                item,
+                quantity: 1
+            });
+            // SUPER BONBON
+            quantity =
+                Math.floor(
+                    Math.random() * 3
+                ) + 1;
+            await addItem(
+                user,
+                "Super Bonbon",
+                "rarecandy",
+                quantity
+            );
+            rewards.push({
+                item:
+                    "Super Bonbon",
+                quantity
+            });
+            // BOOSTER
+            if (
+                Math.random() < 0.01
+            ) {
+                await addItem(
+                    user,
+                    "Booster",
+                    "booster",
+                    1
+                );
+                rewards.push({
+                    item:
+                        "Booster",
+                    quantity: 1
+                });
+            }
+            // MEGA BONBON
+            if (
+                Math.random() <
+                0.001
+            ) {
+                await addItem(
+                    user,
+                    "Mega Bonbon",
+                    "megacandy",
+                    1
+                );
+                rewards.push({
+                    item:
+                        "Mega Bonbon",
+                    quantity: 1
+                });
+            }
+            res.send({
+                success: true,
+                rewards
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur ouverture pack"
+            });
         }
-        res.send(result)
-    });
-});
-
-app.get("/api/getTrainers/:id", (req, res, next) => {
-
-    const id = req.params.id;
-    db.query("SELECT user, skin FROM zxd_skin WHERE user = ?", id,
-        (err, result) => {
-            if (err) {
-                console.log(err)
-            }
-            res.send(result)
-        });
-});
-app.get("/api/getUser/:id", (req, res, next) => {
-
-    const id = req.params.id;
-    db.query("SELECT zxd_profil.user,zxd_profil.login,zxd_profil.level,zxd_profil.xp,zxd_profil.skin,zxd_profil.compagnon,zxd_capture.pokemon,zxd_capture.shiny,zxd_capture.negative FROM zxd_profil LEFT JOIN zxd_capture ON zxd_capture.user = zxd_profil.user WHERE zxd_profil.user = ?", id,
-        (err, result) => {
-            if (err) {
-                console.log(err)
-            }
-            res.send(result)
-        });
-});
-
-/** Inventaire **/
+    }
+);
+/** Old Inventaire **/
 app.post('/api/addItem', (req, res) => {
     const user = req.body.user;
     const item = req.body.item;
