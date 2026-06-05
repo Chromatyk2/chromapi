@@ -233,7 +233,7 @@ function authMiddleware(req, res, next) {
     next();
 }
 
-//Version 2
+/* Création de compte */
 app.post(
     "/api/createAccount",
     authMiddleware,
@@ -2197,103 +2197,264 @@ app.post(
         }
     }
 );
-/* Old Compagnon */
-app.get("/api/getActiveCompagnon/:user/:number", (req, res, next) => {
-    const user = req.params.user;
-    const number = req.params.number;
-    db.query("SELECT zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_compagnon WHERE zxd_compagnon.user = ? AND zxd_compagnon.number = ?;", [user, number],
-        (err, result) => {
-            if (err) {
-                console.log(err)
-            }
-            res.send(result)
-        });
-});
 
-app.get("/api/getMaxLevelCompagnon/:user", (req, res, next) => {
-    const user = req.params.user;
-    db.query("SELECT zxd_compagnon.tier,zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_compagnon WHERE zxd_compagnon.user = ? AND zxd_compagnon.level = 100;", [user],
-        (err, result) => {
-            if (err) {
-                console.log(err)
+/* Combat */
+app.post(
+    "/api/fight/start",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const tierRoll =
+                Math.random();
+            let tier;
+            let maxHp;
+            if (
+                tierRoll < 0.01
+            ) {
+                tier = 4;
+                maxHp = 12000;
+            } else if (
+                tierRoll < 0.11
+            ) {
+                tier = 3;
+                maxHp = 6000;
+            } else if (
+                tierRoll < 0.41
+            ) {
+                tier = 2;
+                maxHp = 3000;
+            } else {
+                tier = 1;
+                maxHp = 1500;
             }
-            res.send(result)
-        });
-});
-app.post('/api/updateCurrentCompagnon', (req, res) => {
-    const user = req.body.user;
-    db.query("UPDATE `zxd_compagnon`SET active = 0 WHERE user = ?", [user], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-app.post('/api/levelupCompagnon', (req, res) => {
-    const id = req.body.id;
-    db.query("UPDATE `zxd_compagnon`SET level = level+1, xp = 0 WHERE id = ?", [id], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-app.post('/api/updateXpCompagnon', (req, res) => {
-    const xp = req.body.xp;
-    const id = req.body.id;
-    db.query("UPDATE `zxd_compagnon`SET xp = xp + ? WHERE id = ?", [xp,id], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-app.post('/api/levelMaxCompagnon', (req, res) => {
-    const id = req.body.id;
-    db.query("UPDATE `zxd_compagnon`SET level = 100 WHERE id = ?", [id], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-app.post('/api/newCompagnon', (req, res) => {
-    const user = req.body.user;
-    const number = req.body.number;
-    const pokemon = req.body.pokemon;
-    const shiny = req.body.shiny;
-    const negative = req.body.negative;
-    const level = req.body.level;
-    const xp = req.body.xp;
-    const active = req.body.active;
-    const tier = req.body.tier;
-    db.query("INSERT INTO `zxd_compagnon` (`user`, `number`, `pokemon`, `shiny`, `negative`, `level`, `xp`, `active`,`tier`) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?) ON DUPLICATE KEY UPDATE user = VALUES(user), number = VALUES(number), pokemon = VALUES(pokemon), shiny = VALUES(shiny), negative = VALUES(negative), level = VALUES(level), xp = VALUES(xp), active = VALUES(active), tier = VALUES(tier);", [user, number, pokemon, shiny, negative, level, xp,active,tier], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-app.get("/api/getAllCompagnon/:user", (req, res, next) => {
-    const user = req.params.user;
-    db.query("SELECT zxd_compagnon.id,zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_compagnon WHERE zxd_compagnon.user = ?;", [user],
-        (err, result) => {
-            if (err) {
-                console.log(err)
+            const pokemon =
+                (
+                    await query(
+                        `
+                        SELECT *
+                        FROM zxd_pokemon
+                        WHERE tier = ?
+                        ORDER BY RAND()
+                        LIMIT 1
+                        `,
+                        [tier]
+                    )
+                )[0];
+            const shinyRoll =
+                Math.floor(
+                    Math.random() * 4096
+                ) + 1;
+            const negativeRoll =
+                Math.floor(
+                    Math.random() * 8192
+                ) + 1;
+            let shiny = 0;
+            let negative = 0;
+            if (
+                negativeRoll === 16
+            ) {
+                negative = 1;
+            } else if (
+                shinyRoll === 16
+            ) {
+                shiny = 1;
             }
-            res.send(result)
-        });
-});
-app.get("/api/getCurrentCompagnon/:user", (req, res, next) => {
-    const user = req.params.user;
-    db.query("SELECT zxd_compagnon.id,zxd_compagnon.xp,zxd_compagnon.user,zxd_compagnon.number,zxd_compagnon.pokemon ,zxd_compagnon.level,zxd_compagnon.shiny,zxd_compagnon.negative,zxd_pokemon.tier FROM zxd_compagnon JOIN zxd_pokemon ON zxd_pokemon.number = zxd_compagnon.number WHERE zxd_compagnon.user = ? AND zxd_compagnon.active = 1 ORDER BY id DESC LIMIT 1;", [user],
-        (err, result) => {
-            if (err) {
-                console.log(err)
+            res.send({
+                pokemon,
+                shiny,
+                negative,
+                currentHp:
+                    maxHp,
+                maxHp
+            });
+        } catch (err) {
+            console.error(
+                err
+            );
+            res.status(500).send({
+                error:
+                    "Erreur combat"
+            });
+        }
+    }
+);
+app.post(
+    "/api/fight/kill",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const enemy =
+                req.body.pokemon;
+            const companion =
+                (
+                    await query(
+                        `
+                        SELECT *
+                        FROM zxd_compagnon
+                        WHERE user = ?
+                        AND active = 1
+                        `,
+                        [user]
+                    )
+                )[0];
+            if (!companion) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Aucun compagnon"
+                    });
             }
-            res.send(result)
-        });
-});
+            const rewards = [];
+            // RECOMPENSES
+            const tierMultiplierReward =
+                enemy.tier === 4 ? 58.65 :
+                    enemy.tier === 3 ? 1.75 :
+                        enemy.tier === 2 ? 1.5 :
+                            1.25;
+            const packChance =
+                0.000142 *
+                (tierMultiplierReward / 2);
+            const fragmentChance =
+                0.000569 *
+                (tierMultiplierReward / 2);
+            const boosterChance =
+                0.00341 *
+                (tierMultiplierReward / 2);
+            const roll =
+                Math.random();
+            let reward =
+                null;
+            if (
+                roll <
+                packChance
+            ) {
+                reward = {
+                    item:
+                        "Pack Safari",
+                    slug:
+                        "box"
+                };
+            } else if (
+                roll <
+                packChance +
+                fragmentChance
+            ) {
+                reward = {
+                    item:
+                        "Fragment de Pack",
+                    slug:
+                        "fragement"
+                };
+            } else if (
+                roll <
+                packChance +
+                fragmentChance +
+                boosterChance
+            ) {
+                reward = {
+                    item:
+                        "Booster",
+                    slug:
+                        "booster"
+                };
+            }
+            if (reward) {
+                await addItem(
+                    user,
+                    reward.item,
+                    reward.slug,
+                    1
+                );
+                rewards.push(
+                    reward
+                );
+            }
+            // XP
+            const formMultiplier =
+                companion.negative === 1
+                    ? 2
+                    : companion.shiny === 1
+                        ? 1.5
+                        : 1;
+
+            const tierMultiplier =
+            {
+                1: 1,
+                2: 2,
+                3: 4,
+                4: 8
+            };
+            const xpGainByTier =
+            {
+                1: 18,
+                2: 37,
+                3: 75,
+                4: 288
+            };
+            const xpToNextLevel =
+                Math.floor(
+                    (
+                        20 +
+                        companion.level *
+                        companion.level *
+                        2
+                    ) *
+                    tierMultiplier[
+                    companion.tier
+                    ] *
+                    formMultiplier
+                );
+            const xpGain =
+                xpGainByTier[
+                enemy.tier
+                ];
+            let level =
+                companion.level;
+            let xp =
+                companion.xp +
+                xpGain;
+            if (
+                xp >=
+                xpToNextLevel
+            ) {
+                level++;
+                xp = 0;
+            }
+            await query(
+                `
+                UPDATE zxd_compagnon
+                SET
+                    level = ?,
+                    xp = ?
+                WHERE id = ?
+                `,
+                [
+                    level,
+                    xp,
+                    companion.id
+                ]
+            );
+            res.send({
+                rewards,
+                level,
+                xp,
+                xpGain
+            });
+        } catch (err) {
+            console.error(
+                err
+            );
+            res.status(500)
+                .send({
+                    error:
+                        "Erreur combat"
+                });
+        }
+    }
+);
 /* Leaderboard */
 app.get("/api/getLeaderBoard", (req, res, next) => {
     db.query("SELECT zxd_profil.user, zxd_profil.login, zxd_profil.level, zxd_profil.skin,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_profil LEFT JOIN zxd_compagnon ON zxd_compagnon.number = zxd_profil.compagnon ORDER BY zxd_profil.level DESC ;",
@@ -2305,58 +2466,7 @@ app.get("/api/getLeaderBoard", (req, res, next) => {
         });
 });
 
-/* Expedition */
-app.post('/api/newExpedition', (req, res) => {
-    const date = req.body.date;
-    const number = req.body.number;
-    const user = req.body.user;
-    const tier = req.body.tier;
-    const endDate = req.body.endDate;
-    db.query("INSERT INTO `zxd_expedition` (`date`,`endDate`, `number`, `user`, `tier`, `active`) VALUES (?,?, ?, ?, ?,1) ON DUPLICATE KEY UPDATE endDate = VALUES(endDate), user = VALUES(user), number = VALUES(number), date = VALUES(date), tier = VALUES(tier);", [date, endDate, number, user, tier], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-app.get("/api/getAllExpedition/:user", (req, res, next) => {
-    const user = req.params.user;
-    db.query("SELECT zxd_compagnon.tier,zxd_expedition.active,zxd_expedition.id,zxd_expedition.date,zxd_expedition.endDate,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition INNER JOIN zxd_compagnon ON zxd_compagnon.number = zxd_expedition.number WHERE zxd_expedition.user = ?;", user,
-        (err, result) => {
-            if (err) {
-                console.log(err)
-            }
-            res.send(result)
-        });
-});
-app.get("/api/getExpedition/:user", (req, res, next) => {
-    const user = req.params.user;
-    db.query("SELECT zxd_compagnon.tier,zxd_expedition.id,zxd_expedition.date,zxd_expedition.endDate,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_expedition JOIN zxd_compagnon ON zxd_compagnon.user = zxd_expedition.user WHERE zxd_expedition.user = ? AND active = 1;",user,
-        (err, result) => {
-            if (err) {
-                console.log(err)
-            }
-            res.send(result)
-        });
-});
-app.delete('/api/deleteExpedition/:id', (req, res) => {
-    const id = req.params.id;
-    db.query("DELETE FROM `zxd_expedition` WHERE `zxd_expedition`.`number` = ?", id, (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    })
-})
-app.post('/api/closeExpedition/:id', (req, res) => {
-    const id = req.params.id;
-    db.query("UPDATE `zxd_expedition`SET active = 0 WHERE number = ?", [id], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
+
 //Cartes
 app.get("/api/card/init/:profilId", async (req, res) => {
     try {
