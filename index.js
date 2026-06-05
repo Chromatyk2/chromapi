@@ -464,7 +464,7 @@ app.get(
         }
     }
 );
-pp.post(
+app.post(
     "/api/changeSkin",
     authMiddleware,
     async (req, res) => {
