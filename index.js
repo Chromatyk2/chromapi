@@ -267,6 +267,74 @@ app.get("/api/profile/:id", async (req, res) => {
         });
     }
 });
+/* Profil Old*/
+app.post('/api/addProfil', (req, res) => {
+    const user = req.body.user;
+    const login = req.body.login;
+    const level = req.body.level;
+    const xp = req.body.xp;
+    const skin = req.body.skin;
+    const compagnon = req.body.compagnon;
+    db.query("INSERT INTO zxd_profil (user, login, level,xp,skin,compagnon) VALUES(?, ?, ?, ?,?,?) ON DUPLICATE KEY UPDATE user = VALUES(user),login = VALUES(login),level = VALUES(level),xp = VALUES(xp),skin = VALUES(skin),compagnon = VALUES(compagnon)", [user, login, level, xp, skin, compagnon], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
+
+app.post('/api/updateXp', (req, res) => {
+    const user = req.body.user;
+    const xp = req.body.xp;
+    db.query("UPDATE zxd_profil SET xp = xp + ? WHERE user = ?", [xp, user], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
+app.post('/api/updateLevel', (req, res) => {
+    const user = req.body.user;
+    const level = req.body.level;
+    db.query("UPDATE zxd_profil SET level = ? WHERE user = ?", [level, user], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
+app.post('/api/addNewSkin', (req, res) => {
+    const user = req.body.user;
+    db.query("INSERT INTO `zxd_skin` (`skin`, `user`) VALUES (ROUND( RAND() * 2154 ) + 1, ?)", [user], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
+
+app.get("/api/getTrainers/:id", (req, res, next) => {
+
+    const id = req.params.id;
+    db.query("SELECT user, skin FROM zxd_skin WHERE user = ?", id,
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
+app.get("/api/getUser/:id", (req, res, next) => {
+
+    const id = req.params.id;
+    db.query("SELECT zxd_profil.user,zxd_profil.login,zxd_profil.level,zxd_profil.xp,zxd_profil.skin,zxd_profil.compagnon,zxd_capture.pokemon,zxd_capture.shiny,zxd_capture.negative FROM zxd_profil LEFT JOIN zxd_capture ON zxd_capture.user = zxd_profil.user WHERE zxd_profil.user = ?", id,
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            }
+            res.send(result)
+        });
+});
 
 /** Inventaire **/
 app.post('/api/addItem', (req, res) => {
