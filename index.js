@@ -232,7 +232,78 @@ function authMiddleware(req, res, next) {
     next();
 }
 //Version 2
-
+app.post(
+    "/api/createAccount",
+    authMiddleware,
+    async (req, res) => {
+        const user =
+            req.user;
+        await query(
+            `
+            INSERT INTO zxd_profil
+            (
+                user,
+                login,
+                level,
+                xp,
+                skin,
+                compagnon
+            )
+            VALUES
+            (?, ?, 1, 0, 9999, 0)
+            `,
+            [
+                user.id,
+                user.login
+            ]
+        );
+        await query(
+            `
+                INSERT INTO zxd_item
+                (user, item, slug, quantity)
+                VALUES
+                (?, ?, ?, ?)
+                `,
+            [
+                user.id,
+                "Miel Ordinaire",
+                "honey",
+                1
+            ]
+        );
+        await query(
+            `
+                INSERT INTO zxd_item
+                (user, item, slug, quantity)
+                VALUES
+                (?, ?, ?, ?)
+                `,
+            [
+                user.id,
+                "Bonbon S",
+                "exps",
+                10
+            ]
+        );
+        await query(
+            `
+                INSERT INTO zxd_item
+                (user, item, slug, quantity)
+                VALUES
+                (?, ?, ?, ?)
+                `,
+            [
+                user.id,
+                "Poke Ball",
+                "ball",
+                10
+            ]
+        );
+        res.send({
+            success: true
+        });
+    }
+);
 app.get('/api/getShinydex', (req, res) => {
     db.query("SELECT id,pokemon, surnom, date, version, gen, description, lien,idPkm FROM zxd_shinydex ORDER BY idPkm ASC ", (err, result) => {
         if (err) {
@@ -242,131 +313,77 @@ app.get('/api/getShinydex', (req, res) => {
     });
 });
 /* Profil */
-app.get("/api/profile/:id", async (req, res) => {
-    try {
-        const userId = req.params.id;
-        const [
-            profile,
-            skins,
-            maxLevelCompagnons,
-            globalProgress
-        ] = await Promise.all([
-            query(`
-                SELECT
+app.post(
+    "/api/createAccount",
+    authMiddleware,
+    async (req, res) => {
+        const user =
+            req.user;
+        try {
+            await query("START TRANSACTION");
+            await query(                `
+                INSERT INTO zxd_profil
+                (
                     user,
                     login,
                     level,
                     xp,
                     skin,
                     compagnon
-                FROM zxd_profil
-                WHERE user = ?
-            `, [userId]),
-            query(`
-                SELECT
-                    user,
-                    skin
-                FROM zxd_skin
-                WHERE user = ?
-            `, [userId]),
-            query(`
-                SELECT
-                    tier,
-                    user,
-                    number,
-                    pokemon,
-                    level,
-                    shiny,
-                    negative
-                FROM zxd_compagnon
-                WHERE user = ?
-                AND level = 100
-            `, [userId]),
-            query(`
-                SELECT
-                    (
-                        SELECT COUNT(DISTINCT card_tcgdex_id)
-                        FROM zxd_card_collection
-                        WHERE profil_id = ?
-                    ) AS owned,
-                    (
-                        SELECT SUM(card_count)
-                        FROM zxd_card_set
-                        WHERE active = 1
-                    ) AS total
-            `, [userId])
-
-        ]);
-        const activeCompagnon =
-            await query(`
-                SELECT
-                    user,
-                    number,
-                    pokemon,
-                    level,
-                    shiny,
-                    negative
-                FROM zxd_compagnon
-                WHERE user = ?
-                AND number = (
-                    SELECT compagnon
-                    FROM zxd_profil
-                    WHERE user = ?
                 )
-            `,
-                [userId, userId]
+                VALUES
+                (?, ?, 1, 0, 9999, 0)
+                `,
+                [
+                    user.id,
+                    user.login
+                ]
             );
-        const expeditions =
-            await query(`
-                SELECT
-                    c.tier,
-                    e.active,
-                    e.id,
-                    e.date,
-                    e.endDate,
-                    c.number,
-                    c.pokemon,
-                    c.shiny,
-                    c.negative
-                FROM zxd_expedition e
-                INNER JOIN zxd_compagnon c
-                    ON c.number = e.number
-                WHERE e.user = ?
-            `,
-                [userId]
+            await query(
+                `
+                INSERT INTO zxd_inventaire
+                (user, item, quantity, slug)
+                VALUES
+                (?, ?, ?, ?),
+                (?, ?, ?, ?),
+                (?, ?, ?, ?),
+                (?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                quantity = quantity + VALUES(quantity)
+                `,
+                [
+                    user.id,
+                    "Miel Ordinaire",
+                    1,
+                    "honey",
+
+                    user.id,
+                    "Bonbon S",
+                    10,
+                    "exps",
+
+                    user.id,
+                    "Poke Ball",
+                    10,
+                    "ball",
+
+                    user.id,
+                    "Super Bonbon",
+                    0,
+                    "rarecandy"
+                ]
             );
-        const owned =
-            globalProgress[0].owned;
-        const total =
-            globalProgress[0].total;
-        res.json({
-            profile:
-                profile[0],
-            skins,
-            maxLevelCompagnons,
-            activeCompagnon:
-                activeCompagnon[0],
-            expeditions,
-            globalProgress: {
-                owned,
-                total,
-                percent:
-                    Number(
-                        (
-                            owned /
-                            total *
-                            100
-                        ).toFixed(1)
-                    )
-            }
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({
-            error: true
-        });
+            await query("COMMIT");
+            res.send({
+                success: true
+            });
+        } catch (err) {
+            await query("ROLLBACK");
+            console.error(err);
+            res.status(500).send(err);
+        }
     }
-});
+);
 /* Profil Old*/
 app.post('/api/addProfil', (req, res) => {
     const user = req.body.user;
