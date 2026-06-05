@@ -1279,7 +1279,7 @@ app.get(
                 new Set(
                     level100.map(
                         pokemon =>
-                            `${pokemon.pokemon}-${pokemon.shiny}-${pokemon.negative}`
+                            `${pokemon.number}-${pokemon.shiny}-${pokemon.negative}`
                     )
                 );
             res.send({
