@@ -1240,6 +1240,59 @@ app.post(
     }
 );
 
+/* Pokedex */
+app.get(
+    "/api/pokedex/:id",
+    async (req, res) => {
+        try {
+            const user =
+                req.params.id;
+            const pokedex =
+                await query(
+                    `
+                    SELECT
+                        id,
+                        number,
+                        pokemon,
+                        gen,
+                        shiny,
+                        negative
+                    FROM zxd_pokedex
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            const level100 =
+                await query(
+                    `
+                    SELECT
+                        number,
+                        shiny,
+                        negative
+                    FROM zxd_compagnon
+                    WHERE user = ?
+                    AND level = 100
+                    `,
+                    [user]
+                );
+            const level100Keys =
+                level100.map(
+                    (pokemon) =>
+                        `${pokemon.number}-${pokemon.shiny}-${pokemon.negative}`
+                );
+            res.send({
+                pokedex,
+                level100Keys
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur chargement pokédex"
+            });
+        }
+    }
+);
 /** Safari **/
 app.post(
     "/api/addXp",
@@ -1343,19 +1396,6 @@ app.post('/api/addPokemon', (req, res) => {
         }
         res.send(result)
     });
-});
-
-/* Pokedex */
-app.get("/api/getPokedex/:user", (req, res, next) => {
-
-    const user = req.params.user;
-    db.query("SELECT zxd_capture.pokemon,zxd_capture.gen, zxd_capture.shiny, zxd_capture.negative, zxd_capture.date, zxd_pokemon.name, zxd_pokemon.tier FROM `zxd_capture` JOIN zxd_pokemon ON zxd_pokemon.number = zxd_capture.pokemon WHERE user = ?;", user,
-        (err, result) => {
-            if (err) {
-                console.log(err)
-            }
-            res.send(result)
-        });
 });
 
 /* Compagnon */
