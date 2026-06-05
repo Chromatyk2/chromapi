@@ -1276,13 +1276,17 @@ app.get(
                     [user]
                 );
             const level100Keys =
-                level100.map(
-                    (pokemon) =>
-                        `${pokemon.number}-${pokemon.shiny}-${pokemon.negative}`
+                new Set(
+                    level100.map(
+                        pokemon =>
+                            `${pokemon.pokemon}-${pokemon.shiny}-${pokemon.negative}`
+                    )
                 );
             res.send({
                 pokedex,
-                level100Keys
+                level100Keys: [
+                    ...level100Keys
+                ]
             });
         } catch (err) {
             console.error(err);
