@@ -653,6 +653,49 @@ app.post(
         }
     }
 );
+app.post(
+    "/api/newExpedition",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const {
+                number,
+                tier,
+                endDate
+            } = req.body;
+            const now =
+                new Date();
+            await query(
+                `
+                INSERT INTO zxd_expedition
+                (
+                    user,
+                    number,
+                    active,
+                    date,
+                    endDate
+                )
+                VALUES
+                (?, ?, 1, ?, ?)
+                `,
+                [
+                    user,
+                    number,
+                    now,
+                    endDate
+                ]
+            );
+            res.send({
+                success: true
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send(err);
+        }
+    }
+);
 /* Profil Old*/
 app.post('/api/addProfil', (req, res) => {
     const user = req.body.user;
