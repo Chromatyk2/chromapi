@@ -1411,7 +1411,6 @@ app.get(
         }
     }
 );
-
 app.post(
     "/api/safari/useHoney",
     authMiddleware,
@@ -1588,7 +1587,6 @@ app.post(
         }
     }
 );
-
 app.post(
     "/api/safari/addLove",
     authMiddleware,
@@ -1911,112 +1909,68 @@ app.delete(
         }
     }
 );
-/** Old Safari **/
-app.post(
-    "/api/addXp",
+
+/* Compagnon */
+app.get(
+    "/api/compagnon",
     authMiddleware,
     async (req, res) => {
         try {
             const user =
                 req.user.id;
-            const xpToAdd =
-                Number(req.body.xp);
-            await query(
-                `
-                UPDATE zxd_profil
-                SET xp = xp + ?
-                WHERE user = ?
-                `,
-                [
-                    xpToAdd,
-                    user
-                ]
-            );
-            const result =
+            const pokedex =
                 await query(
                     `
-                    SELECT xp
-                    FROM zxd_profil
+                    SELECT *
+                    FROM zxd_capture
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            const activeCompanion =
+                await query(
+                    `
+                    SELECT *
+                    FROM zxd_compagnon
+                    WHERE user = ?
+                    AND active = 1
+                    `,
+                    [user]
+                );
+            const allCompanions =
+                await query(
+                    `
+                    SELECT *
+                    FROM zxd_compagnon
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            const inventory =
+                await query(
+                    `
+                    SELECT *
+                    FROM zxd_inventaire
                     WHERE user = ?
                     `,
                     [user]
                 );
             res.send({
-                success: true,
-                xp,
-                level
+                pokedex,
+                activeCompanion,
+                allCompanions,
+                inventory
             });
         } catch (err) {
             console.error(err);
             res.status(500).send({
-                success: false
+                error:
+                    "Erreur chargement compagnon"
             });
         }
     }
 );
-app.get("/api/getRandomPokemon/:tier", (req, res, next) => {
-
-    const tier = req.params.tier;
-    db.query("SELECT name, tier, number,gen FROM zxd_pokemon WHERE tier= ? ORDER BY RAND() LIMIT 1", tier,
-        (err, result) => {
-            if (err) {
-                console.log(err)
-            }
-            res.send(result)
-        });
-});
-
-app.post('/api/addSafari', (req, res) => {
-    const user = req.body.user;
-    const pokemon = req.body.pokemon;
-    const love = req.body.love;
-    const shiny = req.body.shiny;
-    const negative = req.body.negative;
-    const tier = req.body.tier;
-    db.query("INSERT INTO zxd_safari (user, pokemon, love,shiny,negative,tier) VALUES(?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE pokemon = VALUES(pokemon), love = VALUES(love), shiny = VALUES(shiny), negative = VALUES(negative), tier = VALUES(tier); ", [user, pokemon, love, shiny, negative, tier], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-
-app.get("/api/getSafari/:user", (req, res, next) => {
-
-    const user = req.params.user;
-    db.query("SELECT zxd_safari.user,zxd_safari.pokemon,zxd_safari.love,zxd_safari.shiny,zxd_safari.negative,zxd_pokemon.name,zxd_pokemon.tier,zxd_pokemon.gen FROM `zxd_safari` JOIN zxd_pokemon ON zxd_pokemon.number=zxd_safari.pokemon WHERE zxd_safari.user = ?;", user,
-        (err, result) => {
-            if (err) {
-                console.log(err)
-            }
-            res.send(result)
-        });
-});
-app.delete('/api/deleteSafari/:user', (req, res) => {
-    const user = req.params.user;
-    db.query("DELETE FROM `zxd_safari` WHERE `zxd_safari`.`user` = ?", user, (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    })
-})
-app.post('/api/addPokemon', (req, res) => {
-    const user = req.body.user;
-    const pokemon = req.body.pokemon;
-    const gen = req.body.gen;
-    const shiny = req.body.shiny;
-    const negative = req.body.negative;
-    const date = req.body.date;
-    db.query("INSERT INTO zxd_capture (user, pokemon, gen,shiny,negative,date) VALUES(?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE shiny = VALUES(shiny), negative = VALUES(negative), date = VALUES(date);", [user, pokemon,gen, shiny, negative, date], (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-
-/* Compagnon */
+/* Old Compagnon */
 app.get("/api/getActiveCompagnon/:user/:number", (req, res, next) => {
     const user = req.params.user;
     const number = req.params.number;
