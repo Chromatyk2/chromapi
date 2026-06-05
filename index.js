@@ -141,26 +141,45 @@ app.post("/api/auth/twitch", async (req, res) => {
             userResponse.data.data[0];
 
         req.session.user = {
-
-            id:
-                user.id,
-
-            login:
-                user.login,
-
-            display_name:
-                user.display_name
-
+            id: user.id,
+            login: user.login,
+            display_name: user.display_name
         };
-        res.json({
-            success: true,
-            user: {
-                id: user.id,
-                login: user.login,
-                display_name: user.display_name,
-                profile_image_url:
-                    user.profile_image_url
+
+        console.log(
+            "SESSION CREATED",
+            req.sessionID,
+            req.session.user
+        );
+
+        req.session.save((err) => {
+
+            if (err) {
+
+                console.error(
+                    "SESSION SAVE ERROR",
+                    err
+                );
+
+                return res
+                    .status(500)
+                    .json({
+                        success: false
+                    });
+
             }
+
+            res.json({
+                success: true,
+                user: {
+                    id: user.id,
+                    login: user.login,
+                    display_name: user.display_name,
+                    profile_image_url:
+                        user.profile_image_url
+                }
+            });
+
         });
 
     } catch (err) {
@@ -175,30 +194,34 @@ app.post("/api/auth/twitch", async (req, res) => {
 app.get("/api/twitch/live", (req, res) => {
     res.json(twitchCache);
 });
-app.get(
-    "/api/me",
-    (req, res) => {
+app.get("/api/me", (req, res) => {
 
-        if (
-            !req.session.user
-        ) {
+    console.log(
+        "SESSION ID ME",
+        req.sessionID
+    );
 
-            return res
-                .status(401)
-                .json({
-                    authenticated: false
-                });
+    console.log(
+        "SESSION ME",
+        req.session
+    );
 
-        }
+    if (!req.session?.user) {
 
-        res.json({
-            authenticated: true,
-            user:
-                req.session.user
-        });
+        return res
+            .status(401)
+            .json({
+                authenticated: false
+            });
 
     }
-);
+
+    res.json({
+        authenticated: true,
+        user: req.session.user
+    });
+
+});
 function authMiddleware(req, res, next) {
     if (!req.session?.user) {
         return res.status(401).json({
