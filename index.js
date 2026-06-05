@@ -238,90 +238,9 @@ app.post(
     async (req, res) => {
         const user =
             req.user;
-        await query(
-            `
-            INSERT INTO zxd_profil
-            (
-                user,
-                login,
-                level,
-                xp,
-                skin,
-                compagnon
-            )
-            VALUES
-            (?, ?, 1, 0, 9999, 0)
-            `,
-            [
-                user.id,
-                user.login
-            ]
-        );
-        await query(
-            `
-                INSERT INTO zxd_item
-                (user, item, slug, quantity)
-                VALUES
-                (?, ?, ?, ?)
-                `,
-            [
-                user.id,
-                "Miel Ordinaire",
-                "honey",
-                1
-            ]
-        );
-        await query(
-            `
-                INSERT INTO zxd_item
-                (user, item, slug, quantity)
-                VALUES
-                (?, ?, ?, ?)
-                `,
-            [
-                user.id,
-                "Bonbon S",
-                "exps",
-                10
-            ]
-        );
-        await query(
-            `
-                INSERT INTO zxd_item
-                (user, item, slug, quantity)
-                VALUES
-                (?, ?, ?, ?)
-                `,
-            [
-                user.id,
-                "Poke Ball",
-                "ball",
-                10
-            ]
-        );
-        res.send({
-            success: true
-        });
-    }
-);
-app.get('/api/getShinydex', (req, res) => {
-    db.query("SELECT id,pokemon, surnom, date, version, gen, description, lien,idPkm FROM zxd_shinydex ORDER BY idPkm ASC ", (err, result) => {
-        if (err) {
-            console.log(err)
-        }
-        res.send(result)
-    });
-});
-/* Profil */
-app.post(
-    "/api/createAccount",
-    authMiddleware,
-    async (req, res) => {
-        const user =
-            req.user;
         try {
             await query("START TRANSACTION");
-            await query(                `
+            await query(`
                 INSERT INTO zxd_profil
                 (
                     user,
@@ -381,6 +300,167 @@ app.post(
             await query("ROLLBACK");
             console.error(err);
             res.status(500).send(err);
+        }
+    }
+);
+app.get('/api/getShinydex', (req, res) => {
+    db.query("SELECT id,pokemon, surnom, date, version, gen, description, lien,idPkm FROM zxd_shinydex ORDER BY idPkm ASC ", (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
+/* Profil */
+app.get(
+    "/api/profile/:id",
+    async (req, res) => {
+        try {
+            const user =
+                req.params.id;
+            const profile =
+                await query(
+                    `
+                    SELECT
+                        p.user,
+                        p.login,
+                        p.level,
+                        p.xp,
+                        p.skin,
+                        p.compagnon,
+                        c.pokemon,
+                        c.shiny,
+                        c.negative
+                    FROM zxd_profil p
+                    LEFT JOIN zxd_capture c
+                        ON c.user = p.user
+                    WHERE p.user = ?
+                    `,
+                    [user]
+                );
+            const skins =
+                await query(
+                    `
+                    SELECT
+                        user,
+                        skin
+                    FROM zxd_skin
+                    WHERE user = ?
+                    `,
+                    [user]
+                );
+            const activeCompanion =
+                await query(
+                    `
+                    SELECT
+                        user,
+                        number,
+                        pokemon,
+                        level,
+                        shiny,
+                        negative
+                    FROM zxd_compagnon
+                    WHERE user = ?
+                    AND number = (
+                        SELECT compagnon
+                        FROM zxd_profil
+                        WHERE user = ?
+                    )
+                    `,
+                    [
+                        user,
+                        user
+                    ]
+                );
+            const maxLevelCompanions =
+                await query(
+                    `
+                    SELECT
+                        tier,
+                        user,
+                        number,
+                        pokemon,
+                        level,
+                        shiny,
+                        negative
+                    FROM zxd_compagnon
+                    WHERE user = ?
+                    AND level = 100
+                    `,
+                    [user]
+                );
+            const expeditions =
+                await query(
+                    `
+                    SELECT
+                        e.active,
+                        e.id,
+                        e.date,
+                        e.endDate,
+                        c.tier,
+                        c.number,
+                        c.pokemon,
+                        c.shiny,
+                        c.negative
+                    FROM zxd_expedition e
+                    INNER JOIN zxd_compagnon c
+                        ON c.number = e.number
+                    WHERE e.user = ?
+                    `,
+                    [user]
+                );
+            const progress =
+                await query(
+                    `
+                    SELECT
+                        (
+                            SELECT COUNT(
+                                DISTINCT card_tcgdex_id
+                            )
+                            FROM zxd_card_collection
+                            WHERE profil_id = ?
+                        ) AS owned,
+                        (
+                            SELECT SUM(card_count)
+                            FROM zxd_card_set
+                            WHERE active = 1
+                        ) AS total
+                    `,
+                    [user]
+                );
+            const owned =
+                progress[0]?.owned || 0;
+            const total =
+                progress[0]?.total || 0;
+            res.send({
+                profile:
+                    profile[0] || null,
+                skins,
+                activeCompanion:
+                    activeCompanion[0] || null,
+                maxLevelCompanions,
+                expeditions,
+                globalProgress: {
+                    owned,
+                    total,
+                    percent:
+                        total > 0
+                            ? Number(
+                                (
+                                    owned /
+                                    total *
+                                    100
+                                ).toFixed(1)
+                            )
+                            : 0
+                }
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur lors du chargement du profil"
+            });
         }
     }
 );
