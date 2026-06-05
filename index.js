@@ -2088,6 +2088,115 @@ app.post(
         }
     }
 );
+app.post(
+    "/api/compagnon/useCandy",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const {
+                candy
+            } = req.body;
+            const item =
+                (
+                    await query(
+                        `
+                        SELECT quantity
+                        FROM zxd_inventaire
+                        WHERE user = ?
+                        AND slug = ?
+                        `,
+                        [
+                            user,
+                            candy
+                        ]
+                    )
+                )[0];
+            if (
+                !item ||
+                item.quantity < 1
+            ) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Objet indisponible"
+                    });
+            }
+            await query(
+                `
+                UPDATE zxd_inventaire
+                SET quantity =
+                    quantity - 1
+                WHERE user = ?
+                AND slug = ?
+                `,
+                [
+                    user,
+                    candy
+                ]
+            );
+            if (
+                candy ===
+                "rarecandy"
+            ) {
+                await query(
+                    `
+                    UPDATE zxd_compagnon
+                    SET level =
+                        LEAST(level + 1, 100)
+                    WHERE user = ?
+                    AND active = 1
+                    `,
+                    [user]
+                );
+            } else if (
+                candy ===
+                "megacandy"
+            ) {
+                await query(
+                    `
+                    UPDATE zxd_compagnon
+                    SET level = 100
+                    WHERE user = ?
+                    AND active = 1
+                    `,
+                    [user]
+                );
+            } else {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Bonbon invalide"
+                    });
+            }
+            const companion =
+                (
+                    await query(
+                        `
+                        SELECT *
+                        FROM zxd_compagnon
+                        WHERE user = ?
+                        AND active = 1
+                        `,
+                        [user]
+                    )
+                )[0];
+            res.send({
+                success: true,
+                companion
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur compagnon"
+            });
+        }
+    }
+);
 /* Old Compagnon */
 app.get("/api/getActiveCompagnon/:user/:number", (req, res, next) => {
     const user = req.params.user;
