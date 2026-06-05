@@ -530,6 +530,11 @@ app.post(
         try {
             const user =
                 req.user.id;
+            const {
+                getLevelFromXp
+            } = require(
+                "./utils/levels"
+            );
             const profile =
                 await query(
                     `
