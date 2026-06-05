@@ -1252,12 +1252,11 @@ app.get(
                     `
                     SELECT
                         id,
-                        number,
                         pokemon,
                         gen,
                         shiny,
                         negative
-                    FROM zxd_pokedex
+                    FROM zxd_capture
                     WHERE user = ?
                     `,
                     [user]
@@ -1267,6 +1266,7 @@ app.get(
                     `
                     SELECT
                         number,
+                        pokemon,
                         shiny,
                         negative
                     FROM zxd_compagnon
