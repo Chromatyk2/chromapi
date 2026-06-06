@@ -2856,7 +2856,7 @@ app.post("/api/card/openBooster", async (req, res) => {
             ]);
             await incrementStat(
                 userId,
-                "booster_" + tcgdex_id
+                "booster_" + card.set_tcgdex_id,
             );
             await checkAchievements(
                 userId
@@ -3157,7 +3157,8 @@ async function syncSetCards(setTcgdexId) {
         await query(`
             UPDATE zxd_card_set
             SET cards_synced = 1
-            WHERE tcgdex_id = ?
+            WHERE 
+            tcgdex_id = ?
         `, [setTcgdexId]);
 
         console.log(
