@@ -3376,11 +3376,98 @@ async function getAchievementsProgress(
             [userId]
         );
 
-    statsMap.cards_total =
-        Number(
-            cardStats[0]
-                ?.total || 0
+   statsMap[
+                `dex_${row.gen}`
+            ] =
+                Number(
+                    row.normal_count
+                );
+
+            statsMap[
+                `shiny_${row.gen}`
+            ] =
+                Number(
+                    row.shiny_count
+                );
+
+            statsMap[
+                `shadow_${row.gen}`
+            ] =
+                Number(
+                    row.shadow_count
+                );
+
+    /*
+     * Companion
+     */
+
+    const companionStats =
+        await query(
+            `
+                    SELECT
+                        COUNT(
+                            DISTINCT CASE
+                                WHEN c.shiny = 0
+                                AND c.negative = 0
+                                THEN c.pokemon
+                            END
+                        ) AS normal_count,
+
+                        COUNT(
+                            DISTINCT CASE
+                                WHEN c.shiny = 1
+                                THEN c.pokemon
+                            END
+                        ) AS shiny_count,
+
+                        COUNT(
+                            DISTINCT CASE
+                                WHEN c.negative = 1
+                                THEN c.pokemon
+                            END
+                        ) AS shadow_count,
+
+                        COUNT(DISTINCT c.pokemon) AS total_count
+
+                    FROM zxd_pokemon p
+                    LEFT JOIN zxd_compagnon c
+                        ON c.number = p.number
+                        AND c.user = ?
+                        AND c.level = 100;
+                    `,
+            [userId]
         );
+    pokedexStats.forEach(
+        row => {
+            statsMap[
+                `max_normal`
+            ] =
+                Number(
+                    row.normal_count
+                );
+
+            statsMap[
+                `max_shiny`
+            ] =
+                Number(
+                    row.shiny_count
+                );
+
+            statsMap[
+                `max_shadow`
+            ] =
+                Number(
+                    row.shadow_count
+                );
+
+            statsMap[
+                `max_total`
+            ] =
+                Number(
+                    row.total_count
+                );
+        }
+    );
 
     /*
      * Calcul progression
