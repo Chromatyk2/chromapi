@@ -2853,24 +2853,25 @@ app.post("/api/card/openBooster", async (req, res) => {
 app.get(
     "/api/profile/:id/achievements",
     async (req, res) => {
-
         try {
-
             const user =
                 req.params.id;
-
-            const GEN_NAMES = {
-                1: "Kanto",
-                2: "Johto",
-                3: "Hoenn",
-                4: "Sinnoh",
-                5: "Unys",
-                6: "Kalos",
-                7: "Alola",
-                8: "Galar",
-                9: "Paldea"
-            };
-
+            const achievementsData =
+                await query(
+                    `
+                    SELECT *
+                    FROM zxd_achievements
+                    ORDER BY display_order
+                    `
+                );
+            const achievementMap = {};
+            achievementsData.forEach(
+                achievement => {
+                    achievementMap[
+                        `${achievement.category}-${achievement.gen}`
+                    ] = achievement;
+                }
+            );
             const normal =
                 await query(
                     `
@@ -2893,7 +2894,6 @@ app.get(
                     `,
                     [user]
                 );
-
             const shiny =
                 await query(
                     `
@@ -2915,7 +2915,6 @@ app.get(
                     `,
                     [user]
                 );
-
             const shadow =
                 await query(
                     `
@@ -2937,94 +2936,101 @@ app.get(
                     `,
                     [user]
                 );
-
-            const achievements =
+            const generations =
                 normal.map(
                     n => {
-
                         const s =
                             shiny.find(
                                 x =>
                                     x.gen ===
                                     n.gen
                             );
-
                         const sh =
                             shadow.find(
                                 x =>
                                     x.gen ===
                                     n.gen
                             );
-
                         return {
-
                             gen:
                                 n.gen,
-
-                            name:
-                                GEN_NAMES[
-                                n.gen
-                                ],
-
                             success: [
-
                                 {
-                                    title:
-                                        "Pokédex",
+                                    achievement:
+                                        achievementMap[
+                                            `normal-${n.gen}`
+                                        ]?.achievement,
+
+                                    rewardTitle:
+                                        achievementMap[
+                                            `normal-${n.gen}`
+                                        ]?.reward_title,
+
                                     owned:
                                         n.owned,
+
                                     total:
                                         n.total,
+
                                     type:
                                         "normal"
                                 },
 
                                 {
-                                    title:
-                                        "Chromatique",
+                                    achievement:
+                                        achievementMap[
+                                            `shiny-${n.gen}`
+                                        ]?.achievement,
+
+                                    rewardTitle:
+                                        achievementMap[
+                                            `shiny-${n.gen}`
+                                        ]?.reward_title,
+
                                     owned:
                                         s?.owned || 0,
+
                                     total:
                                         s?.total || 0,
+
                                     type:
                                         "shiny"
                                 },
 
                                 {
-                                    title:
-                                        "Obscur",
+                                    achievement:
+                                        achievementMap[
+                                            `shadow-${n.gen}`
+                                        ]?.achievement,
+
+                                    rewardTitle:
+                                        achievementMap[
+                                            `shadow-${n.gen}`
+                                        ]?.reward_title,
+
                                     owned:
                                         sh?.owned || 0,
+
                                     total:
                                         sh?.total || 0,
+
                                     type:
                                         "shadow"
                                 }
-
                             ]
-
                         };
-
                     }
                 );
-
             res.send(
-                achievements
+                generations
             );
-
         } catch (err) {
-
-            console.error(
-                err
-            );
-
+            console.error(err);
             res.status(500).send({
                 error:
                     "Erreur succès"
             });
-
         }
-
     }
 );
 // Fonctions
