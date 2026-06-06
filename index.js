@@ -3068,10 +3068,10 @@ app.get(
                     `
                     SELECT
                         COUNT(
-                            DISTINCT tcgdex_id
+                            DISTINCT card_tcgdex_id
                         ) AS total
                     FROM zxd_card_collection
-                    WHERE user = ?
+                    WHERE profil_id = ?
                     `,
                     [userId]
                 );
