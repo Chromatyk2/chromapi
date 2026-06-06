@@ -2503,6 +2503,7 @@ app.post(
         }
     }
 );
+
 /* Leaderboard */
 app.get("/api/getLeaderBoard", (req, res, next) => {
     db.query("SELECT zxd_profil.user, zxd_profil.login, zxd_profil.level, zxd_profil.skin,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_profil LEFT JOIN zxd_compagnon ON zxd_compagnon.number = zxd_profil.compagnon ORDER BY zxd_profil.level DESC ;",
@@ -2847,6 +2848,93 @@ app.post("/api/card/openBooster", async (req, res) => {
     }
 
 });
+
+/* Succès */addItem
+app.get(
+    "/api/profile/:id/achievements",
+    async (req, res) => {
+        try {
+            const user =
+                req.params.id;
+            const normal =
+                await query(
+                    `
+                    SELECT
+                        p.gen,
+                        COUNT(
+                            DISTINCT c.pokemon
+                        ) AS owned,
+                        COUNT(
+                            DISTINCT p.number
+                        ) AS total
+                    FROM zxd_pokemon p
+                    LEFT JOIN zxd_capture c
+                        ON c.pokemon = p.number
+                        AND c.user = ?
+                        AND c.shiny = 0
+                        AND c.negative = 0
+                    GROUP BY p.gen
+                    ORDER BY p.gen
+                    `,
+                    [user]
+                );
+            const shiny =
+                await query(
+                    `
+                    SELECT
+                        p.gen,
+                        COUNT(
+                            DISTINCT c.pokemon
+                        ) AS owned,
+                        COUNT(
+                            DISTINCT p.number
+                        ) AS total
+                    FROM zxd_pokemon p
+                    LEFT JOIN zxd_capture c
+                        ON c.pokemon = p.number
+                        AND c.user = ?
+                        AND c.shiny = 1
+                    GROUP BY p.gen
+                    ORDER BY p.gen
+                    `,
+                    [user]
+                );
+            const shadow =
+                await query(
+                    `
+                    SELECT
+                        p.gen,
+                        COUNT(
+                            DISTINCT c.pokemon
+                        ) AS owned,
+                        COUNT(
+                            DISTINCT p.number
+                        ) AS total
+                    FROM zxd_pokemon p
+                    LEFT JOIN zxd_capture c
+                        ON c.pokemon = p.number
+                        AND c.user = ?
+                        AND c.negative = 1
+                    GROUP BY p.gen
+                    ORDER BY p.gen
+                    `,
+                    [user]
+                );
+            res.send({
+                normal,
+                shiny,
+                shadow
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur succès"
+            });
+        }
+    }
+);
+
 // Fonctions
 //Synchronise les sets de l'API TCGDEX avec ma BDD
 function query(sql, params = []) {
