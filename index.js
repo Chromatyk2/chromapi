@@ -1,8 +1,17 @@
 const express = require('express');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 const db = require('./config/db')
 const cors = require('cors');
 const cron = require("node-cron");
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: 'https://chromatyk.fr',
+        credentials: true
+    }
+});
 const PORT = 8080;
 const axios = require('axios');
 require('dotenv').config();
@@ -25,35 +34,52 @@ let twitchCache = {
 };
 const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
 const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
-const session =  require("express-session");
-app.set(
-    "trust proxy",
-    1
-);
-app.use(
-    session({
-        secret:
-            process.env.SESSION_SECRET,
+const session = require("express-session");
+const sessionMiddleware = session({
+    secret: process.env.SESSION_SECRET,
 
-        resave: false,
+    resave: false,
 
-        saveUninitialized: false,
+    saveUninitialized: false,
 
-        cookie: {
+    cookie: {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        maxAge: 1000 * 60 * 60 * 24 * 30
+    }
+});
+app.set('trust proxy', 1);
+app.use(sessionMiddleware);
+io.use((socket, next) => {
+    sessionMiddleware(
+        socket.request,
+        {},
+        next
+    );
+});
+io.on('connection', (socket) => {
 
-            httpOnly: true,
+    console.log(
+        socket.request.session
+    );
 
-            secure: true,
+    const userId =
+        socket.request.session?.user?.id;
 
-            sameSite: "lax",
+    if (userId) {
 
-            maxAge:
-                1000 * 60 * 60 * 24 * 30
+        socket.join(
+            `user:${userId}`
+        );
 
-        }
+        console.log(
+            `User ${userId} joined room user:${userId}`
+        );
 
-    })
-);
+    }
+
+});
 async function updateTwitchCache() {
 
     try {
@@ -3642,21 +3668,34 @@ async function checkAchievements(
 
         }
 
-        await query(
+        const result = await query(
             `
-            INSERT IGNORE INTO
-            zxd_user_titles
-            (
-                user,
-                title_code
-            )
-            VALUES (?, ?)
-            `,
+                INSERT IGNORE INTO
+                zxd_user_titles
+                (
+                    user,
+                    title_code
+                )
+                VALUES (?, ?)
+                `,
             [
                 userId,
                 achievement.title.code
             ]
         );
+        if (result.affectedRows > 0) {
+
+            io.to(`user:${userId}`).emit(
+                'achievementUnlocked',
+                {
+                    achievementCode: achievement.code,
+                    achievementName: achievement.achievement,
+                    description: achievement.description,
+                    titleCode: achievement.title.code,
+                    titleName: achievement.title.name
+                }
+            );
+        }
 
     }
 
@@ -3880,18 +3919,22 @@ cron.schedule("0 0,12 * * *", () => {
     timezone: "Europe/Paris",
 }
 );
-app.listen(3001, async () => {
-
-    console.log("Serveur démarré");
-
-    await syncSets();
-
-});
 updateTwitchCache();
+
 setInterval(
     updateTwitchCache,
     30000
 );
-app.listen(process.env.PORT || PORT, ()=>{
-    console.log(`Server is running on ＄{PORT}`)
-})
+
+httpServer.listen(
+    process.env.PORT || PORT,
+    async () => {
+
+        console.log(
+            `Server is running on ${PORT}`
+        );
+
+        await syncSets();
+
+    }
+);
