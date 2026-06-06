@@ -2693,13 +2693,36 @@ app.post(
 
 /* Leaderboard */
 app.get("/api/getLeaderBoard", (req, res, next) => {
-    db.query("SELECT zxd_profil.user, zxd_profil.login, zxd_profil.level, zxd_profil.skin,zxd_compagnon.number,zxd_compagnon.pokemon,zxd_compagnon.shiny,zxd_compagnon.negative FROM zxd_profil LEFT JOIN zxd_compagnon ON zxd_compagnon.number = zxd_profil.compagnon ORDER BY zxd_profil.level DESC ;",
+    db.query(
+        `
+        SELECT
+            p.user,
+            p.login,
+            p.level,
+            p.skin,
+            p.title,
+            t.name AS title_name,
+            t.rarity AS title_rarity,
+            c.number,
+            c.pokemon,
+            c.shiny,
+            c.negative
+        FROM zxd_profil p
+        LEFT JOIN zxd_compagnon c
+            ON c.number = p.compagnon
+        LEFT JOIN zxd_titles t
+            ON t.code = p.title
+        ORDER BY p.level DESC
+        `,
         (err, result) => {
             if (err) {
-                console.log(err)
+                console.log(err);
+                return res.status(500).send(err);
             }
-            res.send(result)
-        });
+
+            res.send(result);
+        }
+    );
 });
 
 
