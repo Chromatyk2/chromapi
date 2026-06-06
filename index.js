@@ -2673,6 +2673,11 @@ app.post(
                 );
             }
             // XP
+
+            await addProfileXp(
+                user,
+                (Math.floor(Math.random() * 10) + 1) * enemy.tier
+            );
             const formMultiplier =
                 companion.negative === 1
                     ? 2
