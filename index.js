@@ -793,17 +793,21 @@ app.post(
                     tier,
                     active,
                     date,
-                    endDate
+                    endDate,
+                    negative,
+                    shiny,
                 )
                 VALUES
-                (?, ?, ?, 1, ?, ?)
+                (?, ?, ?, 1, ?, ?, ?, ?)
                 `,
                 [
                     user,
                     number,
                     tier,
                     startDate,
-                    endDate
+                    endDate,
+                    negative,
+                    shiny
                 ]
             );
             res.send({
@@ -837,7 +841,9 @@ app.post(
                         tier,
                         active,
                         endDate,
-                        date
+                        date,
+                        negative,
+                        shiny
                     FROM zxd_expedition
                     WHERE user = ?
                     AND number = ?
