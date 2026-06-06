@@ -481,15 +481,11 @@ app.get(
                     SELECT DISTINCT
                         t.code,
                         t.name,
-                        t.rarity,
-                        t.display_order
+                        t.rarity
                     FROM zxd_titles t
-                    INNER JOIN zxd_achievements a
-                        ON a.title_code = t.code
-                    INNER JOIN zxd_user_stats s
-                        ON s.user = ?
-                        AND s.code = a.stat_code
-                        AND s.value >= a.target
+                    INNER JOIN zxd_user_titles u
+                        ON u.title_code = t.code
+                    WHERE u.user = ?
                     ORDER BY
                         t.display_order ASC
                     `,
@@ -522,7 +518,7 @@ app.get(
                 expeditions,
                 pokedexNormal,
                 pokedexShiny,
-                titles,
+    titles,
                 pokedexShadow,
                 globalProgress: {
                     owned,
