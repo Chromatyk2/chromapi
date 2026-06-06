@@ -925,11 +925,11 @@ app.post(
                     )
                 ) + min;
             await incrementStat(
-                userId,
+                user,
                 "expedition_total"
             );
             await incrementStat(
-                userId,
+                user,
                 "expedition_"+form
             );
             await query(
@@ -1029,7 +1029,7 @@ app.post(
                 });
         }
         await incrementStat(
-            userId,
+            user,
             "created_box"
         );
         await query(
@@ -1295,7 +1295,7 @@ app.post(
                 });
             }
             await incrementStat(
-                userId,
+                user,
                 "opened_box"
             );
             res.send({
@@ -1513,11 +1513,11 @@ app.post(
                     });
             }
             await incrementStat(
-                userId,
+                user,
                 "honey_total"
             );
             await incrementStat(
-                userId,
+                user,
                 "honey_"+honey
             );
             await query(
@@ -1583,7 +1583,7 @@ app.post(
                     negative = 1;
 
                     await incrementStat(
-                        userId,
+                        user,
                         "safari_negative"
                     );
                 } else if (
@@ -1591,13 +1591,13 @@ app.post(
                 ) {
                     shiny = 1;
                     await incrementStat(
-                        userId,
+                        user,
                         "safari_shiny"
                     );
                 }
             }
             await incrementStat(
-                userId,
+                user,
                 "safari_"+tier
             );
             const pokemon =
@@ -1702,11 +1702,11 @@ app.post(
                     });
             }
             await incrementStat(
-                userId,
+                user,
                 "candy_total"
             );
             await incrementStat(
-                userId,
+                user,
                 "candy_" + candy
             );
             const item =
@@ -1862,11 +1862,11 @@ app.post(
                     });
             }
             await incrementStat(
-                userId,
+                user,
                 "ball_total"
             );
             await incrementStat(
-                userId,
+                user,
                 "ball_"+ball
             );
             await query(
@@ -1969,7 +1969,7 @@ app.post(
                 0.10;
             if (flee) {
                 await incrementStat(
-                    userId,
+                    user,
                     "flee_total"
                 );
                 await query(
@@ -2235,7 +2235,7 @@ app.post(
                     });
             }
             await incrementStat(
-                userId,
+                user,
                 "candy_"+candy
             );
             await query(
@@ -2552,11 +2552,11 @@ app.post(
                 ]
             );
             await incrementStat(
-                userId,
+                user,
                 "fight_total"
             );
             await incrementStat(
-                userId,
+                user,
                 "fight_"+enemy.tier
             );
             res.send({
