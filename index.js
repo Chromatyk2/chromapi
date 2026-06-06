@@ -1901,6 +1901,73 @@ app.post(
         }
     }
 );
+const { getLevelFromXp } =
+    require("./utils/levels");
+async function addProfileXp(
+    userId,
+    xpGain
+) {
+    const profile =
+        (
+            await query(
+                `
+                SELECT
+                    xp,
+                    level
+                FROM zxd_profil
+                WHERE user = ?
+                `,
+                [userId]
+            )
+        )[0];
+
+    const oldXp =
+        profile.xp;
+
+    const oldLevel =
+        profile.level;
+
+    const newXp =
+        oldXp + xpGain;
+
+    const newLevel =
+        getLevelFromXp(
+            newXp
+        );
+
+    await query(
+        `
+        UPDATE zxd_profil
+        SET
+            xp = ?,
+            level = ?
+        WHERE user = ?
+        `,
+        [
+            newXp,
+            newLevel,
+            userId
+        ]
+    );
+
+    if (
+        newLevel >
+        oldLevel
+    ) {
+
+        io.to(
+            `user:${userId}`
+        ).emit(
+            "profileLevelUp",
+            {
+                oldLevel,
+                newLevel
+            }
+        );
+
+    }
+
+}
 app.post(
     "/api/safari/catch",
     authMiddleware,
@@ -2060,17 +2127,9 @@ app.post(
                         100
                     ) +
                     bonusXP;
-                await query(
-                    `
-                    UPDATE zxd_profil
-                    SET xp =
-                        xp + ?
-                    WHERE user = ?
-                    `,
-                    [
-                        xp,
-                        user
-                    ]
+                await addProfileXp(
+                    user,
+                    xp
                 );
                 await query(
                     `
