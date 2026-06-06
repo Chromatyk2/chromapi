@@ -2977,12 +2977,11 @@ app.post("/api/card/openBooster", async (req, res) => {
 app.get(
     "/api/profile/:id/achievements",
     async (req, res) => {
-
         try {
-
-            const userId =
-                req.params.id;
-            
+            const results =
+                await getAchievementsProgress(
+                    req.params.id
+                );
             res.send(
                 results
             );
@@ -2996,7 +2995,8 @@ app.get(
             });
         }
     }
-);// Fonctions
+);
+// Fonctions
 //Synchronise les sets de l'API TCGDEX avec ma BDD
 function query(sql, params = []) {
 
