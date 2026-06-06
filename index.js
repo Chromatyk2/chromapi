@@ -2864,24 +2864,6 @@ app.get(
                     ORDER BY display_order
                     `
                 );
-            const achievementByCode = {};
-            achievementsData.forEach(
-                achievement => {
-
-                    achievementByCode[
-                        achievement.code
-                    ] = achievement;
-
-                }
-            );
-            const achievementMap = {};
-            achievementsData.forEach(
-                achievement => {
-                    achievementMap[
-                        `${achievement.category}-${achievement.gen}`
-                    ] = achievement;
-                }
-            );
             const normal =
                 await query(
                     `
@@ -2900,7 +2882,6 @@ app.get(
                         AND c.shiny = 0
                         AND c.negative = 0
                     GROUP BY p.gen
-                    ORDER BY p.gen
                     `,
                     [user]
                 );
@@ -2921,7 +2902,6 @@ app.get(
                         AND c.user = ?
                         AND c.shiny = 1
                     GROUP BY p.gen
-                    ORDER BY p.gen
                     `,
                     [user]
                 );
@@ -2942,199 +2922,162 @@ app.get(
                         AND c.user = ?
                         AND c.negative = 1
                     GROUP BY p.gen
-                    ORDER BY p.gen
                     `,
                     [user]
                 );
+            const normalByGen = {};
+            const shinyByGen = {};
+            const shadowByGen = {};
+            normal.forEach(
+                row => {
+                    normalByGen[
+                        row.gen
+                    ] = {
+                        owned:
+                            Number(
+                                row.owned
+                            ),
+                        total:
+                            Number(
+                                row.total
+                            )
+                    };
+                }
+            );
+            shiny.forEach(
+                row => {
+                    shinyByGen[
+                        row.gen
+                    ] = {
+                        owned:
+                            Number(
+                                row.owned
+                            ),
+                        total:
+                            Number(
+                                row.total
+                            )
+                    };
+                }
+            );
+            shadow.forEach(
+                row => {
+                    shadowByGen[
+                        row.gen
+                    ] = {
+                        owned:
+                            Number(
+                                row.owned
+                            ),
+                        total:
+                            Number(
+                                row.total
+                            )
+                    };
+                }
+            );
             const totalNormalOwned =
                 normal.reduce(
-                    (sum, gen) =>
-                        sum + Number(gen.owned),
+                    (
+                        sum,
+                        row
+                    ) =>
+                        sum +
+                        Number(
+                            row.owned
+                        ),
                     0
                 );
-
-            const totalNormalTotal =
-                normal.reduce(
-                    (sum, gen) =>
-                        sum + Number(gen.total),
-                    0
-                );
-
             const totalShinyOwned =
                 shiny.reduce(
-                    (sum, gen) =>
-                        sum + Number(gen.owned),
+                    (
+                        sum,
+                        row
+                    ) =>
+                        sum +
+                        Number(
+                            row.owned
+                        ),
                     0
                 );
-
-            const totalShinyTotal =
-                shiny.reduce(
-                    (sum, gen) =>
-                        sum + Number(gen.total),
-                    0
-                );
-
             const totalShadowOwned =
                 shadow.reduce(
-                    (sum, gen) =>
-                        sum + Number(gen.owned),
+                    (
+                        sum,
+                        row
+                    ) =>
+                        sum +
+                        Number(
+                            row.owned
+                        ),
                     0
                 );
-
-            const totalShadowTotal =
-                shadow.reduce(
-                    (sum, gen) =>
-                        sum + Number(gen.total),
-                    0
-                );
-            const ultimate = [
-
-                {
-                    ...achievementByCode[
-                    "ultimate_dex"
-                    ],
-                    owned:
-                        totalNormalOwned,
-                    total:
-                        totalNormalTotal,
-                    type:
-                        "ultimate"
-                },
-
-                {
-                    ...achievementByCode[
-                    "ultimate_shiny"
-                    ],
-                    owned:
-                        totalShinyOwned,
-                    total:
-                        totalShinyTotal,
-                    type:
-                        "ultimate"
-                },
-
-                {
-                    ...achievementByCode[
-                    "ultimate_shadow"
-                    ],
-                    owned:
-                        totalShadowOwned,
-                    total:
-                        totalShadowTotal,
-                    type:
-                        "ultimate"
-                },
-
-                {
-                    ...achievementByCode[
-                    "ultimate_chromatyk"
-                    ],
-                    owned:
-                        totalNormalOwned +
-                        totalShinyOwned +
-                        totalShadowOwned,
-
-                    total:
-                        totalNormalTotal +
-                        totalShinyTotal +
-                        totalShadowTotal,
-
-                    type:
-                        "ultimate"
-                }
-
-            ];
-            const generations =
-                normal.map(
-                    n => {
-                        const s =
-                            shiny.find(
-                                x =>
-                                    x.gen ===
-                                    n.gen
-                            );
-                        const sh =
-                            shadow.find(
-                                x =>
-                                    x.gen ===
-                                    n.gen
-                            );
-                        return {
-                            gen:
-                                n.gen,
-                            success: [
-                                {
-                                    achievement:
-                                        achievementMap[
-                                            `normal-${n.gen}`
-                                        ]?.achievement,
-
-                                    rewardTitle:
-                                        achievementMap[
-                                            `normal-${n.gen}`
-                                        ]?.reward_title,
-
-                                    owned:
-                                        n.owned,
-
-                                    total:
-                                        n.total,
-
-                                    type:
-                                        "normal"
-                                },
-
-                                {
-                                    achievement:
-                                        achievementMap[
-                                            `shiny-${n.gen}`
-                                        ]?.achievement,
-
-                                    rewardTitle:
-                                        achievementMap[
-                                            `shiny-${n.gen}`
-                                        ]?.reward_title,
-
-                                    owned:
-                                        s?.owned || 0,
-
-                                    total:
-                                        s?.total || 0,
-
-                                    type:
-                                        "shiny"
-                                },
-
-                                {
-                                    achievement:
-                                        achievementMap[
-                                            `shadow-${n.gen}`
-                                        ]?.achievement,
-
-                                    rewardTitle:
-                                        achievementMap[
-                                            `shadow-${n.gen}`
-                                        ]?.reward_title,
-
-                                    owned:
-                                        sh?.owned || 0,
-
-                                    total:
-                                        sh?.total || 0,
-
-                                    type:
-                                        "shadow"
+            const achievements =
+                achievementsData.map(
+                    achievement => {
+                        let progress = 0;
+                        switch (
+                        achievement.category
+                        ) {
+                            case "normal":
+                                progress =
+                                    normalByGen[
+                                        achievement.gen
+                                    ]?.owned || 0;
+                                break;
+                            case "shiny":
+                                progress =
+                                    shinyByGen[
+                                        achievement.gen
+                                    ]?.owned || 0;
+                                break;
+                            case "shadow":
+                                progress =
+                                    shadowByGen[
+                                        achievement.gen
+                                    ]?.owned || 0;
+                                break;
+                            case "ultimate":
+                                switch (
+                                achievement.code
+                                ) {
+                                    case "ultimate_dex":
+                                        progress =
+                                            totalNormalOwned;
+                                        break;
+                                    case "ultimate_shiny":
+                                        progress =
+                                            totalShinyOwned;
+                                        break;
+                                    case "ultimate_shadow":
+                                        progress =
+                                            totalShadowOwned;
+                                        break;
+                                    case "ultimate_chromatyk":
+                                        progress =
+                                            totalNormalOwned +
+                                            totalShinyOwned +
+                                            totalShadowOwned;
+                                        break;
                                 }
-                            ]
+                                break;
+                        }
+                        return {
+                            ...achievement,
+                            progress,
+                            completed:
+                                progress >=
+                                achievement.target
                         };
                     }
                 );
-            res.send({
-                generations,
-                ultimate
-            });
+            res.send(
+                achievements
+            );
         } catch (err) {
-            console.error(err);
+            console.error(
+                err
+            );
             res.status(500).send({
                 error:
                     "Erreur succès"
