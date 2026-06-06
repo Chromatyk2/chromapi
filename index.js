@@ -59,19 +59,28 @@ io.use((socket, next) => {
     );
 });
 io.on('connection', (socket) => {
-    const userId =
-        socket.request.session?.user?.id;
-    console.log(
-        'JOIN ROOM',
-        `user:${userId}`
+
+    socket.on(
+        'authenticate',
+        (userId) => {
+
+            socket.join(
+                `user:${userId}`
+            );
+            socket.emit(
+                'achievementUnlocked',
+                {
+                    achievementName: 'Socket Auth',
+                    description: 'Room rejointe avec succès',
+                    titleName: 'Debug'
+                }
+            );
+            console.log(
+                `User ${userId} joined room user:${userId}`
+            );
+
+        }
     );
-    if (userId) {
-
-        socket.join(
-            `user:${userId}`
-        );
-
-    }
 
 });
 async function updateTwitchCache() {
