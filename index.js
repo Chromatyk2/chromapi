@@ -2936,214 +2936,52 @@ app.get(
     "/api/profile/:id/achievements",
     async (req, res) => {
         try {
-            const user =
+            const userId =
                 req.params.id;
-            const achievementsData =
-                await query(
-                    `
-                    SELECT *
-                    FROM zxd_achievements
-                    ORDER BY display_order
-                    `
-                );
-            const normal =
-                await query(
-                    `
-                    SELECT
-                        p.gen,
-                        COUNT(
-                            DISTINCT c.pokemon
-                        ) AS owned,
-                        COUNT(
-                            DISTINCT p.number
-                        ) AS total
-                    FROM zxd_pokemon p
-                    LEFT JOIN zxd_capture c
-                        ON c.pokemon = p.number
-                        AND c.user = ?
-                        AND c.shiny = 0
-                        AND c.negative = 0
-                    GROUP BY p.gen
-                    `,
-                    [user]
-                );
-            const shiny =
-                await query(
-                    `
-                    SELECT
-                        p.gen,
-                        COUNT(
-                            DISTINCT c.pokemon
-                        ) AS owned,
-                        COUNT(
-                            DISTINCT p.number
-                        ) AS total
-                    FROM zxd_pokemon p
-                    LEFT JOIN zxd_capture c
-                        ON c.pokemon = p.number
-                        AND c.user = ?
-                        AND c.shiny = 1
-                    GROUP BY p.gen
-                    `,
-                    [user]
-                );
-            const shadow =
-                await query(
-                    `
-                    SELECT
-                        p.gen,
-                        COUNT(
-                            DISTINCT c.pokemon
-                        ) AS owned,
-                        COUNT(
-                            DISTINCT p.number
-                        ) AS total
-                    FROM zxd_pokemon p
-                    LEFT JOIN zxd_capture c
-                        ON c.pokemon = p.number
-                        AND c.user = ?
-                        AND c.negative = 1
-                    GROUP BY p.gen
-                    `,
-                    [user]
-                );
-            const normalByGen = {};
-            const shinyByGen = {};
-            const shadowByGen = {};
-            normal.forEach(
-                row => {
-                    normalByGen[
-                        row.gen
-                    ] = {
-                        owned:
-                            Number(
-                                row.owned
-                            ),
-                        total:
-                            Number(
-                                row.total
-                            )
-                    };
-                }
-            );
-            shiny.forEach(
-                row => {
-                    shinyByGen[
-                        row.gen
-                    ] = {
-                        owned:
-                            Number(
-                                row.owned
-                            ),
-                        total:
-                            Number(
-                                row.total
-                            )
-                    };
-                }
-            );
-            shadow.forEach(
-                row => {
-                    shadowByGen[
-                        row.gen
-                    ] = {
-                        owned:
-                            Number(
-                                row.owned
-                            ),
-                        total:
-                            Number(
-                                row.total
-                            )
-                    };
-                }
-            );
-            const totalNormalOwned =
-                normal.reduce(
-                    (
-                        sum,
-                        row
-                    ) =>
-                        sum +
-                        Number(
-                            row.owned
-                        ),
-                    0
-                );
-            const totalShinyOwned =
-                shiny.reduce(
-                    (
-                        sum,
-                        row
-                    ) =>
-                        sum +
-                        Number(
-                            row.owned
-                        ),
-                    0
-                );
-            const totalShadowOwned =
-                shadow.reduce(
-                    (
-                        sum,
-                        row
-                    ) =>
-                        sum +
-                        Number(
-                            row.owned
-                        ),
-                    0
-                );
             const achievements =
-                achievementsData.map(
+                await query(
+                    `
+                    SELECT
+                        a.*,
+                        c.label,
+                        c.icon,
+                        c.display_order AS category_order
+                    FROM zxd_achievements a
+                    LEFT JOIN zxd_achievement_categories c
+                        ON c.code = a.category
+                    ORDER BY
+                        c.display_order,
+                        a.display_order
+                    `
+                );
+            const stats =
+                await query(
+                    `
+                    SELECT
+                        stat_code,
+                        value
+                    FROM zxd_user_stats
+                    WHERE user = ?
+                    `,
+                    [userId]
+                );
+            const statsMap = {};
+            stats.forEach(
+                stat => {
+                    statsMap[
+                        stat.stat_code
+                    ] = Number(
+                        stat.value
+                    );
+                }
+            );
+            const results =
+                achievements.map(
                     achievement => {
-                        let progress = 0;
-                        switch (
-                        achievement.category
-                        ) {
-                            case "normal":
-                                progress =
-                                    normalByGen[
-                                        achievement.gen
-                                    ]?.owned || 0;
-                                break;
-                            case "shiny":
-                                progress =
-                                    shinyByGen[
-                                        achievement.gen
-                                    ]?.owned || 0;
-                                break;
-                            case "shadow":
-                                progress =
-                                    shadowByGen[
-                                        achievement.gen
-                                    ]?.owned || 0;
-                                break;
-                            case "ultimate":
-                                switch (
-                                achievement.code
-                                ) {
-                                    case "ultimate_dex":
-                                        progress =
-                                            totalNormalOwned;
-                                        break;
-                                    case "ultimate_shiny":
-                                        progress =
-                                            totalShinyOwned;
-                                        break;
-                                    case "ultimate_shadow":
-                                        progress =
-                                            totalShadowOwned;
-                                        break;
-                                    case "ultimate_chromatyk":
-                                        progress =
-                                            totalNormalOwned +
-                                            totalShinyOwned +
-                                            totalShadowOwned;
-                                        break;
-                                }
-                                break;
-                        }
+                        const progress =
+                            statsMap[
+                            achievement.stat_code
+                            ] || 0;
                         return {
                             ...achievement,
                             progress,
@@ -3154,12 +2992,10 @@ app.get(
                     }
                 );
             res.send(
-                achievements
+                results
             );
         } catch (err) {
-            console.error(
-                err
-            );
+            console.error(err);
             res.status(500).send({
                 error:
                     "Erreur succès"
