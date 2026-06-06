@@ -2864,6 +2864,16 @@ app.get(
                     ORDER BY display_order
                     `
                 );
+            const achievementByCode = {};
+            achievementsData.forEach(
+                achievement => {
+
+                    achievementByCode[
+                        achievement.code
+                    ] = achievement;
+
+                }
+            );
             const achievementMap = {};
             achievementsData.forEach(
                 achievement => {
@@ -2936,6 +2946,104 @@ app.get(
                     `,
                     [user]
                 );
+            const totalNormalOwned =
+                normal.reduce(
+                    (sum, gen) =>
+                        sum + Number(gen.owned),
+                    0
+                );
+
+            const totalNormalTotal =
+                normal.reduce(
+                    (sum, gen) =>
+                        sum + Number(gen.total),
+                    0
+                );
+
+            const totalShinyOwned =
+                shiny.reduce(
+                    (sum, gen) =>
+                        sum + Number(gen.owned),
+                    0
+                );
+
+            const totalShinyTotal =
+                shiny.reduce(
+                    (sum, gen) =>
+                        sum + Number(gen.total),
+                    0
+                );
+
+            const totalShadowOwned =
+                shadow.reduce(
+                    (sum, gen) =>
+                        sum + Number(gen.owned),
+                    0
+                );
+
+            const totalShadowTotal =
+                shadow.reduce(
+                    (sum, gen) =>
+                        sum + Number(gen.total),
+                    0
+                );
+            const ultimate = [
+
+                {
+                    ...achievementByCode[
+                    "ultimate_dex"
+                    ],
+                    owned:
+                        totalNormalOwned,
+                    total:
+                        totalNormalTotal,
+                    type:
+                        "ultimate"
+                },
+
+                {
+                    ...achievementByCode[
+                    "ultimate_shiny"
+                    ],
+                    owned:
+                        totalShinyOwned,
+                    total:
+                        totalShinyTotal,
+                    type:
+                        "ultimate"
+                },
+
+                {
+                    ...achievementByCode[
+                    "ultimate_shadow"
+                    ],
+                    owned:
+                        totalShadowOwned,
+                    total:
+                        totalShadowTotal,
+                    type:
+                        "ultimate"
+                },
+
+                {
+                    ...achievementByCode[
+                    "ultimate_chromatyk"
+                    ],
+                    owned:
+                        totalNormalOwned +
+                        totalShinyOwned +
+                        totalShadowOwned,
+
+                    total:
+                        totalNormalTotal +
+                        totalShinyTotal +
+                        totalShadowTotal,
+
+                    type:
+                        "ultimate"
+                }
+
+            ];
             const generations =
                 normal.map(
                     n => {
@@ -3021,9 +3129,10 @@ app.get(
                         };
                     }
                 );
-            res.send(
-                generations
-            );
+            res.send({
+                generations,
+                ultimate
+            });
         } catch (err) {
             console.error(err);
             res.status(500).send({
