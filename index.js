@@ -3422,7 +3422,7 @@ async function getAchievementsProgress(
                     `,
             [userId]
         );
-    pokedexStats.forEach(
+    companionStats.forEach(
         row => {
             statsMap[
                 `max_normal`
