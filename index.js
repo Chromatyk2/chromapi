@@ -795,7 +795,7 @@ app.post(
                     date,
                     endDate,
                     negative,
-                    shiny,
+                    shiny
                 )
                 VALUES
                 (?, ?, ?, 1, ?, ?, ?, ?)
