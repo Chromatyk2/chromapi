@@ -2982,274 +2982,7 @@ app.get(
 
             const userId =
                 req.params.id;
-
-            /*
-             * Succès
-             */
-
-            const achievements =
-                await query(
-                    `
-                    SELECT
-
-                        a.*,
-
-                        c.label,
-                        c.icon,
-
-                        c.display_order
-                            AS category_order,
-
-                        t.name
-                            AS title_name,
-
-                        t.rarity
-                            AS title_rarity
-
-                    FROM zxd_achievements a
-
-                    LEFT JOIN zxd_achievement_categories c
-                        ON c.code =
-                            a.category
-
-                    LEFT JOIN zxd_titles t
-                        ON t.code =
-                            a.title_code
-
-                    ORDER BY
-                        c.display_order,
-                        a.display_order
-                    `
-                );
-
-            /*
-             * Stats utilisateur
-             */
-
-            const stats =
-                await query(
-                    `
-                    SELECT
-                        stat_code,
-                        value
-                    FROM zxd_user_stats
-                    WHERE user = ?
-                    `,
-                    [userId]
-                );
-
-            const statsMap =
-                {};
-
-            stats.forEach(
-                stat => {
-
-                    statsMap[
-                        stat.stat_code
-                    ] = Number(
-                        stat.value
-                    );
-
-                }
-            );
-
-            /*
-             * Pokédex
-             */
-
-            const pokedexStats =
-                await query(
-                    `
-                    SELECT
-
-                        p.gen,
-
-                        COUNT(
-                            DISTINCT CASE
-                                WHEN c.shiny = 0
-                                AND c.negative = 0
-                                THEN c.pokemon
-                            END
-                        ) AS normal_count,
-
-                        COUNT(
-                            DISTINCT CASE
-                                WHEN c.shiny = 1
-                                THEN c.pokemon
-                            END
-                        ) AS shiny_count,
-
-                        COUNT(
-                            DISTINCT CASE
-                                WHEN c.negative = 1
-                                THEN c.pokemon
-                            END
-                        ) AS shadow_count
-
-                    FROM zxd_pokemon p
-
-                    LEFT JOIN zxd_capture c
-                        ON c.pokemon =
-                            p.number
-                        AND c.user = ?
-
-                    GROUP BY p.gen
-                    `,
-                    [userId]
-                );
-
-            let totalNormal =
-                0;
-
-            let totalShiny =
-                0;
-
-            let totalShadow =
-                0;
-
-            pokedexStats.forEach(
-                row => {
-
-                    statsMap[
-                        `dex_${row.gen}`
-                    ] =
-                        Number(
-                            row.normal_count
-                        );
-
-                    statsMap[
-                        `shiny_${row.gen}`
-                    ] =
-                        Number(
-                            row.shiny_count
-                        );
-
-                    statsMap[
-                        `shadow_${row.gen}`
-                    ] =
-                        Number(
-                            row.shadow_count
-                        );
-
-                    totalNormal +=
-                        Number(
-                            row.normal_count
-                        );
-
-                    totalShiny +=
-                        Number(
-                            row.shiny_count
-                        );
-
-                    totalShadow +=
-                        Number(
-                            row.shadow_count
-                        );
-
-                }
-            );
-
-            statsMap.dex_total =
-                totalNormal;
-
-            statsMap.shiny_total =
-                totalShiny;
-
-            statsMap.shadow_total =
-                totalShadow;
-
-            statsMap.chromatyk_total =
-                totalNormal +
-                totalShiny +
-                totalShadow;
-
-            /*
-             * Cartes
-             */
-
-            const cardStats =
-                await query(
-                    `
-                    SELECT
-                        COUNT(
-                            DISTINCT card_tcgdex_id
-                        ) AS total
-                    FROM zxd_card_collection
-                    WHERE profil_id = ?
-                    `,
-                    [userId]
-                );
-
-            statsMap.cards_total =
-                Number(
-                    cardStats[0]
-                        ?.total || 0
-                );
-
-            /*
-             * Calcul progression
-             */
-
-            const results =
-                achievements.map(
-                    achievement => {
-
-                        const progress =
-                            statsMap[
-                            achievement.stat_code
-                            ] || 0;
-
-                        return {
-
-                            id:
-                                achievement.id,
-
-                            category:
-                                achievement.category,
-
-                            subcategory:
-                                achievement.subcategory,
-
-                            code:
-                                achievement.code,
-
-                            achievement:
-                                achievement.achievement,
-
-                            description:
-                                achievement.description,
-
-                            target:
-                                achievement.target,
-
-                            progress,
-
-                            completed:
-                                progress >=
-                                achievement.target,
-
-                            categoryLabel:
-                                achievement.label,
-
-                            categoryIcon:
-                                achievement.icon,
-
-                            title: {
-
-                                code:
-                                    achievement.title_code,
-
-                                name:
-                                    achievement.title_name,
-
-                                rarity:
-                                    achievement.title_rarity
-
-                            }
-
-                        };
-                    }
-                );
+            
             res.send(
                 results
             );
@@ -3438,6 +3171,276 @@ async function syncSetCards(setTcgdexId) {
     }
 
 }
+async function getAchievementsProgress(
+    userId
+) {
+    const achievements =
+        await query(
+            `
+                    SELECT
+
+                        a.*,
+
+                        c.label,
+                        c.icon,
+
+                        c.display_order
+                            AS category_order,
+
+                        t.name
+                            AS title_name,
+
+                        t.rarity
+                            AS title_rarity
+
+                    FROM zxd_achievements a
+
+                    LEFT JOIN zxd_achievement_categories c
+                        ON c.code =
+                            a.category
+
+                    LEFT JOIN zxd_titles t
+                        ON t.code =
+                            a.title_code
+
+                    ORDER BY
+                        c.display_order,
+                        a.display_order
+                    `
+        );
+
+    /*
+     * Stats utilisateur
+     */
+
+    const stats =
+        await query(
+            `
+                    SELECT
+                        stat_code,
+                        value
+                    FROM zxd_user_stats
+                    WHERE user = ?
+                    `,
+            [userId]
+        );
+
+    const statsMap =
+        {};
+
+    stats.forEach(
+        stat => {
+
+            statsMap[
+                stat.stat_code
+            ] = Number(
+                stat.value
+            );
+
+        }
+    );
+
+    /*
+     * Pokédex
+     */
+
+    const pokedexStats =
+        await query(
+            `
+                    SELECT
+
+                        p.gen,
+
+                        COUNT(
+                            DISTINCT CASE
+                                WHEN c.shiny = 0
+                                AND c.negative = 0
+                                THEN c.pokemon
+                            END
+                        ) AS normal_count,
+
+                        COUNT(
+                            DISTINCT CASE
+                                WHEN c.shiny = 1
+                                THEN c.pokemon
+                            END
+                        ) AS shiny_count,
+
+                        COUNT(
+                            DISTINCT CASE
+                                WHEN c.negative = 1
+                                THEN c.pokemon
+                            END
+                        ) AS shadow_count
+
+                    FROM zxd_pokemon p
+
+                    LEFT JOIN zxd_capture c
+                        ON c.pokemon =
+                            p.number
+                        AND c.user = ?
+
+                    GROUP BY p.gen
+                    `,
+            [userId]
+        );
+
+    let totalNormal =
+        0;
+
+    let totalShiny =
+        0;
+
+    let totalShadow =
+        0;
+
+    pokedexStats.forEach(
+        row => {
+
+            statsMap[
+                `dex_${row.gen}`
+            ] =
+                Number(
+                    row.normal_count
+                );
+
+            statsMap[
+                `shiny_${row.gen}`
+            ] =
+                Number(
+                    row.shiny_count
+                );
+
+            statsMap[
+                `shadow_${row.gen}`
+            ] =
+                Number(
+                    row.shadow_count
+                );
+
+            totalNormal +=
+                Number(
+                    row.normal_count
+                );
+
+            totalShiny +=
+                Number(
+                    row.shiny_count
+                );
+
+            totalShadow +=
+                Number(
+                    row.shadow_count
+                );
+
+        }
+    );
+
+    statsMap.dex_total =
+        totalNormal;
+
+    statsMap.shiny_total =
+        totalShiny;
+
+    statsMap.shadow_total =
+        totalShadow;
+
+    statsMap.chromatyk_total =
+        totalNormal +
+        totalShiny +
+        totalShadow;
+
+    /*
+     * Cartes
+     */
+
+    const cardStats =
+        await query(
+            `
+                    SELECT
+                        COUNT(
+                            DISTINCT card_tcgdex_id
+                        ) AS total
+                    FROM zxd_card_collection
+                    WHERE profil_id = ?
+                    `,
+            [userId]
+        );
+
+    statsMap.cards_total =
+        Number(
+            cardStats[0]
+                ?.total || 0
+        );
+
+    /*
+     * Calcul progression
+     */
+
+    const results =
+        achievements.map(
+            achievement => {
+
+                const progress =
+                    statsMap[
+                    achievement.stat_code
+                    ] || 0;
+
+                return {
+
+                    id:
+                        achievement.id,
+
+                    category:
+                        achievement.category,
+
+                    subcategory:
+                        achievement.subcategory,
+
+                    code:
+                        achievement.code,
+
+                    achievement:
+                        achievement.achievement,
+
+                    description:
+                        achievement.description,
+
+                    target:
+                        achievement.target,
+
+                    progress,
+
+                    completed:
+                        progress >=
+                        achievement.target,
+
+                    categoryLabel:
+                        achievement.label,
+
+                    categoryIcon:
+                        achievement.icon,
+
+                    title: {
+
+                        code:
+                            achievement.title_code,
+
+                        name:
+                            achievement.title_name,
+
+                        rarity:
+                            achievement.title_rarity
+
+                    }
+
+                };
+            }
+        );
+
+    return results;
+
+}
 async function checkAchievements(
     userId
 ) {
@@ -3447,55 +3450,42 @@ async function checkAchievements(
             userId
         );
 
-    const unlocked =
-        achievements.filter(
-            achievement =>
-                achievement.progress >=
-                achievement.target
-        );
-
     for (
         const achievement
-        of unlocked
+        of achievements
     ) {
+
+        if (
+            !achievement.completed
+        ) {
+
+            continue;
+
+        }
+
+        if (
+            !achievement.title?.code
+        ) {
+
+            continue;
+
+        }
 
         await query(
             `
             INSERT IGNORE INTO
-            zxd_user_achievements
+            zxd_user_titles
             (
                 user,
-                achievement_code
+                title_code
             )
             VALUES (?, ?)
             `,
             [
                 userId,
-                achievement.code
+                achievement.title.code
             ]
         );
-
-        if (
-            achievement.title?.code
-        ) {
-
-            await query(
-                `
-                INSERT IGNORE INTO
-                zxd_user_titles
-                (
-                    user,
-                    title_code
-                )
-                VALUES (?, ?)
-                `,
-                [
-                    userId,
-                    achievement.title.code
-                ]
-            );
-
-        }
 
     }
 
