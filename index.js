@@ -59,22 +59,16 @@ io.use((socket, next) => {
     );
 });
 io.on('connection', (socket) => {
-
-    console.log(
-        socket.request.session
-    );
-
     const userId =
         socket.request.session?.user?.id;
-
+    console.log(
+        'JOIN ROOM',
+        `user:${userId}`
+    );
     if (userId) {
 
         socket.join(
             `user:${userId}`
-        );
-
-        console.log(
-            `User ${userId} joined room user:${userId}`
         );
 
     }
@@ -3641,33 +3635,24 @@ async function getAchievementsProgress(
 async function checkAchievements(
     userId
 ) {
-
     const achievements =
         await getAchievementsProgress(
             userId
         );
-
     for (
         const achievement
         of achievements
     ) {
-
         if (
             !achievement.completed
         ) {
-
             continue;
-
         }
-
         if (
             !achievement.title?.code
         ) {
-
             continue;
-
         }
-
         const result = await query(
             `
                 INSERT IGNORE INTO
@@ -3684,7 +3669,10 @@ async function checkAchievements(
             ]
         );
         if (result.affectedRows > 0) {
-
+            console.log(
+                'EMIT TO',
+                `user:${userId}`
+            );
             io.to(`user:${userId}`).emit(
                 'achievementUnlocked',
                 {
@@ -3695,6 +3683,7 @@ async function checkAchievements(
                     titleName: achievement.title.name
                 }
             );
+
         }
 
     }
