@@ -932,6 +932,9 @@ app.post(
                 user,
                 "expedition_"+form
             );
+            await checkAchievements(
+                user
+            );
             await query(
                 `
                 INSERT INTO zxd_inventaire
@@ -1031,6 +1034,9 @@ app.post(
         await incrementStat(
             user,
             "created_box"
+        );
+        await checkAchievements(
+            user
         );
         await query(
             `
@@ -1298,6 +1304,9 @@ app.post(
                 user,
                 "opened_box"
             );
+            await checkAchievements(
+                user
+            );
             res.send({
                 success: true,
                 rewards
@@ -1520,6 +1529,9 @@ app.post(
                 user,
                 "honey_"+honey
             );
+            await checkAchievements(
+                user
+            );
             await query(
                 `
                 UPDATE zxd_inventaire
@@ -1586,6 +1598,9 @@ app.post(
                         user,
                         "safari_negative"
                     );
+                    await checkAchievements(
+                        user
+                    );
                 } else if (
                     shinyRoll === 16
                 ) {
@@ -1594,11 +1609,17 @@ app.post(
                         user,
                         "safari_shiny"
                     );
+                    await checkAchievements(
+                        user
+                    );
                 }
             }
             await incrementStat(
                 user,
                 "safari_"+tier
+            );
+            await checkAchievements(
+                user
             );
             const pokemon =
                 (
@@ -1708,6 +1729,9 @@ app.post(
             await incrementStat(
                 user,
                 "candy_" + candy
+            );
+            await checkAchievements(
+                user
             );
             const item =
                 await query(
@@ -1869,6 +1893,9 @@ app.post(
                 user,
                 "ball_"+ball
             );
+            await checkAchievements(
+                user
+            );
             await query(
                 `
                 UPDATE zxd_inventaire
@@ -1971,6 +1998,9 @@ app.post(
                 await incrementStat(
                     user,
                     "flee_total"
+                );
+                await checkAchievements(
+                    user
                 );
                 await query(
                     `
@@ -2237,6 +2267,9 @@ app.post(
             await incrementStat(
                 user,
                 "candy_"+candy
+            );
+            await checkAchievements(
+                user
             );
             await query(
                 `
@@ -2559,6 +2592,9 @@ app.post(
                 user,
                 "fight_"+enemy.tier
             );
+            await checkAchievements(
+                user
+            );
             res.send({
                 rewards,
                 level,
@@ -2822,6 +2858,9 @@ app.post("/api/card/openBooster", async (req, res) => {
                 userId,
                 "booster_" + tcgdex_id
             );
+            await checkAchievements(
+                userId
+            );
 
         }
         const progressRows = await query(`
@@ -2915,6 +2954,9 @@ app.post("/api/card/openBooster", async (req, res) => {
             userId,
             "booster_total"
         );
+        await checkAchievements(
+            userId
+        );
         res.send({
             success: true,
             boosterCurrency:
@@ -2935,25 +2977,55 @@ app.post("/api/card/openBooster", async (req, res) => {
 app.get(
     "/api/profile/:id/achievements",
     async (req, res) => {
+
         try {
+
             const userId =
                 req.params.id;
+
+            /*
+             * Succès
+             */
+
             const achievements =
                 await query(
                     `
                     SELECT
+
                         a.*,
+
                         c.label,
                         c.icon,
-                        c.display_order AS category_order
+
+                        c.display_order
+                            AS category_order,
+
+                        t.name
+                            AS title_name,
+
+                        t.rarity
+                            AS title_rarity
+
                     FROM zxd_achievements a
+
                     LEFT JOIN zxd_achievement_categories c
-                        ON c.code = a.category
+                        ON c.code =
+                            a.category
+
+                    LEFT JOIN zxd_titles t
+                        ON t.code =
+                            a.title_code
+
                     ORDER BY
                         c.display_order,
                         a.display_order
                     `
                 );
+
+            /*
+             * Stats utilisateur
+             */
+
             const stats =
                 await query(
                     `
@@ -2965,20 +3037,31 @@ app.get(
                     `,
                     [userId]
                 );
-            const statsMap = {};
+
+            const statsMap =
+                {};
+
             stats.forEach(
                 stat => {
+
                     statsMap[
                         stat.stat_code
                     ] = Number(
                         stat.value
                     );
+
                 }
             );
+
+            /*
+             * Pokédex
+             */
+
             const pokedexStats =
                 await query(
                     `
                     SELECT
+
                         p.gen,
 
                         COUNT(
@@ -3006,63 +3089,84 @@ app.get(
                     FROM zxd_pokemon p
 
                     LEFT JOIN zxd_capture c
-                        ON c.pokemon = p.number
+                        ON c.pokemon =
+                            p.number
                         AND c.user = ?
 
                     GROUP BY p.gen
                     `,
                     [userId]
                 );
+
             let totalNormal =
                 0;
+
             let totalShiny =
                 0;
+
             let totalShadow =
                 0;
+
             pokedexStats.forEach(
                 row => {
+
                     statsMap[
                         `dex_${row.gen}`
                     ] =
                         Number(
                             row.normal_count
                         );
+
                     statsMap[
                         `shiny_${row.gen}`
                     ] =
                         Number(
                             row.shiny_count
                         );
+
                     statsMap[
                         `shadow_${row.gen}`
                     ] =
                         Number(
                             row.shadow_count
                         );
+
                     totalNormal +=
                         Number(
                             row.normal_count
                         );
+
                     totalShiny +=
                         Number(
                             row.shiny_count
                         );
+
                     totalShadow +=
                         Number(
                             row.shadow_count
                         );
+
                 }
             );
+
             statsMap.dex_total =
                 totalNormal;
+
             statsMap.shiny_total =
                 totalShiny;
+
             statsMap.shadow_total =
                 totalShadow;
+
             statsMap.chromatyk_total =
                 totalNormal +
                 totalShiny +
                 totalShadow;
+
+            /*
+             * Cartes
+             */
+
             const cardStats =
                 await query(
                     `
@@ -3075,24 +3179,74 @@ app.get(
                     `,
                     [userId]
                 );
+
             statsMap.cards_total =
                 Number(
                     cardStats[0]
                         ?.total || 0
                 );
+
+            /*
+             * Calcul progression
+             */
+
             const results =
                 achievements.map(
                     achievement => {
+
                         const progress =
                             statsMap[
                             achievement.stat_code
                             ] || 0;
+
                         return {
-                            ...achievement,
+
+                            id:
+                                achievement.id,
+
+                            category:
+                                achievement.category,
+
+                            subcategory:
+                                achievement.subcategory,
+
+                            code:
+                                achievement.code,
+
+                            achievement:
+                                achievement.achievement,
+
+                            description:
+                                achievement.description,
+
+                            target:
+                                achievement.target,
+
                             progress,
+
                             completed:
                                 progress >=
-                                achievement.target
+                                achievement.target,
+
+                            categoryLabel:
+                                achievement.label,
+
+                            categoryIcon:
+                                achievement.icon,
+
+                            title: {
+
+                                code:
+                                    achievement.title_code,
+
+                                name:
+                                    achievement.title_name,
+
+                                rarity:
+                                    achievement.title_rarity
+
+                            }
+
                         };
                     }
                 );
@@ -3109,8 +3263,7 @@ app.get(
             });
         }
     }
-);
-// Fonctions
+);// Fonctions
 //Synchronise les sets de l'API TCGDEX avec ma BDD
 function query(sql, params = []) {
 
@@ -3285,7 +3438,68 @@ async function syncSetCards(setTcgdexId) {
     }
 
 }
+async function checkAchievements(
+    userId
+) {
 
+    const achievements =
+        await getAchievementsProgress(
+            userId
+        );
+
+    const unlocked =
+        achievements.filter(
+            achievement =>
+                achievement.progress >=
+                achievement.target
+        );
+
+    for (
+        const achievement
+        of unlocked
+    ) {
+
+        await query(
+            `
+            INSERT IGNORE INTO
+            zxd_user_achievements
+            (
+                user,
+                achievement_code
+            )
+            VALUES (?, ?)
+            `,
+            [
+                userId,
+                achievement.code
+            ]
+        );
+
+        if (
+            achievement.title?.code
+        ) {
+
+            await query(
+                `
+                INSERT IGNORE INTO
+                zxd_user_titles
+                (
+                    user,
+                    title_code
+                )
+                VALUES (?, ?)
+                `,
+                [
+                    userId,
+                    achievement.title.code
+                ]
+            );
+
+        }
+
+    }
+
+}
 //Créer une nouvelle rotation de set
 
 async function createRotation() {
