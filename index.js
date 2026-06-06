@@ -1007,7 +1007,7 @@ app.post(
             );
             await incrementStat(
                 user,
-                "expedition_" + tier
+                "expedition_" + current.tier
             );
             await checkAchievements(
                 user
