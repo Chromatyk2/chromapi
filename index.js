@@ -476,6 +476,25 @@ app.get(
                 `,
                 [user]
             );
+            const titles = await query(
+                `
+                    SELECT DISTINCT
+                        t.code,
+                        t.name,
+                        t.rarity,
+                        t.display_order
+                    FROM zxd_titles t
+                    INNER JOIN zxd_achievements a
+                        ON a.title_code = t.code
+                    INNER JOIN zxd_user_stats s
+                        ON s.user = ?
+                        AND s.code = a.stat_code
+                        AND s.value >= a.target
+                    ORDER BY
+                        t.display_order ASC
+                    `,
+                [user]
+            );
             const owned =
                 progress[0]?.owned || 0;
             const total =
@@ -503,6 +522,7 @@ app.get(
                 expeditions,
                 pokedexNormal,
                 pokedexShiny,
+                titles,
                 pokedexShadow,
                 globalProgress: {
                     owned,
