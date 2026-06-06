@@ -346,12 +346,17 @@ app.get(
                         p.xp,
                         p.skin,
                         p.compagnon,
+                        p.title,
+                        t.name AS title_name,
+                        t.rarity AS title_rarity,
                         c.pokemon,
                         c.shiny,
                         c.negative
                     FROM zxd_profil p
                     LEFT JOIN zxd_capture c
                         ON c.user = p.user
+                    LEFT JOIN zxd_titles t
+                        ON t.code = p.title
                     WHERE p.user = ?
                     `,
                     [user]
@@ -582,6 +587,52 @@ app.post(
             `,
             [
                 skin,
+                user
+            ]
+        );
+        res.send({
+            success: true
+        });
+
+    }
+);
+app.post(
+    "/api/changeTitle",
+    authMiddleware,
+    async (req, res) => {
+        const user = req.user.id;
+        const code = req.body.code;
+        const owned =
+            await query(
+                `
+                SELECT 1
+                FROM zxd_user_titles
+                WHERE user = ?
+                AND title_code = ?
+                `,
+                [
+                    user,
+                    code
+                ]
+            );
+        if (
+            owned.length === 0
+        ) {
+            return res
+                .status(403)
+                .send({
+                    error:
+                        "Skin non possédé"
+                });
+        }
+        await query(
+            `
+            UPDATE zxd_profil
+            SET title = ?
+            WHERE user = ?
+            `,
+            [
+                code,
                 user
             ]
         );
