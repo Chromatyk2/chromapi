@@ -38,7 +38,7 @@ const session = require("express-session");
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
 
-    resave: false,
+    resave: false,3
 
     saveUninitialized: false,
 
@@ -59,29 +59,23 @@ io.use((socket, next) => {
     );
 });
 io.on('connection', (socket) => {
-
+    console.log('SOCKET CONNECTED');
     socket.on(
         'authenticate',
         (userId) => {
-
             socket.join(
                 `user:${userId}`
             );
             socket.emit(
                 'achievementUnlocked',
                 {
-                    achievementName: 'Socket Auth',
-                    description: 'Room rejointe avec succès',
-                    titleName: 'Debug'
+                    achievementName: 'TEST',
+                    description: 'Socket OK',
+                    titleName: 'DEBUG'
                 }
             );
-            console.log(
-                `User ${userId} joined room user:${userId}`
-            );
-
         }
     );
-
 });
 async function updateTwitchCache() {
 
