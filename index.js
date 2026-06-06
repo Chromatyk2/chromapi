@@ -2080,7 +2080,7 @@ app.post(
             if (success) {
                 await query(
                     `
-                    INSERT INTO
+                    INSERT IGNORE INTO
                     zxd_capture
                     (
                         user,
