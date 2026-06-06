@@ -2022,6 +2022,27 @@ app.post(
                     ultra: 0.60
                 }
             };
+            const profile =
+                (
+                    await query(
+                        `
+                            SELECT xp
+                            FROM zxd_profil
+                            WHERE user = ?
+                            `,
+                        [userId]
+                    )
+                )[0];
+            const {
+                getLevelFromXp
+            } = require(
+                "./utils/levels"
+            );
+
+            statsMap.profile_level =
+                getLevelFromXp(
+                    profile?.xp || 0
+                );
             const inventory =
                 await query(
                     `
