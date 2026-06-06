@@ -2975,6 +2975,111 @@ app.get(
                     );
                 }
             );
+            const pokedexStats =
+                await query(
+                    `
+                    SELECT
+                        p.gen,
+
+                        COUNT(
+                            DISTINCT CASE
+                                WHEN c.shiny = 0
+                                AND c.negative = 0
+                                THEN c.pokemon
+                            END
+                        ) AS normal_count,
+
+                        COUNT(
+                            DISTINCT CASE
+                                WHEN c.shiny = 1
+                                THEN c.pokemon
+                            END
+                        ) AS shiny_count,
+
+                        COUNT(
+                            DISTINCT CASE
+                                WHEN c.negative = 1
+                                THEN c.pokemon
+                            END
+                        ) AS shadow_count
+
+                    FROM zxd_pokemon p
+
+                    LEFT JOIN zxd_capture c
+                        ON c.pokemon = p.number
+                        AND c.user = ?
+
+                    GROUP BY p.gen
+                    `,
+                    [userId]
+                );
+            let totalNormal =
+                0;
+            let totalShiny =
+                0;
+            let totalShadow =
+                0;
+            pokedexStats.forEach(
+                row => {
+                    statsMap[
+                        `dex_${row.gen}`
+                    ] =
+                        Number(
+                            row.normal_count
+                        );
+                    statsMap[
+                        `shiny_${row.gen}`
+                    ] =
+                        Number(
+                            row.shiny_count
+                        );
+                    statsMap[
+                        `shadow_${row.gen}`
+                    ] =
+                        Number(
+                            row.shadow_count
+                        );
+                    totalNormal +=
+                        Number(
+                            row.normal_count
+                        );
+                    totalShiny +=
+                        Number(
+                            row.shiny_count
+                        );
+                    totalShadow +=
+                        Number(
+                            row.shadow_count
+                        );
+                }
+            );
+            statsMap.dex_total =
+                totalNormal;
+            statsMap.shiny_total =
+                totalShiny;
+            statsMap.shadow_total =
+                totalShadow;
+            statsMap.chromatyk_total =
+                totalNormal +
+                totalShiny +
+                totalShadow;
+            const cardStats =
+                await query(
+                    `
+                    SELECT
+                        COUNT(
+                            DISTINCT tcgdex_id
+                        ) AS total
+                    FROM zxd_card_collection
+                    WHERE user = ?
+                    `,
+                    [userId]
+                );
+            statsMap.cards_total =
+                Number(
+                    cardStats[0]
+                        ?.total || 0
+                );
             const results =
                 achievements.map(
                     achievement => {
@@ -2995,7 +3100,9 @@ app.get(
                 results
             );
         } catch (err) {
-            console.error(err);
+            console.error(
+                err
+            );
             res.status(500).send({
                 error:
                     "Erreur succès"
