@@ -2948,6 +2948,7 @@ app.post("/api/card/openBooster", async (req, res) => {
             userId,
             "booster_" + card.set_tcgdex_id,
         );
+        await incrementStat(
             userId,
             "booster_total"
         );
