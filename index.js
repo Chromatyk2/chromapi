@@ -528,6 +528,7 @@ app.get(
         }
     }
 );
+/* Change Skin */
 app.post(
     "/api/changeSkin",
     authMiddleware,
@@ -574,6 +575,7 @@ app.post(
 
     }
 );
+/* Add Skin */
 app.post(
     "/api/addSkin",
     authMiddleware,
@@ -648,6 +650,7 @@ app.post(
         }
     }
 );
+/* Change Companion */
 app.post(
     "/api/changeCompagnon",
     authMiddleware,
@@ -704,6 +707,7 @@ app.post(
         }
     }
 );
+/* New Expedition */
 app.post(
     "/api/newExpedition",
     authMiddleware,
@@ -815,6 +819,7 @@ app.post(
         }
     }
 );
+/* Recover Expedition */
 app.post(
     "/api/recoverExpeditionReward/:number",
     authMiddleware,
@@ -919,6 +924,14 @@ app.post(
                         1
                     )
                 ) + min;
+            await incrementStat(
+                userId,
+                "expedition_total"
+            );
+            await incrementStat(
+                userId,
+                "expedition_"+form
+            );
             await query(
                 `
                 INSERT INTO zxd_inventaire
@@ -1015,6 +1028,10 @@ app.post(
                         "Fragments insuffisants"
                 });
         }
+        await incrementStat(
+            userId,
+            "created_box"
+        );
         await query(
             `
             UPDATE zxd_inventaire
@@ -1277,6 +1294,10 @@ app.post(
                     quantity: 1
                 });
             }
+            await incrementStat(
+                userId,
+                "opened_box"
+            );
             res.send({
                 success: true,
                 rewards
@@ -1491,6 +1512,14 @@ app.post(
                             "Miel indisponible"
                     });
             }
+            await incrementStat(
+                userId,
+                "honey_total"
+            );
+            await incrementStat(
+                userId,
+                "honey_"+honey
+            );
             await query(
                 `
                 UPDATE zxd_inventaire
@@ -1552,12 +1581,25 @@ app.post(
                     negativeRoll === 16
                 ) {
                     negative = 1;
+
+                    await incrementStat(
+                        userId,
+                        "safari_negative"
+                    );
                 } else if (
                     shinyRoll === 16
                 ) {
                     shiny = 1;
+                    await incrementStat(
+                        userId,
+                        "safari_shiny"
+                    );
                 }
             }
+            await incrementStat(
+                userId,
+                "safari_"+tier
+            );
             const pokemon =
                 (
                     await query(
@@ -1659,6 +1701,14 @@ app.post(
                             "Bonbon invalide"
                     });
             }
+            await incrementStat(
+                userId,
+                "candy_total"
+            );
+            await incrementStat(
+                userId,
+                "candy_" + candy
+            );
             const item =
                 await query(
                     `
@@ -1811,6 +1861,14 @@ app.post(
                             "Ball indisponible"
                     });
             }
+            await incrementStat(
+                userId,
+                "ball_total"
+            );
+            await incrementStat(
+                userId,
+                "ball_"+ball
+            );
             await query(
                 `
                 UPDATE zxd_inventaire
@@ -1910,6 +1968,10 @@ app.post(
                 Math.random() <
                 0.10;
             if (flee) {
+                await incrementStat(
+                    userId,
+                    "flee_total"
+                );
                 await query(
                     `
                     DELETE FROM
@@ -2172,6 +2234,10 @@ app.post(
                             "Objet indisponible"
                     });
             }
+            await incrementStat(
+                userId,
+                "candy_"+candy
+            );
             await query(
                 `
                 UPDATE zxd_inventaire
@@ -2485,6 +2551,14 @@ app.post(
                     companion.id
                 ]
             );
+            await incrementStat(
+                userId,
+                "fight_total"
+            );
+            await incrementStat(
+                userId,
+                "fight_"+enemy.tier
+            );
             res.send({
                 rewards,
                 level,
@@ -2744,6 +2818,10 @@ app.post("/api/card/openBooster", async (req, res) => {
                 card.set_tcgdex_id,
                 card.tcgdex_id
             ]);
+            await incrementStat(
+                userId,
+                "booster_" + tcgdex_id
+            );
 
         }
         const progressRows = await query(`
@@ -2833,6 +2911,10 @@ app.post("/api/card/openBooster", async (req, res) => {
                 )
 
         };
+        await incrementStat(
+            userId,
+            "booster_total"
+        );
         res.send({
             success: true,
             boosterCurrency:
@@ -3159,7 +3241,38 @@ async function syncSets() {
         console.error(err);
     }
 }
+async function incrementStat(
+    user,
+    stat,
+    amount = 1
+) {
 
+    await query(
+        `
+        INSERT INTO zxd_user_stats
+        (
+            user,
+            stat_code,
+            value
+        )
+        VALUES
+        (
+            ?,
+            ?,
+            ?
+        )
+        ON DUPLICATE KEY UPDATE
+            value =
+            value + VALUES(value)
+        `,
+        [
+            user,
+            stat,
+            amount
+        ]
+    );
+
+}
 async function syncSetCards(setTcgdexId) {
 
     try {
