@@ -446,6 +446,36 @@ app.get(
                     `,
                     [user]
                 );
+            const pokedexStats = await query(
+                `
+                SELECT
+                    COUNT(
+                        DISTINCT CASE
+                            WHEN shiny = 0
+                            AND negative = 0
+                            THEN pokemon
+                        END
+                    ) AS pokedexNormal,
+
+                    COUNT(
+                        DISTINCT CASE
+                            WHEN shiny = 1
+                            THEN pokemon
+                        END
+                    ) AS pokedexShiny,
+
+                    COUNT(
+                        DISTINCT CASE
+                            WHEN negative = 1
+                            THEN pokemon
+                        END
+                    ) AS pokedexShadow
+
+                FROM zxd_capture
+                WHERE user = ?
+                `,
+                [user]
+            );
             const owned =
                 progress[0]?.owned || 0;
             const total =
@@ -458,6 +488,11 @@ app.get(
                         profileData.xp
                     );
             }
+            const {
+                pokedexNormal,
+                pokedexShiny,
+                pokedexShadow
+            } = pokedexStats[0];
             res.send({
                 profile:
                     profileData,
@@ -466,6 +501,9 @@ app.get(
                     activeCompanion[0] || null,
                 maxLevelCompanions,
                 expeditions,
+                pokedexNormal,
+                pokedexShiny,
+                pokedexShadow,
                 globalProgress: {
                     owned,
                     total,
