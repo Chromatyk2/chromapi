@@ -3376,26 +3376,11 @@ async function getAchievementsProgress(
             [userId]
         );
 
-   statsMap[
-                `dex_${row.gen}`
-            ] =
-                Number(
-                    row.normal_count
-                );
-
-            statsMap[
-                `shiny_${row.gen}`
-            ] =
-                Number(
-                    row.shiny_count
-                );
-
-            statsMap[
-                `shadow_${row.gen}`
-            ] =
-                Number(
-                    row.shadow_count
-                );
+    statsMap.cards_total =
+        Number(
+            cardStats[0]
+                ?.total || 0
+        );
 
     /*
      * Companion
