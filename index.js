@@ -2854,13 +2854,6 @@ app.post("/api/card/openBooster", async (req, res) => {
                 card.set_tcgdex_id,
                 card.tcgdex_id
             ]);
-            await incrementStat(
-                userId,
-                "booster_" + card.set_tcgdex_id,
-            );
-            await checkAchievements(
-                userId
-            );
 
         }
         const progressRows = await query(`
@@ -2950,7 +2943,11 @@ app.post("/api/card/openBooster", async (req, res) => {
                 )
 
         };
+
         await incrementStat(
+            userId,
+            "booster_" + card.set_tcgdex_id,
+        );
             userId,
             "booster_total"
         );
