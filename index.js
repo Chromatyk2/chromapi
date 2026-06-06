@@ -938,6 +938,10 @@ app.post(
                 user,
                 "expedition_"+form
             );
+            await incrementStat(
+                user,
+                "expedition_" + tier
+            );
             await checkAchievements(
                 user
             );
