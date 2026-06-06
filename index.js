@@ -38,7 +38,7 @@ const session = require("express-session");
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
 
-    resave: false,3
+    resave: false,
 
     saveUninitialized: false,
 
@@ -59,23 +59,17 @@ io.use((socket, next) => {
     );
 });
 io.on('connection', (socket) => {
-    console.log('SOCKET CONNECTED');
+
     socket.on(
         'authenticate',
         (userId) => {
+
             socket.join(
                 `user:${userId}`
             );
-            socket.emit(
-                'achievementUnlocked',
-                {
-                    achievementName: 'TEST',
-                    description: 'Socket OK',
-                    titleName: 'DEBUG'
-                }
-            );
         }
     );
+
 });
 async function updateTwitchCache() {
 
