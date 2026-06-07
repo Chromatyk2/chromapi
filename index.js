@@ -2865,7 +2865,7 @@ app.get("/api/getLeaderBoard", (req, res, next) => {
 app.get("/api/card/init/:profilId", async (req, res) => {
     try {
         const profilId = req.params.profilId; // Rotation active 
-        const rotationSets = await query(` SELECT s.*, r.end_date, r.id FROM zxd_card_set s INNER JOIN zxd_card_rotation_set rs ON rs.set_id = s.id INNER JOIN zxd_card_rotation r ON r.id = rs.rotation_id WHERE NOW() BETWEEN r.start_date AND r.end_date `);
+        const rotationSets = await query(` SELECT s.*,r.start_date, r.end_date, r.id AS rotation_number FROM zxd_card_set s INNER JOIN zxd_card_rotation_set rs ON rs.set_id = s.id INNER JOIN zxd_card_rotation r ON r.id = rs.rotation_id WHERE NOW() BETWEEN r.start_date AND r.end_date `);
         // Collection 
         const collection = await query(` SELECT * FROM zxd_card_collection WHERE profil_id = ? `, [profilId]);
         // Progression rotation 
