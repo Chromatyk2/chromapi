@@ -761,6 +761,19 @@ app.post(
                     Math.random() * availableSkins.length
                 )
                 ];
+
+            await query(
+                `
+                INSERT INTO zxd_skin
+                (
+                    user,
+                    skin
+                )
+                VALUES
+                (?, ?)
+                `,
+                [user, skin.id]
+            );
             res.send({
                 success: true,
                 skin: {
