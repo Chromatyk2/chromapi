@@ -681,71 +681,88 @@ app.post(
                     `,
                     [user]
                 );
-            const skins =
-                await query(
-                    `
-                    SELECT COUNT(*)
-                    AS total
+            const ownedSkins = await query(
+                `
+                    SELECT COUNT(*) AS total
                     FROM zxd_skin
                     WHERE user = ?
                     `,
-                    [user]
-                );
-            const level =
-                getLevelFromXp(
-                    profile[0].xp
-                );
-            if (
-                skins[0].total >= level
-            ) {
-                return res
-                    .status(400)
-                    .send({
-                        error:
-                            "Limite atteinte"
-                    });
+                [user]
+            );
+            const level = getLevelFromXp(profile[0].xp);
+
+            if (ownedSkins[0].total >= level) {
+                return res.status(400).send({
+                    error: "Limite atteinte"
+                });
             }
-            const skins = await query(
-                `
-                    SELECT c.id
+            const rarities = [
+                { rarity: 4, weight: 1 },
+                { rarity: 3, weight: 10 },
+                { rarity: 2, weight: 200 },
+                { rarity: 1, weight: 800 }
+            ];
+
+            const totalWeight = rarities.reduce(
+                (sum, r) => sum + r.weight,
+                0
+            );
+
+            let roll = Math.random() * totalWeight;
+
+            let rarity;
+
+            for (const r of rarities) {
+                roll -= r.weight;
+
+                if (roll <= 0) {
+                    rarity = r.rarity;
+                    break;
+                }
+            }
+            const rarityOrder = [4, 3, 2, 1];
+
+            const startIndex = rarityOrder.indexOf(rarity);
+
+            let availableSkins = [];
+
+            for (
+                let i = startIndex;
+                i < rarityOrder.length;
+                i++
+            ) {
+                availableSkins = await query(
+                    `
+                    SELECT c.id, c.name, c.rarity
                     FROM zxd_skin_catalog c
                     LEFT JOIN zxd_skin s
                         ON s.skin = c.id
                         AND s.user = ?
                     WHERE s.skin IS NULL
+                    AND c.rarity = ?
                     `,
-                                [user]
-                            );
+                    [user, rarityOrder[i]]
+                );
 
-                            if (!skins.length) {
-                                return;
-                            }
+                if (availableSkins.length) {
+                    rarity = rarityOrder[i];
+                    break;
+                }
+            }
 
-                            const skin =
-                                skins[
-                                    Math.floor(
-                                        Math.random() * skins.length
-                                    )
-                                ].id;
+            if (!availableSkins.length) {
+                return res.status(400).send({
+                    error: "Toutes les skins ont déjà été obtenues"
+                });
+            }
 
-                            await query(
-                                `
-                    INSERT INTO zxd_skin
-                    (
-                        user,
-                        skin
-                    )
-                    VALUES
-                    (?, ?)
-                `,
-                [
-                    user,
-                    skin
-                ]
-            );
             res.send({
                 success: true,
-                skin
+                skin: {
+                    id: skin.id,
+                    name: skin.name,
+                    rarity: skin.rarity
+                }
             });
         } catch (err) {
             console.error(err);
