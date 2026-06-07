@@ -2200,7 +2200,7 @@ app.post(
             }
             const flee =
                 Math.random() <
-                0.05;
+                0.03;
             if (flee) {
                 await incrementStat(
                     user,
