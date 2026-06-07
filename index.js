@@ -2730,7 +2730,7 @@ app.post(
 
             await addProfileXp(
                 user,
-                (Math.floor(Math.random() * 5) + 1) + enemy.tier
+                (Math.floor(Math.random() * 10) + 1) * enemy.tier
             );
             const formMultiplier =
                 companion.negative === 1
@@ -3987,7 +3987,7 @@ app.get(
     }
 );
 // Automatisations
-cron.schedule("0 22 * * 3", async () => {
+cron.schedule("0 23 * * 0", async () => {
 
     try {
 
