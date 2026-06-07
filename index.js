@@ -755,7 +755,12 @@ app.post(
                     error: "Toutes les skins ont déjà été obtenues"
                 });
             }
-
+            const skin =
+                availableSkins[
+                Math.floor(
+                    Math.random() * availableSkins.length
+                )
+                ];
             res.send({
                 success: true,
                 skin: {
