@@ -3884,7 +3884,7 @@ async function createRotation() {
 
     const endDate = new Date();
     endDate.setDate(
-        endDate.getDate() + 14
+        endDate.getDate() + 7
     );
 
     const result = await query(`
