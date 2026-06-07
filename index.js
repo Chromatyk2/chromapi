@@ -1305,7 +1305,7 @@ app.post(
             // BALLS
             const ballTier =
                 Math.random();
-            if (ballTier < 0.001) {
+            if (ballTier < 0.003) {
                 item =
                     "Master Ball";
                 slug =
