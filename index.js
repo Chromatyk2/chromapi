@@ -2056,24 +2056,24 @@ app.post(
             }
             const catchRates = {
                 1: {
-                    ball: 0.50,
-                    great: 0.75,
-                    ultra: 0.95
+                    ball: 0.10,
+                    great: 0.20,
+                    ultra: 0.40
                 },
                 2: {
-                    ball: 0.30,
-                    great: 0.65,
-                    ultra: 0.85
+                    ball: 0.05,
+                    great: 0.10,
+                    ultra: 0.25
                 },
                 3: {
-                    ball: 0.20,
-                    great: 0.50,
-                    ultra: 0.75
+                    ball: 0.03,
+                    great: 0.07,
+                    ultra: 0.15
                 },
                 4: {
-                    ball: 0.10,
-                    great: 0.35,
-                    ultra: 0.60
+                    ball: 0.01,
+                    great: 0.03,
+                    ultra: 0.07
                 }
             };
             const inventory =
@@ -2200,7 +2200,7 @@ app.post(
             }
             const flee =
                 Math.random() <
-                0.10;
+                0.05;
             if (flee) {
                 await incrementStat(
                     user,
