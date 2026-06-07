@@ -705,19 +705,38 @@ app.post(
                             "Limite atteinte"
                     });
             }
-            const skin =
-                Math.floor(
-                    Math.random() * 1398
-                ) + 1;
-            await query(
+            const skins = await query(
                 `
-                INSERT INTO zxd_skin
-                (
-                    user,
-                    skin
-                )
-                VALUES
-                (?, ?)
+                    SELECT c.id
+                    FROM zxd_skin_catalog c
+                    LEFT JOIN zxd_skin s
+                        ON s.skin = c.id
+                        AND s.user = ?
+                    WHERE s.skin IS NULL
+                    `,
+                                [user]
+                            );
+
+                            if (!skins.length) {
+                                return;
+                            }
+
+                            const skin =
+                                skins[
+                                    Math.floor(
+                                        Math.random() * skins.length
+                                    )
+                                ].id;
+
+                            await query(
+                                `
+                    INSERT INTO zxd_skin
+                    (
+                        user,
+                        skin
+                    )
+                    VALUES
+                    (?, ?)
                 `,
                 [
                     user,
