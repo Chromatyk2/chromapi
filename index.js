@@ -2150,24 +2150,24 @@ app.post(
             }
             const catchRates = {
                 1: {
-                    ball: 0.10,
-                    great: 0.20,
-                    ultra: 0.40
+                    ball: 0.30,
+                    great: 0.60,
+                    ultra: 1.00
                 },
                 2: {
-                    ball: 0.05,
-                    great: 0.10,
-                    ultra: 0.25
+                    ball: 0.15,
+                    great: 0.30,
+                    ultra: 0.75
                 },
                 3: {
-                    ball: 0.03,
-                    great: 0.07,
-                    ultra: 0.15
+                    ball: 0.09,
+                    great: 0.21,
+                    ultra: 0.45
                 },
                 4: {
-                    ball: 0.01,
-                    great: 0.03,
-                    ultra: 0.07
+                    ball: 0.03,
+                    great: 0.09,
+                    ultra: 0.21
                 }
             };
             const inventory =
