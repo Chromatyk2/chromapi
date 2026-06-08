@@ -2669,13 +2669,15 @@ app.post(
                         enemy.tier === 2 ? 1.5 :
                             1.25;
             const packChance =
-                0.000142 *
+                0.000142 * 2.36 *
                 (tierMultiplierReward / 2);
+
             const fragmentChance =
-                0.000569 *
+                0.000569 * 2.36 *
                 (tierMultiplierReward / 2);
+
             const boosterChance =
-                0.00341 *
+                0.00341 * 2.36 *
                 (tierMultiplierReward / 2);
             const roll =
                 Math.random();
