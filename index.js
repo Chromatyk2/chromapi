@@ -1452,7 +1452,7 @@ app.post(
                 Math.random();
             if (
                 honeyTier <
-                1 / 6000
+                1 / 1200
             ) {
                 item =
                     "Miel Obscure";
@@ -1460,8 +1460,9 @@ app.post(
                     "negative";
             } else if (
                 honeyTier <
-                (1 / 6000) +
-                (1 / 3000)
+                (1 / 1200) +
+                (1 / 600) +
+                (1 / 300)
             ) {
                 item =
                     "Miel Chromatique";
@@ -1469,9 +1470,7 @@ app.post(
                     "shiny";
             } else if (
                 honeyTier <
-                (1 / 6000) +
-                (1 / 3000) +
-                0.0001
+                (1 / 300) +
             ) {
                 item =
                     "Miel Légendaire";
