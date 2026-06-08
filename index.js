@@ -19,8 +19,10 @@ require('dotenv').config();
 app.use(express.json())
 app.use(
     cors({
-        origin:
+        origin: [
             "https://chromatyk.fr",
+            "https://twitchat.fr/"
+        ],
         credentials: true
     })
 );
