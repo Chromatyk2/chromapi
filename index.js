@@ -21,7 +21,7 @@ app.use(
     cors({
         origin: [
             "https://chromatyk.fr",
-            "https://twitchat.fr/"
+            "https://twitchat.fr"
         ],
         credentials: true
     })
