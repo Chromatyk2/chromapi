@@ -1289,7 +1289,7 @@ app.post(
                 slug = "exps";
                 quantity =
                     Math.floor(
-                        Math.random() * 10
+                        Math.random() * 6
                     ) + 5;
             }
             await addItem(
@@ -1320,7 +1320,7 @@ app.post(
                     "ultra";
                 quantity =
                     Math.floor(
-                        Math.random() * 5
+                        Math.random() * 8
                     ) + 1;
             } else if (
                 ballTier < 0.404636
@@ -1331,7 +1331,7 @@ app.post(
                     "great";
                 quantity =
                     Math.floor(
-                        Math.random() * 5
+                        Math.random() * 8
                     ) + 1;
             } else {
                 item =
@@ -1340,7 +1340,7 @@ app.post(
                     "ball";
                 quantity =
                     Math.floor(
-                        Math.random() * 5
+                        Math.random() * 8
                     ) + 1;
             }
             await addItem(
