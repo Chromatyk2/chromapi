@@ -1211,6 +1211,17 @@ app.post(
 );
 
 /* Inventaire */
+app.post('/api/addItem', (req, res) => {
+    const user = req.body.user;
+    const item = req.body.item;
+    const slug = req.body.slug;
+    db.query("INSERT INTO zxd_inventaire (user, item, quantity,slug) VALUES(?, ?, 1, ?) ON DUPLICATE KEY UPDATE quantity = quantity+1", [user, item, slug], (err, result) => {
+        if (err) {
+            console.log(err)
+        }
+        res.send(result)
+    });
+});
 app.get(
     "/api/inventory",
     authMiddleware,
