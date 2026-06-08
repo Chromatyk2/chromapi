@@ -1198,8 +1198,10 @@ app.post(
             );
             res.send({
                 success: true,
-                reward:
-                    amount
+                reward: {
+                    fragments: fragmentAmount,
+                    boosters: boosterAmount
+                }
             });
         } catch (err) {
             console.error(err);
