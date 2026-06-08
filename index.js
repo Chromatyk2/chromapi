@@ -1028,26 +1028,61 @@ app.post(
             }
             const rewards = {
                 normal: {
-                    1: [1, 3],
-                    2: [2, 4],
-                    3: [4, 6],
-                    4: [6, 8]
+                    1: {
+                        fragments: [1, 3],
+                        boosters: { chance: 10, min: 1, max: 2 }
+                    },
+                    2: {
+                        fragments: [4, 7],
+                        boosters: { chance: 20, min: 1, max: 2 }
+                    },
+                    3: {
+                        fragments: [8, 12],
+                        boosters: { chance: 30, min: 1, max: 3 }
+                    },
+                    4: {
+                        fragments: [13, 18],
+                        boosters: { chance: 40, min: 2, max: 3 }
+                    }
                 },
 
                 shiny: {
-                    1: [2, 4],
-                    2: [4, 6],
-                    3: [7, 10],
-                    4: [11, 14]
+                    1: {
+                        fragments: [5, 8],
+                        boosters: { chance: 30, min: 1, max: 2 }
+                    },
+                    2: {
+                        fragments: [10, 15],
+                        boosters: { chance: 50, min: 1, max: 3 }
+                    },
+                    3: {
+                        fragments: [16, 22],
+                        boosters: { chance: 75, min: 2, max: 4 }
+                    },
+                    4: {
+                        fragments: [23, 30],
+                        boosters: { chance: 100, min: 2, max: 5 }
+                    }
                 },
 
                 negative: {
-                    1: [3, 5],
-                    2: [6, 8],
-                    3: [11, 14],
-                    4: [27, 31]
+                    1: {
+                        fragments: [15, 20],
+                        boosters: { chance: 100, min: 1, max: 2 }
+                    },
+                    2: {
+                        fragments: [20, 30],
+                        boosters: { chance: 100, min: 2, max: 3 }
+                    },
+                    3: {
+                        fragments: [30, 40],
+                        boosters: { chance: 100, min: 3, max: 4 }
+                    },
+                    4: {
+                        fragments: [40, 50],
+                        boosters: { chance: 100, min: 5, max: 5 }
+                    }
                 }
-
             };
             const form =
                 current.negative === 1
@@ -1055,19 +1090,35 @@ app.post(
                     : current.shiny === 1
                         ? "shiny"
                         : "normal";
-            const [min, max] =
-                rewards[form][
-                current.tier
-                ];
-            const amount =
+
+            const reward = rewards[form][current.tier];
+            const fragmentAmount =
                 Math.floor(
                     Math.random() *
                     (
-                        max -
-                        min +
+                        reward.fragments[1] -
+                        reward.fragments[0] +
                         1
                     )
-                ) + min;
+                ) +
+                reward.fragments[0];
+            let boosterAmount = 0;
+
+            if (
+                Math.random() * 100 <
+                reward.boosters.chance
+            ) {
+                boosterAmount =
+                    Math.floor(
+                        Math.random() *
+                        (
+                            reward.boosters.max -
+                            reward.boosters.min +
+                            1
+                        )
+                    ) +
+                    reward.boosters.min;
+            }
             await incrementStat(
                 user,
                 "expedition_total"
@@ -1085,30 +1136,58 @@ app.post(
             );
             await query(
                 `
-                INSERT INTO zxd_inventaire
-                (
-                    user,
-                    item,
-                    quantity,
-                    slug
-                )
-                VALUES
-                (
-                    ?,
-                    'Fragment de Pack',
-                    ?,
-                    'fragement'
-                )
-                ON DUPLICATE KEY UPDATE
-                    quantity =
-                    quantity +
-                    VALUES(quantity)
-                `,
+                    INSERT INTO zxd_inventaire
+                    (
+                        user,
+                        item,
+                        quantity,
+                        slug
+                    )
+                    VALUES
+                    (
+                        ?,
+                        'Fragment de Pack',
+                        ?,
+                        'fragment'
+                    )
+                    ON DUPLICATE KEY UPDATE
+                        quantity =
+                        quantity +
+                        VALUES(quantity)
+                    `,
                 [
                     user,
-                    amount
+                    fragmentAmount
                 ]
             );
+            if (boosterAmount > 0) {
+                await query(
+                    `
+                        INSERT INTO zxd_inventaire
+                        (
+                            user,
+                            item,
+                            quantity,
+                            slug
+                        )
+                        VALUES
+                        (
+                            ?,
+                            'Booster',
+                            ?,
+                            'booster'
+                        )
+                        ON DUPLICATE KEY UPDATE
+                            quantity =
+                            quantity +
+                            VALUES(quantity)
+                        `,
+                    [
+                        user,
+                        boosterAmount
+                    ]
+                );
+            }
             await query(
                 `
                 UPDATE zxd_expedition
