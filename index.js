@@ -1825,11 +1825,11 @@ app.post(
             } else {
                 const shinyRoll =
                     Math.floor(
-                        Math.random() * 4096
+                        Math.random() * 300
                     ) + 1;
                 const negativeRoll =
                     Math.floor(
-                        Math.random() * 8192
+                        Math.random() * 600
                     ) + 1;
                 if (
                     negativeRoll === 16
