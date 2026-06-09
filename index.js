@@ -3539,6 +3539,27 @@ app.post("/api/card/openBooster", async (req, res) => {
     }
 
 });
+app.get("/api/card/set/:profilId/:setId", async (req, res) => {
+    const { profilId, setId } = req.params;
+    const cards = await query(`
+        SELECT
+            card.tcgdex_id AS id,
+            card.local_id AS localId,
+            card.image,
+            card.rarity,
+            rarity.tier,
+            COALESCE(collection.quantity, 0) AS quantity
+        FROM zxd_card card
+        LEFT JOIN zxd_card_collection collection
+            ON collection.card_tcgdex_id = card.tcgdex_id
+            AND collection.profil_id = ?
+        LEFT JOIN zxd_card_rarity rarity
+            ON rarity.name = card.rarity
+        WHERE card.set_tcgdex_id = ?
+        ORDER BY CAST(card.local_id AS UNSIGNED)
+    `, [profilId, setId]);
+    res.send(cards);
+});
 
 /* Succès */
 app.get(
