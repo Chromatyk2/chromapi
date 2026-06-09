@@ -1302,9 +1302,9 @@ app.post(
             VALUES
             (
                 ?,
-                'Pack Safari',
+                'Pack Safari +',
                 1,
-                'box'
+                'boxplus'
             )
             ON DUPLICATE KEY UPDATE
                 quantity =
@@ -1544,6 +1544,235 @@ app.post(
             await incrementStat(
                 user,
                 "opened_box"
+            );
+            await checkAchievements(
+                user
+            );
+            res.send({
+                success: true,
+                rewards
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                error:
+                    "Erreur ouverture pack"
+            });
+        }
+    }
+);
+app.post(
+    "/api/openLootboxPlus",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user =
+                req.user.id;
+            const box =
+                await query(
+                    `
+                    SELECT quantity
+                    FROM zxd_inventaire
+                    WHERE user = ?
+                    AND slug = 'boxplus'
+                    `,
+                    [user]
+                );
+            if (
+                !box.length ||
+                box[0].quantity < 1
+            ) {
+                return res
+                    .status(400)
+                    .send({
+                        error:
+                            "Aucun Pack Safari +"
+                    });
+            }
+            await query(
+                `
+                UPDATE zxd_inventaire
+                SET quantity =
+                    quantity - 1
+                WHERE user = ?
+                AND slug = 'boxplus'
+                `,
+                [user]
+            );
+            const rewards = [];
+            // BONBONS XP
+            const candyTier =
+                Math.random();
+            let item;
+            let slug;
+            let quantity;
+            if (candyTier < 0.40) {
+                item = "Bonbon L";
+                slug = "expl";
+                quantity =
+                    Math.floor(
+                        Math.random() * 10
+                    ) + 1;
+            } else {
+                item = "Bonbon M";
+                slug = "expm";
+                quantity =
+                    Math.floor(
+                        Math.random() * 10
+                    ) + 1;
+            }
+            await addItem(
+                user,
+                item,
+                slug,
+                quantity
+            );
+            rewards.push({
+                item,
+                quantity
+            });
+            // BALLS
+            const ballTier =
+                Math.random();
+            if (ballTier < 0.01) {
+                item =
+                    "Master Ball";
+                slug =
+                    "master";
+                quantity = 1;
+            } else if (
+                ballTier < 0.4
+            ) {
+                item =
+                    "Hyper Ball";
+                slug =
+                    "ultra";
+                quantity =
+                    Math.floor(
+                        Math.random() * 8
+                    ) + 1;
+            } else {
+                item =
+                    "Super Ball";
+                slug =
+                    "great";
+                quantity =
+                    Math.floor(
+                        Math.random() * 8
+                    ) + 1;
+            }
+            await addItem(
+                user,
+                item,
+                slug,
+                quantity
+            );
+            rewards.push({
+                item,
+                quantity
+            });
+            // MIEL
+            const honeyTier =
+                Math.random();
+            if (
+                honeyTier <
+                1 / 300
+            ) {
+                item =
+                    "Miel Obscure";
+                slug =
+                    "negative";
+            } else if (
+                honeyTier <
+                (1 / 300) +
+                (1 / 150) 
+            ) {
+                item =
+                    "Miel Chromatique";
+                slug =
+                    "shiny";
+            } else if (
+                honeyTier <
+                (1 / 300) +
+                (1 / 150) +
+                (1 / 75)
+            ) {
+                item =
+                    "Miel Légendaire";
+                slug =
+                    "legendary";
+            } else {
+                item =
+                    "Miel Ordinaire";
+                slug =
+                    "honey";
+            }
+            await addItem(
+                user,
+                item,
+                slug,
+                1
+            );
+            rewards.push({
+                item,
+                quantity: 1
+            });
+            // SUPER BONBON
+            quantity =
+                Math.floor(
+                    Math.random() * 5
+                ) + 1;
+            await addItem(
+                user,
+                "Super Bonbon",
+                "rarecandy",
+                quantity
+            );
+            rewards.push({
+                item:
+                    "Super Bonbon",
+                quantity
+            });
+            // BOOSTER
+            quantity =
+                Math.floor(
+                    Math.random() * 5
+                ) + 1;
+            if (
+                Math.random() < 0.1
+            ) {
+                await addItem(
+                    user,
+                    "Booster",
+                    "booster",
+                    quantity
+                );
+                rewards.push({
+                    item:
+                        "Booster",
+                    quantity
+                });
+            }
+            // MEGA BONBON
+            if (
+                Math.random() <
+                0.01
+            ) {
+                await addItem(
+                    user,
+                    "Mega Bonbon",
+                    "megacandy",
+                    1
+                );
+                rewards.push({
+                    item:
+                        "Mega Bonbon",
+                    quantity: 1
+                });
+            }
+            await incrementStat(
+                user,
+                "opened_box_plus"
             );
             await checkAchievements(
                 user
