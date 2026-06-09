@@ -2946,9 +2946,11 @@ app.post(
                 shiny = 1;
             }
             res.send({
-                pokemon,
-                shiny,
-                negative,
+                pokemon: {
+                    ...pokemon,
+                    shiny,
+                    negative
+                },
                 currentHp:
                     maxHp,
                 maxHp
@@ -2971,8 +2973,7 @@ app.post(
         try {
             const user =
                 req.user.id;
-            const enemy =
-                req.body.pokemon;
+            const enemy = req.body.pokemon;
             const companion =
                 (
                     await query(
@@ -3015,39 +3016,66 @@ app.post(
                 Math.random();
             let reward =
                 null;
-            if (
-                roll <
-                packChance
-            ) {
-                reward = {
-                    item:
-                        "Pack Safari",
-                    slug:
-                        "box"
+            if (enemy.shiny === 1) {
+                const shinyPackChance = {
+                    1: 1 / 8,
+                    2: 1 / 7,
+                    3: 1 / 6,
+                    4: 1 / 5
                 };
-            } else if (
-                roll <
-                packChance +
-                fragmentChance
-            ) {
-                reward = {
-                    item:
-                        "Fragment de Pack",
-                    slug:
-                        "fragement"
+
+                if (Math.random() < shinyPackChance[enemy.tier]) {
+                    reward = {
+                        item: "Pack Safari",
+                        slug: "box"
+                    };
+                }
+            }
+
+            // NEGATIVE
+            else if (enemy.negative === 1) {
+                const negativePackChance = {
+                    1: 1 / 4,
+                    2: 1 / 3,
+                    3: 1 / 2,
+                    4: 1
                 };
-            } else if (
-                roll <
-                packChance +
-                fragmentChance +
-                boosterChance
-            ) {
-                reward = {
-                    item:
-                        "Booster",
-                    slug:
-                        "booster"
-                };
+
+                if (Math.random() < negativePackChance[enemy.tier]) {
+                    reward = {
+                        item: "Pack Safari",
+                        slug: "box"
+                    };
+                }
+            }
+
+            // NORMAL
+            else {
+                const roll = Math.random();
+
+                if (roll < packChance) {
+                    reward = {
+                        item: "Pack Safari",
+                        slug: "box"
+                    };
+                } else if (
+                    roll < packChance + fragmentChance
+                ) {
+                    reward = {
+                        item: "Fragment de Pack",
+                        slug: "fragement"
+                    };
+                } else if (
+                    roll <
+                    packChance +
+                    fragmentChance +
+                    boosterChance
+                ) {
+                    reward = {
+                        item: "Booster",
+                        slug: "booster"
+                    };
+                }
             }
             if (reward) {
                 await addItem(
