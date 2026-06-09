@@ -1589,6 +1589,12 @@ app.post(
                             "Aucun Pack Safari +"
                     });
             }
+            let slug;
+            if (Math.random() < 0.05) {
+                slug = 'boxplus'
+            } else {
+                slug = "box"
+            }
             await query(
                 `
                 UPDATE zxd_inventaire
