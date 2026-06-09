@@ -1470,8 +1470,7 @@ app.post(
             } else if (
                 honeyTier <
                 (1 / 1200) +
-                (1 / 600) +
-                (1 / 300)
+                (1 / 600)
             ) {
                 item =
                     "Miel Chromatique";
@@ -1479,7 +1478,9 @@ app.post(
                     "shiny";
             } else if (
                 honeyTier <
-                (1 / 300) +
+                (1 / 1200) +
+                (1 / 600) +
+                (1 / 300)
             ) {
                 item =
                     "Miel Légendaire";
