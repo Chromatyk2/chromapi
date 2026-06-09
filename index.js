@@ -1252,6 +1252,15 @@ app.post(
     async (req, res) => {
         const user =
             req.user.id;
+        let slug;
+        let item;
+        if (Math.random() < 0.05) {
+            item = 'Pack Safari +',
+            slug = 'boxplus'
+        } else {
+            item = 'Pack Safari',
+            slug = "box"
+        }
         const fragments =
             await query(
                 `
@@ -1275,7 +1284,7 @@ app.post(
         }
         await incrementStat(
             user,
-            "created_box"
+            "created_box_"+slug
         );
         await checkAchievements(
             user
@@ -1302,15 +1311,15 @@ app.post(
             VALUES
             (
                 ?,
-                'Pack Safari +',
+                ?,
                 1,
-                'boxplus'
+                ?
             )
             ON DUPLICATE KEY UPDATE
                 quantity =
                 quantity + 1
             `,
-            [user]
+            [user,item,slug]
         );
         res.send({
             success: true
@@ -1588,12 +1597,6 @@ app.post(
                         error:
                             "Aucun Pack Safari +"
                     });
-            }
-            let slug;
-            if (Math.random() < 0.05) {
-                slug = 'boxplus'
-            } else {
-                slug = "box"
             }
             await query(
                 `
