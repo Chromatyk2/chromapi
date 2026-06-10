@@ -127,11 +127,6 @@ async function updateTwitchCache() {
 
     } catch (err) {
 
-        console.error(
-            "[TWITCH CACHE]",
-            err.response?.data || err.message
-        );
-
     }
 }
 app.post("/api/auth/twitch", async (req, res) => {
