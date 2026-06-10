@@ -3110,6 +3110,12 @@ app.post(
             };
 
             const XP_RATE = 3.5;
+            const xpGainByTier = {
+                1: 18,
+                2: 37,
+                3: 75,
+                4: 288
+            };
 
             const xpGain =
                 xpGainByTier[enemy.tier] *
