@@ -3094,6 +3094,7 @@ app.post(
                 user,
                 (Math.floor(Math.random() * 10) + 1) * enemy.tier
             );
+
             const formMultiplier =
                 companion.negative === 1
                     ? 2
@@ -3101,57 +3102,47 @@ app.post(
                         ? 1.5
                         : 1;
 
-            const tierMultiplier =
-            {
+            const tierMultiplier = {
                 1: 1,
                 2: 2,
-                3: 4,
-                4: 8
+                3: 3,
+                4: 5
             };
-            const xpGainByTier =
-            {
-                1: 18,
-                2: 37,
-                3: 75,
-                4: 288
-            };
-            const xpToNextLevel =
-                Math.floor(
-                    (
-                        20 +
-                        companion.level *
-                        companion.level *
-                        2
-                    ) *
-                    tierMultiplier[
-                    companion.tier
-                    ] *
+
+            const XP_RATE = 3.5;
+
+            const xpGain =
+                xpGainByTier[enemy.tier] *
+                XP_RATE;
+
+            let level = companion.level;
+            let xp = companion.xp + xpGain;
+
+            let xpToNextLevel = Math.floor(
+                (20 + level * level * 2) *
+                tierMultiplier[companion.tier] *
+                formMultiplier
+            );
+
+            while (level < 100 && xp >= xpToNextLevel) {
+                xp -= xpToNextLevel;
+                level++;
+
+                xpToNextLevel = Math.floor(
+                    (20 + level * level * 2) *
+                    tierMultiplier[companion.tier] *
                     formMultiplier
                 );
-            const xpGain =
-                xpGainByTier[
-                enemy.tier
-                ];
-            let level =
-                companion.level;
-            let xp =
-                companion.xp +
-                xpGain;
-            if (
-                xp >=
-                xpToNextLevel
-            ) {
-                level++;
-                xp = 0;
             }
+
             await query(
                 `
-                UPDATE zxd_compagnon
-                SET
-                    level = ?,
-                    xp = ?
-                WHERE id = ?
-                `,
+                    UPDATE zxd_compagnon
+                    SET
+                        level = ?,
+                        xp = ?
+                    WHERE id = ?
+                    `,
                 [
                     level,
                     xp,
