@@ -2897,7 +2897,13 @@ app.post(
     }
 );
 
+
 /* Combat */
+function randomBetween(min, max) {
+    return Math.floor(
+        Math.random() * (max - min + 1)
+    ) + min;
+}
 app.post(
     "/api/fight/start",
     authMiddleware,
@@ -3025,11 +3031,10 @@ app.post(
             const boosterChance =
                 0.00341 * 2.36 *
                 (tierMultiplierReward / 2);
-            const roll =
-                Math.random();
             let reward =
                 null;
             if (enemy.shiny === 1) {
+
                 const shinyPackChance = {
                     1: 1 / 8,
                     2: 1 / 7,
@@ -3037,16 +3042,73 @@ app.post(
                     4: 1 / 5
                 };
 
-                if (Math.random() < shinyPackChance[enemy.tier]) {
-                    reward = {
-                        item: "Pack Safari",
-                        slug: "box"
-                    };
-                }
-            }
+                if (
+                    Math.random() <
+                    shinyPackChance[enemy.tier]
+                ) {
 
-            // NEGATIVE
-            else if (enemy.negative === 1) {
+                    await addItem(
+                        user,
+                        "Pack Safari",
+                        "box",
+                        1
+                    );
+
+                    rewards.push({
+                        item: "Pack Safari",
+                        slug: "box",
+                        quantity: 1
+                    });
+                }
+
+                const boosterAmount = {
+                    1: Math.random() < 0.5 ? 1 : 0,
+                    2: 1,
+                    3: randomBetween(1, 2),
+                    4: randomBetween(2, 3)
+                }[enemy.tier];
+
+                const fragmentAmount = {
+                    1: randomBetween(0, 1),
+                    2: randomBetween(0, 1),
+                    3: randomBetween(0, 1),
+                    4: randomBetween(1, 2)
+                }[enemy.tier];
+
+                if (boosterAmount > 0) {
+
+                    await addItem(
+                        user,
+                        "Booster",
+                        "booster",
+                        boosterAmount
+                    );
+
+                    rewards.push({
+                        item: "Booster",
+                        slug: "booster",
+                        quantity: boosterAmount
+                    });
+                }
+
+                if (fragmentAmount > 0) {
+
+                    await addItem(
+                        user,
+                        "Fragment de Pack",
+                        "fragement",
+                        fragmentAmount
+                    );
+
+                    rewards.push({
+                        item: "Fragment de Pack",
+                        slug: "fragement",
+                        quantity: fragmentAmount
+                    });
+                }
+
+            } else if (enemy.negative === 1) {
+
                 const negativePackChance = {
                     1: 1 / 4,
                     2: 1 / 3,
@@ -3054,13 +3116,69 @@ app.post(
                     4: 1
                 };
 
-                if (Math.random() < negativePackChance[enemy.tier]) {
-                    reward = {
+                if (
+                    Math.random() <
+                    negativePackChance[enemy.tier]
+                ) {
+
+                    await addItem(
+                        user,
+                        "Pack Safari",
+                        "box",
+                        1
+                    );
+
+                    rewards.push({
                         item: "Pack Safari",
-                        slug: "box"
-                    };
+                        slug: "box",
+                        quantity: 1
+                    });
                 }
-            }
+
+                const boosterAmount = {
+                    1: 1,
+                    2: randomBetween(1, 2),
+                    3: randomBetween(2, 3),
+                    4: randomBetween(3, 5)
+                }[enemy.tier];
+
+                const fragmentAmount = {
+                    1: randomBetween(0, 1),
+                    2: randomBetween(0, 1),
+                    3: randomBetween(1, 2),
+                    4: randomBetween(3, 5)
+                }[enemy.tier];
+
+                await addItem(
+                    user,
+                    "Booster",
+                    "booster",
+                    boosterAmount
+                );
+
+                rewards.push({
+                    item: "Booster",
+                    slug: "booster",
+                    quantity: boosterAmount
+                });
+
+                if (fragmentAmount > 0) {
+
+                    await addItem(
+                        user,
+                        "Fragment de Pack",
+                        "fragement",
+                        fragmentAmount
+                    );
+
+                    rewards.push({
+                        item: "Fragment de Pack",
+                        slug: "fragement",
+                        quantity: fragmentAmount
+                    });
+                }
+
+            }            
 
             // NORMAL
             else {
