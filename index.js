@@ -125,10 +125,6 @@ async function updateTwitchCache() {
             updatedAt: new Date()
         };
 
-        console.log(
-            `[TWITCH CACHE] Live=${twitchCache.live}`
-        );
-
     } catch (err) {
 
         console.error(
