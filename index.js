@@ -2192,8 +2192,8 @@ app.post(
             const candy =
                 req.body.candy;
             const values = {
-                exps: 25,
-                expm: 50,
+                exps: 50,
+                expm: 100,
                 expl: 200
             };
             const loveGain =
