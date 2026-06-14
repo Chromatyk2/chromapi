@@ -2122,7 +2122,7 @@ app.post(
             tier
             ) {
                 case 1:
-                    maxLove = 125;
+                    maxLove = 150;
                     break;
                 case 2:
                     maxLove = (
