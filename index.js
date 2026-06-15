@@ -2392,23 +2392,23 @@ app.post(
             }
             const catchRates = {
                 1: {
-                    ball: 0.30,
-                    great: 0.60,
+                    ball: 0.10,
+                    great: 0.50,
                     ultra: 1.00
                 },
                 2: {
-                    ball: 0.15,
+                    ball: 0.10,
                     great: 0.30,
                     ultra: 0.75
                 },
                 3: {
-                    ball: 0.09,
-                    great: 0.21,
+                    ball: 0.05,
+                    great: 0.10,
                     ultra: 0.45
                 },
                 4: {
-                    ball: 0.03,
-                    great: 0.09,
+                    ball: 0.01,
+                    great: 0.05,
                     ultra: 0.21
                 }
             };
@@ -2536,7 +2536,7 @@ app.post(
             }
             const flee =
                 Math.random() <
-                0.03;
+                0.01;
             if (flee) {
                 await incrementStat(
                     user,
