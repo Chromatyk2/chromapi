@@ -4489,7 +4489,7 @@ app.get(
     }
 );
 // Automatisations
-cron.schedule("0 23 * * 0", async () => {
+cron.schedule("0 11 * * 0", async () => {
 
     try {
 
@@ -4503,7 +4503,10 @@ cron.schedule("0 23 * * 0", async () => {
         console.error(err);
 
     }
-}
+},
+    {
+        timezone: "Europe/Paris",
+    }
 );
 cron.schedule("0 0 1 * *", () => {
     console.log("Suppression des anciennes expéditions");
