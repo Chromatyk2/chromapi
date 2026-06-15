@@ -3840,29 +3840,34 @@ async function incrementStat(
 async function syncSetCards(setTcgdexId) {
 
     try {
-
         const { data: setData } =
             await axios.get(
                 `https://api.tcgdex.net/v2/fr/sets/${setTcgdexId}`
             );
-
         for (const card of setData.cards) {
-
-            const { data: cardData } =
+            let { data: cardData } =
                 await axios.get(
                     `https://api.tcgdex.net/v2/fr/cards/${card.id}`
                 );
+            // Pas d'image sur la carte FR → on recharge la carte EN
+            if (!cardData.image) {
+                ({ data: cardData } =
+                    await axios.get(
+                        `https://api.tcgdex.net/v2/en/cards/${card.id}`
+                    ));
+            }
             let imageUrl = cardData.image;
+            // Vérifie que le fichier high.webp existe
             try {
                 await axios.head(
                     imageUrl + "/high.webp"
                 );
             } catch {
-                imageUrl =
-                    imageUrl.replace(
-                        "/fr/",
-                        "/en/"
-                    );
+                // L'image FR n'existe pas mais l'image EN existe
+                imageUrl = imageUrl.replace(
+                    "/fr/",
+                    "/en/"
+                );
             }
             await query(`
                 INSERT INTO zxd_card
@@ -3886,26 +3891,18 @@ async function syncSetCards(setTcgdexId) {
                 cardData.rarity,
                 imageUrl
             ]);
-
         }
-
         await query(`
             UPDATE zxd_card_set
             SET cards_synced = 1
-            WHERE 
-            tcgdex_id = ?
+            WHERE tcgdex_id = ?
         `, [setTcgdexId]);
-
         console.log(
             `[TCG] ${setTcgdexId} synchronisé`
         );
-
     } catch (err) {
-
         console.error(err);
-
     }
-
 }
 async function getAchievementsProgress(
     userId
