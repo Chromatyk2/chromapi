@@ -3415,25 +3415,31 @@ app.get("/api/card/globalProgress/:profilId", async (req, res) => {
 });
 app.post("/api/card/openBooster", async (req, res) => {
 
+    const connection = await pool.getConnection();
+
     try {
+
+        await connection.beginTransaction();
 
         const userId = req.body.userId;
         const setTcgdexId = req.body.setTcgdexId;
 
-        // Vérification monnaie
+        // Vérification booster
 
-        const inventory = await query(`
+        const inventory = await connection.query(`
             SELECT quantity
             FROM zxd_inventaire
             WHERE user = ?
             AND slug = 'booster'
-            LIMIT 1
+            FOR UPDATE
         `, [userId]);
 
         const boosterCurrency =
             inventory?.[0]?.quantity || 0;
 
         if (boosterCurrency <= 0) {
+
+            await connection.rollback();
 
             return res.send({
                 success: false,
@@ -3444,19 +3450,17 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         // Consommation
 
-        await query(`
+        await connection.query(`
             UPDATE zxd_inventaire
             SET quantity = quantity - 1
             WHERE user = ?
             AND slug = 'booster'
-            AND quantity > 0
         `, [userId]);
 
-        // 2 cartes tier 1
+        // Génération cartes
 
-        const commonCards = await query(`
-            SELECT c.*,
-    r.tier
+        const commonCards = await connection.query(`
+            SELECT c.*, r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
                 ON r.name = c.rarity
@@ -3466,11 +3470,8 @@ app.post("/api/card/openBooster", async (req, res) => {
             LIMIT 2
         `, [setTcgdexId]);
 
-        // 2 cartes tier 2
-
-        const uncommonCards = await query(`
-            SELECT c.*,
-    r.tier
+        const uncommonCards = await connection.query(`
+            SELECT c.*, r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
                 ON r.name = c.rarity
@@ -3480,9 +3481,7 @@ app.post("/api/card/openBooster", async (req, res) => {
             LIMIT 2
         `, [setTcgdexId]);
 
-        // Pool premium
-
-        const rarityPool = await query(`
+        const rarityPool = await connection.query(`
             SELECT
                 r.name AS rarity,
                 r.weight
@@ -3497,51 +3496,44 @@ app.post("/api/card/openBooster", async (req, res) => {
         const selectedRarity =
             weightedRandom(rarityPool);
 
-        // Carte premium
-
-        const premiumCard = await query(`
-    SELECT
-        c.*,
-        r.tier
-    FROM zxd_card c
-    INNER JOIN zxd_card_rarity r
-        ON r.name = c.rarity
-    WHERE c.set_tcgdex_id = ?
-    AND c.rarity = ?
-    ORDER BY RAND()
-    LIMIT 1
-`, [
+        const premiumCard = await connection.query(`
+            SELECT c.*, r.tier
+            FROM zxd_card c
+            INNER JOIN zxd_card_rarity r
+                ON r.name = c.rarity
+            WHERE c.set_tcgdex_id = ?
+            AND c.rarity = ?
+            ORDER BY RAND()
+            LIMIT 1
+        `, [
             setTcgdexId,
             selectedRarity
         ]);
 
-        // Booster final
-
         const openedCards = [
-
             ...commonCards,
             ...uncommonCards,
             ...premiumCard
-
         ];
 
-        // Ajout collection
+        // Collection
 
         for (const card of openedCards) {
-            const existing = await query(`
+
+            const existing = await connection.query(`
                 SELECT id
                 FROM zxd_card_collection
                 WHERE profil_id = ?
                 AND card_tcgdex_id = ?
                 LIMIT 1
             `, [
-                        userId,
-                        card.tcgdex_id
-                    ]);
+                userId,
+                card.tcgdex_id
+            ]);
 
-                    card.isNew =
-                existing.length === 0;
-            await query(`
+            card.isNew = existing.length === 0;
+
+            await connection.query(`
                 INSERT INTO zxd_card_collection
                 (
                     profil_id,
@@ -3557,14 +3549,9 @@ app.post("/api/card/openBooster", async (req, res) => {
                     NOW(),
                     NOW()
                 )
-
                 ON DUPLICATE KEY UPDATE
-
-                    quantity =
-                        quantity + 1,
-
-                    last_obtained_at =
-                        NOW()
+                    quantity = quantity + 1,
+                    last_obtained_at = NOW()
             `, [
                 userId,
                 card.set_tcgdex_id,
@@ -3572,105 +3559,30 @@ app.post("/api/card/openBooster", async (req, res) => {
             ]);
 
         }
-        const progressRows = await query(`
-            SELECT
-                set_tcgdex_id,
-                COUNT(DISTINCT card_tcgdex_id) AS owned
-            FROM zxd_card_collection
-            WHERE profil_id = ?
-            GROUP BY set_tcgdex_id
-        `, [userId]);
-        const progress = {};
 
-        progressRows.forEach(row => {
+        // Validation finale
 
-            progress[row.set_tcgdex_id] = {
-                owned: row.owned
-            };
+        await connection.commit();
 
-        });
-        const rotationSets = await query(`
-            SELECT s.*
-            FROM zxd_card_set s
-            INNER JOIN zxd_card_rotation_set rs
-                ON rs.set_id = s.id
-            INNER JOIN zxd_card_rotation r
-                ON r.id = rs.rotation_id
-            WHERE NOW() BETWEEN r.start_date
-                            AND r.end_date
-        `);
-        rotationSets.forEach(set => {
+        // Ce qui suit peut rester hors transaction
+        // car ce sont des calculs/lectures
 
-            if (!progress[set.tcgdex_id]) {
-
-                progress[set.tcgdex_id] = {
-                    owned: 0
-                };
-
-            }
-
-            progress[set.tcgdex_id].total =
-                set.card_count;
-
-            progress[set.tcgdex_id].percent =
-                Number(
-                    (
-                        progress[set.tcgdex_id].owned /
-                        set.card_count *
-                        100
-                    ).toFixed(1)
-                );
-
-        });
-        const globalOwned = await query(`
-            SELECT
-                COUNT(
-                    DISTINCT card_tcgdex_id
-                ) AS total
-            FROM zxd_card_collection
-            WHERE profil_id = ?
-        `, [userId]);
-
-        const globalTotal = await query(`
-            SELECT
-                SUM(card_count) AS total
-            FROM zxd_card_set
-            WHERE active = 1
-        `);
-
-        const globalProgress = {
-
-            owned:
-                globalOwned[0]?.total || 0,
-
-            total:
-                globalTotal[0]?.total || 0,
-
-            percent:
-                Number(
-                    (
-                        (
-                            globalOwned[0]?.total || 0
-                        ) /
-                        (
-                            globalTotal[0]?.total || 1
-                        ) * 100
-                    ).toFixed(1)
-                )
-
-        };
+        const progress = await getProgress(userId);
+        const globalProgress =
+            await getGlobalProgress(userId);
 
         await incrementStat(
             userId,
-            "booster_" + setTcgdexId,
+            "booster_" + setTcgdexId
         );
+
         await incrementStat(
             userId,
             "booster_total"
         );
-        await checkAchievements(
-            userId
-        );
+
+        await checkAchievements(userId);
+
         res.send({
             success: true,
             boosterCurrency:
@@ -3681,8 +3593,20 @@ app.post("/api/card/openBooster", async (req, res) => {
         });
 
     } catch (err) {
+
+        await connection.rollback();
+
         console.error(err);
-        res.status(500).send(err);
+
+        res.status(500).send({
+            success: false,
+            message: "Erreur ouverture booster"
+        });
+
+    } finally {
+
+        connection.release();
+
     }
 
 });
