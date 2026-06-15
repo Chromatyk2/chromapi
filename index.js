@@ -4380,10 +4380,10 @@ async function createRotation() {
 
     // Création de la rotation
     const startDate = new Date();
+    startDate.setHours(0, 0, 0, 0);
 
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 6);
-    endDate.setHours(23, 59, 59, 999);
+    endDate.setDate(endDate.getDate() + 7);
 
     const result = await query(`
         INSERT INTO zxd_card_rotation
@@ -4492,7 +4492,7 @@ app.get(
     }
 );
 // Automatisations
-cron.schedule("32 11 * * 1", async () => {
+cron.schedule("40 11 * * 1", async () => {
 
     try {
 
