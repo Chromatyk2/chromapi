@@ -1423,7 +1423,7 @@ app.post(
                     "safari";
                 quantity =
                     Math.floor(
-                        Math.random() * 5
+                        Math.random() * 3
                     ) + 1;
             }
             //else if (
