@@ -1409,7 +1409,6 @@ app.post(
                 item,
                 quantity
             });
-             BALLS
             const ballTier =
                 Math.random();
             if (ballTier < 0.003) {
