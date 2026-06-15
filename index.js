@@ -1409,7 +1409,7 @@ app.post(
                 item,
                 quantity
             });
-            // BALLS
+             BALLS
             const ballTier =
                 Math.random();
             if (ballTier < 0.003) {
@@ -1417,39 +1417,48 @@ app.post(
                     "Master Ball";
                 slug =
                     "master";
-                quantity = 1;
-            } else if (
-                ballTier < 0.101909
-            ) {
-                item =
-                    "Hyper Ball";
-                slug =
-                    "ultra";
-                quantity =
-                    Math.floor(
-                        Math.random() * 8
-                    ) + 1;
-            } else if (
-                ballTier < 0.404636
-            ) {
-                item =
-                    "Super Ball";
-                slug =
-                    "great";
-                quantity =
-                    Math.floor(
-                        Math.random() * 8
-                    ) + 1;
             } else {
-                item =
-                    "Poke Ball";
+                item = "Safari Ball";
                 slug =
-                    "ball";
+                    "safari";
                 quantity =
                     Math.floor(
-                        Math.random() * 8
+                        Math.random() * 5
                     ) + 1;
             }
+            //else if (
+            //    ballTier < 0.101909
+            //) {
+            //    item =
+            //        "Hyper Ball";
+            //    slug =
+            //        "ultra";
+            //    quantity =
+            //        Math.floor(
+            //            Math.random() * 8
+            //        ) + 1;
+            //} else if (
+            //    ballTier < 0.404636
+            //) {
+            //    item =
+            //        "Super Ball";
+            //    slug =
+            //        "great";
+            //    quantity =
+            //        Math.floor(
+            //            Math.random() * 8
+            //        ) + 1;
+            //} else {
+            //    item =
+            //        "Poke Ball";
+            //    slug =
+            //        "ball";
+            //    quantity =
+            //        Math.floor(
+            //            Math.random() * 8
+            //        ) + 1;
+            //} quantity = 1;
+            
             await addItem(
                 user,
                 item,
@@ -2394,22 +2403,26 @@ app.post(
                 1: {
                     ball: 0.10,
                     great: 0.50,
-                    ultra: 1.00
+                    ultra: 1.00,
+                    safari:0.50
                 },
                 2: {
                     ball: 0.10,
                     great: 0.30,
-                    ultra: 0.75
+                    ultra: 0.75,
+                    safari: 0.30
                 },
                 3: {
                     ball: 0.05,
                     great: 0.10,
-                    ultra: 0.45
+                    ultra: 0.45,
+                    safari: 0.10
                 },
                 4: {
                     ball: 0.01,
                     great: 0.05,
-                    ultra: 0.21
+                    ultra: 0.21,
+                    safari: 0.05
                 }
             };
             const inventory =
