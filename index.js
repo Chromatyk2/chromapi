@@ -4381,10 +4381,9 @@ async function createRotation() {
     // Création de la rotation
     const startDate = new Date();
 
-    const endDate = new Date();
-    endDate.setDate(
-        endDate.getDate() + 7
-    );
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 6);
+    endDate.setHours(23, 59, 59, 999);
 
     const result = await query(`
         INSERT INTO zxd_card_rotation
@@ -4423,16 +4422,23 @@ async function createRotation() {
 
 async function createRotationIfNeeded() {
 
+    const now = new Date();
+
     db.query(
         `
         SELECT *
         FROM zxd_card_rotation
-        WHERE NOW()
-        BETWEEN start_date
-        AND end_date
+        WHERE ? >= start_date
+        AND ? < end_date
         LIMIT 1
         `,
+        [now, now],
         async (err, result) => {
+
+            if (err) {
+                console.error(err);
+                return;
+            }
 
             if (result.length > 0) {
                 return;
@@ -4486,7 +4492,7 @@ app.get(
     }
 );
 // Automatisations
-cron.schedule("5 11 * * 1", async () => {
+cron.schedule("20 11 * * 1", async () => {
 
     try {
 
