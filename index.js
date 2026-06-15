@@ -3427,7 +3427,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         // Vérification booster
 
-        const inventory = await connection.query(`
+        const [inventory] = await connection.query(`
             SELECT quantity
             FROM zxd_inventaire
             WHERE user = ?
@@ -3460,7 +3460,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         // Génération cartes
 
-        const commonCards = await connection.query(`
+        const [commonCards] = await connection.query(`
             SELECT c.*, r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
@@ -3471,7 +3471,7 @@ app.post("/api/card/openBooster", async (req, res) => {
             LIMIT 2
         `, [setTcgdexId]);
 
-        const uncommonCards = await connection.query(`
+        const [uncommonCards] = await connection.query(`
             SELECT c.*, r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
@@ -3482,7 +3482,7 @@ app.post("/api/card/openBooster", async (req, res) => {
             LIMIT 2
         `, [setTcgdexId]);
 
-        const rarityPool = await connection.query(`
+        const [rarityPool] = await connection.query(`
             SELECT
                 r.name AS rarity,
                 r.weight
@@ -3497,7 +3497,7 @@ app.post("/api/card/openBooster", async (req, res) => {
         const selectedRarity =
             weightedRandom(rarityPool);
 
-        const premiumCard = await connection.query(`
+        const [premiumCard] = await connection.query(`
             SELECT c.*, r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
@@ -3521,7 +3521,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         for (const card of openedCards) {
 
-            const existing = await connection.query(`
+            const [existing] = await connection.query(`
                 SELECT id
                 FROM zxd_card_collection
                 WHERE profil_id = ?
