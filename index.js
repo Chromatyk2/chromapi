@@ -3018,7 +3018,7 @@ app.post(
             }
             const rewards = [];
             // RECOMPENSES
-            if (Math.random() < 0.001) {
+            if (Math.random() < 0.0001) {
 
                 await addItem(
                     user,
