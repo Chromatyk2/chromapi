@@ -3018,6 +3018,21 @@ app.post(
             }
             const rewards = [];
             // RECOMPENSES
+            if (Math.random() < 0.001) {
+
+                await addItem(
+                    user,
+                    "Safari Ball",
+                    "safari",
+                    1
+                );
+
+                rewards.push({
+                    item: "Safari Ball",
+                    slug: "safari",
+                    quantity: 1
+                });
+            }
             const tierMultiplierReward =
                 enemy.tier === 4 ? 58.65 :
                     enemy.tier === 3 ? 1.75 :
