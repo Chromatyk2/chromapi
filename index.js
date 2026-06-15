@@ -3415,7 +3415,7 @@ app.get("/api/card/globalProgress/:profilId", async (req, res) => {
 });
 app.post("/api/card/openBooster", async (req, res) => {
 
-    const connection = await pool.getConnection();
+    await db.promise().getConnection();
 
     try {
 
