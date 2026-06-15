@@ -2403,13 +2403,13 @@ app.post(
                     ball: 0.10,
                     great: 0.50,
                     ultra: 1.00,
-                    safari:0.40
+                    safari:0.50
                 },
                 2: {
                     ball: 0.10,
                     great: 0.30,
                     ultra: 0.75,
-                    safari: 0.20
+                    safari: 0.30
                 },
                 3: {
                     ball: 0.05,
