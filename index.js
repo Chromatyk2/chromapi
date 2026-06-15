@@ -3568,22 +3568,105 @@ app.post("/api/card/openBooster", async (req, res) => {
         // Ce qui suit peut rester hors transaction
         // car ce sont des calculs/lectures
 
-        const progress = await getProgress(userId);
-        const globalProgress =
-            await getGlobalProgress(userId);
+        const progressRows = await query(`
+            SELECT
+                set_tcgdex_id,
+                COUNT(DISTINCT card_tcgdex_id) AS owned
+            FROM zxd_card_collection
+            WHERE profil_id = ?
+            GROUP BY set_tcgdex_id
+        `, [userId]);
+        const progress = {};
+
+        progressRows.forEach(row => {
+
+            progress[row.set_tcgdex_id] = {
+                owned: row.owned
+            };
+
+        });
+        const rotationSets = await query(`
+            SELECT s.*
+            FROM zxd_card_set s
+            INNER JOIN zxd_card_rotation_set rs
+                ON rs.set_id = s.id
+            INNER JOIN zxd_card_rotation r
+                ON r.id = rs.rotation_id
+            WHERE NOW() BETWEEN r.start_date
+                            AND r.end_date
+        `);
+        rotationSets.forEach(set => {
+
+            if (!progress[set.tcgdex_id]) {
+
+                progress[set.tcgdex_id] = {
+                    owned: 0
+                };
+
+            }
+
+            progress[set.tcgdex_id].total =
+                set.card_count;
+
+            progress[set.tcgdex_id].percent =
+                Number(
+                    (
+                        progress[set.tcgdex_id].owned /
+                        set.card_count *
+                        100
+                    ).toFixed(1)
+                );
+
+        });
+        const globalOwned = await query(`
+            SELECT
+                COUNT(
+                    DISTINCT card_tcgdex_id
+                ) AS total
+            FROM zxd_card_collection
+            WHERE profil_id = ?
+        `, [userId]);
+
+        const globalTotal = await query(`
+            SELECT
+                SUM(card_count) AS total
+            FROM zxd_card_set
+            WHERE active = 1
+        `);
+
+        const globalProgress = {
+
+            owned:
+                globalOwned[0]?.total || 0,
+
+            total:
+                globalTotal[0]?.total || 0,
+
+            percent:
+                Number(
+                    (
+                        (
+                            globalOwned[0]?.total || 0
+                        ) /
+                        (
+                            globalTotal[0]?.total || 1
+                        ) * 100
+                    ).toFixed(1)
+                )
+
+        };
 
         await incrementStat(
             userId,
-            "booster_" + setTcgdexId
+            "booster_" + setTcgdexId,
         );
-
         await incrementStat(
             userId,
             "booster_total"
         );
-
-        await checkAchievements(userId);
-
+        await checkAchievements(
+            userId
+        );
         res.send({
             success: true,
             boosterCurrency:
