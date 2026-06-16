@@ -1420,10 +1420,7 @@ app.post(
                 item = "Safari Ball";
                 slug =
                     "safari";
-                quantity =
-                    Math.floor(
-                        Math.random() * 3
-                    ) + 1;
+                quantity = 3;
             }
             //else if (
             //    ballTier < 0.101909
