@@ -3766,6 +3766,27 @@ app.get(
         }
     }
 );
+
+app.get("/api/banger", async (req, res) => {
+
+    try {
+        const result =
+            await query(`
+                SELECT *
+                FROM zxd_banger
+                LIMIT 1 OFFSET FLOOR(RAND() * (
+                    SELECT COUNT(*)
+                    FROM zxd_banger
+                ));
+            `);
+        res.send(
+            result[0]
+        );
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(err);
+    }
+});
 // Fonctions
 //Synchronise les sets de l'API TCGDEX avec ma BDD
 function query(sql, params = []) {
@@ -4527,7 +4548,7 @@ app.get(
     }
 );
 // Automatisations
-cron.schedule("30 8 * * 1", async () => {
+cron.schedule("1 0 * * 1", async () => {
 
     try {
 
