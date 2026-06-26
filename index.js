@@ -3774,10 +3774,8 @@ app.get("/api/banger", async (req, res) => {
             await query(`
                 SELECT *
                 FROM zxd_banger
-                LIMIT 1 OFFSET FLOOR(RAND() * (
-                    SELECT COUNT(*)
-                    FROM zxd_banger
-                ));
+                ORDER BY RAND()
+                LIMIT 1
             `);
         res.send(
             result[0]
