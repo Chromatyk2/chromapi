@@ -3790,6 +3790,7 @@ app.get("/api/drawBanger", async (req, res) => {
             WHERE finish = 0
               AND active = 0
               AND number is not null
+              AND enable = 1
             ORDER BY RAND()
             LIMIT 1
         `);
