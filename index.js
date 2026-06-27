@@ -3878,7 +3878,7 @@ app.post(
             res.status(201).send({
                 console,
                 jeu,
-                user,
+                viewer:user,
                 active: 0,
                 finish: 0
             });
