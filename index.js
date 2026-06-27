@@ -3840,7 +3840,7 @@ app.get("/api/getBanger", async (req, res) => {
                 FROM zxd_banger
                 WHERE active = 0
                   AND finish = 0
-                ORDER BY id ASC
+                ORDER BY id DESC
             `)
         ]);
 
