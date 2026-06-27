@@ -3766,23 +3766,57 @@ app.get(
         }
     }
 );
+/* Nostal'Pick */
 
-app.get("/api/banger", async (req, res) => {
+app.get("/api/drawBanger", async (req, res) => {
+    const connection = await pool.getConnection();
 
     try {
-        const result =
-            await query(`
-                SELECT *
-                FROM zxd_banger
-                ORDER BY RAND()
-                LIMIT 1
-            `);
-        res.send(
-            result[0]
-        );
+        await connection.beginTransaction();
+
+        // Termine l'ancien jeu actif
+        await connection.query(`
+            UPDATE zxd_banger
+            SET active = 0,
+                finish = 1
+            WHERE active = 1
+        `);
+
+        // Récupère un nouveau jeu aléatoire
+        const [rows] = await connection.query(`
+            SELECT *
+            FROM zxd_banger
+            WHERE finish = 0
+              AND active = 0
+            ORDER BY RAND()
+            LIMIT 1
+        `);
+
+        if (rows.length === 0) {
+            await connection.rollback();
+            return res.status(404).send("Plus aucun jeu disponible.");
+        }
+
+        const banger = rows[0];
+
+        // Active le nouveau jeu
+        await connection.query(`
+            UPDATE zxd_banger
+            SET active = 1
+            WHERE id = ?
+        `, [banger.id]);
+
+        await connection.commit();
+
+        banger.active = 1;
+
+        res.send(banger);
     } catch (err) {
+        await connection.rollback();
         console.error(err);
         res.status(500).send(err);
+    } finally {
+        connection.release();
     }
 });
 // Fonctions
