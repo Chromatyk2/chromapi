@@ -3861,11 +3861,27 @@ app.post(
     authMiddleware,
     async (req, res) => {
         try {
-            const user =
-                req.user.login;
+            const user = req.user.login;
             const { console, jeu } = req.body;
 
-            const result = await query(
+            // Vérifie le nombre de jeux du viewer
+            const [count] = await query(
+                `
+                SELECT COUNT(*) AS total
+                FROM zxd_banger
+                WHERE viewer = ?
+                AND finish = 0
+                `,
+                [user]
+            );
+
+            if (count.total >= 5) {
+                return res.status(400).send({
+                    message: "Vous avez déjà proposé 5 jeux."
+                });
+            }
+
+            await query(
                 `
                 INSERT INTO zxd_banger (
                     console,
@@ -3880,7 +3896,7 @@ app.post(
             res.status(201).send({
                 console,
                 jeu,
-                viewer:user,
+                viewer: user,
                 active: 0,
                 finish: 0
             });
