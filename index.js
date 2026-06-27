@@ -3889,6 +3889,30 @@ app.post(
         }
     }
 );
+app.put(
+    "/api/banger/:id/number",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { number } = req.body;
+
+            await query(
+                `
+                UPDATE zxd_banger
+                SET number = ?
+                WHERE id = ?
+                `,
+                [number, id]
+            );
+
+            res.send({ success: true });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send(err);
+        }
+    }
+);
 // Fonctions
 //Synchronise les sets de l'API TCGDEX avec ma BDD
 function query(sql, params = []) {
