@@ -3819,6 +3819,91 @@ app.get("/api/drawBanger", async (req, res) => {
         connection.release();
     }
 });
+app.get("/api/getBanger", async (req, res) => {
+    try {
+        const [current, finished, upcoming] = await Promise.all([
+            query(`
+                SELECT *
+                FROM zxd_banger
+                WHERE active = 1
+                LIMIT 1
+            `),
+            query(`
+                SELECT *
+                FROM zxd_banger
+                WHERE finish = 1
+                ORDER BY id DESC
+            `),
+            query(`
+                SELECT *
+                FROM zxd_banger
+                WHERE active = 0
+                  AND finish = 0
+                ORDER BY id ASC
+            `)
+        ]);
+
+        res.send({
+            current: current[0] || null,
+            finished,
+            upcoming
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(err);
+    }
+});
+app.post(
+    "/api/addBanger",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            const user = req.user.id;
+            const { console, jeu } = req.body;
+
+            const profil = (
+                await query(
+                    `
+                    SELECT login
+                    FROM zxd_profil
+                    WHERE id = ?
+                    `,
+                    [user]
+                )
+            )[0];
+
+            if (!profil) {
+                return res.status(404).send("Utilisateur introuvable");
+            }
+
+            const viewer = profil.login;
+
+            const result = await query(
+                `
+                INSERT INTO zxd_banger (
+                    console,
+                    jeu,
+                    viewer
+                )
+                VALUES (?, ?, ?)
+                `,
+                [console, jeu, viewer]
+            );
+
+            res.status(201).send({
+                id: result.insertId,
+                console,
+                jeu,
+                viewer,
+                active: 0,
+                finish: 0
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send(err);
+        }
+    }
+);
 // Fonctions
 //Synchronise les sets de l'API TCGDEX avec ma BDD
 function query(sql, params = []) {
