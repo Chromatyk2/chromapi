@@ -3769,7 +3769,8 @@ app.get(
 /* Nostal'Pick */
 
 app.get("/api/drawBanger", async (req, res) => {
-    const connection = await pool.getConnection();
+    const connection =
+        await db.promise().getConnection();
 
     try {
         await connection.beginTransaction();
