@@ -3789,6 +3789,7 @@ app.get("/api/drawBanger", async (req, res) => {
             FROM zxd_banger
             WHERE finish = 0
               AND active = 0
+              AND number is not null
             ORDER BY RAND()
             LIMIT 1
         `);
