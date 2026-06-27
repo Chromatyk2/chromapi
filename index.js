@@ -3859,25 +3859,9 @@ app.post(
     authMiddleware,
     async (req, res) => {
         try {
-            const user = req.user.id;
+            const user =
+                req.user.login;
             const { console, jeu } = req.body;
-
-            const profil = (
-                await query(
-                    `
-                    SELECT login
-                    FROM zxd_profil
-                    WHERE id = ?
-                    `,
-                    [user]
-                )
-            )[0];
-
-            if (!profil) {
-                return res.status(404).send("Utilisateur introuvable");
-            }
-
-            const viewer = profil.login;
 
             const result = await query(
                 `
@@ -3888,14 +3872,13 @@ app.post(
                 )
                 VALUES (?, ?, ?)
                 `,
-                [console, jeu, viewer]
+                [console, jeu, user]
             );
 
             res.status(201).send({
-                id: result.insertId,
                 console,
                 jeu,
-                viewer,
+                user,
                 active: 0,
                 finish: 0
             });
