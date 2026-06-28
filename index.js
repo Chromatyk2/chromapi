@@ -3835,7 +3835,7 @@ app.get("/api/getBanger", async (req, res) => {
                 SELECT *
                 FROM zxd_banger
                 WHERE finish = 1
-                ORDER BY id DESC
+                ORDER BY console ASC
             `),
             query(`
                 SELECT *
