@@ -3842,6 +3842,7 @@ app.get("/api/getBanger", async (req, res) => {
                 FROM zxd_banger
                 WHERE active = 0
                   AND finish = 0
+                  AND enable = 1
                 ORDER BY id DESC
             `)
         ]);
