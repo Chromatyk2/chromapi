@@ -4692,12 +4692,12 @@ app.get(
     }
 );
 // Automatisations
-cron.schedule("1 0 * * 1", async () => {
+cron.schedule("50 1 * * 1", async () => {
 
     try {
 
         await syncSets();
-        await createRotationIfNeeded();
+        await createRotation();
 
         console.log("[TCG] Rotation créée");
 
