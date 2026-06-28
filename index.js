@@ -3843,7 +3843,7 @@ app.get("/api/getBanger", async (req, res) => {
                 WHERE active = 0
                   AND finish = 0
                   AND enable = 1
-                ORDER BY id DESC
+                ORDER BY viewer DESC
             `)
         ]);
 
