@@ -4579,11 +4579,23 @@ async function createRotation() {
     }
 
     // Création de la rotation
-    const startDate = new Date();
-    startDate.setHours(0, 0, 0, 0);
+    const lastRotation = await query(`
+  SELECT end_date
+  FROM zxd_card_rotation
+  ORDER BY id DESC
+  LIMIT 1
+`);
+
+    let startDate;
+
+    if (lastRotation.length > 0) {
+        startDate = new Date(lastRotation[0].end_date);
+    } else {
+        startDate = new Date(); // première rotation uniquement
+    }
 
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 7);
+    endDate.setUTCDate(endDate.getUTCDate() + 7);
 
     const result = await query(`
         INSERT INTO zxd_card_rotation
@@ -4692,7 +4704,7 @@ app.get(
     }
 );
 // Automatisations
-cron.schedule("6 2 * * 1", async () => {
+cron.schedule("21 2 * * 1", async () => {
 
     try {
 
