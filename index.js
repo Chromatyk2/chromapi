@@ -3968,7 +3968,9 @@ async function syncSets() {
             const { data: details } = await axios.get(
                 `https://api.tcgdex.net/v2/fr/sets/${set.id}`
             );
-
+            if (details.serie?.id === "tcgp") {
+                continue;
+            }
             db.query(
                 `
                 INSERT INTO zxd_card_set
