@@ -4704,7 +4704,7 @@ app.get(
     }
 );
 // Automatisations
-cron.schedule("21 2 * * 1", async () => {
+cron.schedule("1 0 * * 1", async () => {
 
     try {
 
