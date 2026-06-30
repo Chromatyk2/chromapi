@@ -1515,10 +1515,7 @@ app.post(
                 quantity: 1
             });
             // SUPER BONBON
-            quantity =
-                Math.floor(
-                    Math.random() * 3
-                ) + 1;
+            quantity = 1;
             await addItem(
                 user,
                 "Super Bonbon",
@@ -1656,32 +1653,19 @@ app.post(
             // BALLS
             const ballTier =
                 Math.random();
-            if (ballTier < 0.01) {
+            if (ballTier < 0.05) {
                 item =
                     "Master Ball";
                 slug =
                     "master";
-                quantity = 1;
-            } else if (
-                ballTier < 0.4
-            ) {
-                item =
-                    "Hyper Ball";
-                slug =
-                    "ultra";
-                quantity =
-                    Math.floor(
-                        Math.random() * 8
-                    ) + 1;
             } else {
-                item =
-                    "Super Ball";
+                item = "Safari Ball";
                 slug =
-                    "great";
+                    "safari";
                 quantity =
                     Math.floor(
-                        Math.random() * 8
-                    ) + 1;
+                        Math.random() * 6
+                    ) + 5;
             }
             await addItem(
                 user,
@@ -1760,21 +1744,18 @@ app.post(
                 Math.floor(
                     Math.random() * 5
                 ) + 1;
-            if (
-                Math.random() < 0.1
-            ) {
-                await addItem(
-                    user,
+
+            await addItem(
+                user,
+                "Booster",
+                "booster",
+                quantity
+            );
+            rewards.push({
+                item:
                     "Booster",
-                    "booster",
-                    quantity
-                );
-                rewards.push({
-                    item:
-                        "Booster",
-                    quantity
-                });
-            }
+                quantity
+            });
             // MEGA BONBON
             if (
                 Math.random() <
