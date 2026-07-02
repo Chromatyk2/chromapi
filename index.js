@@ -4716,11 +4716,11 @@ cron.schedule(
                 SELECT
                     p.id,
                     p.skin AS current_skin,
-                    s.skin AS owned_skin
+                    s.skin_id
                 FROM zxd_profil p
                 INNER JOIN zxd_skin s
                     ON s.user = p.id
-                WHERE p.randomSkin = 1
+                WHERE p.random_skin = 1
                 ORDER BY p.id
             `);
 
@@ -4738,7 +4738,7 @@ cron.schedule(
                 users
                     .get(row.id)
                     .skins.push(
-                        row.owned_skin
+                        row.skin_id
                     );
             }
 
@@ -4748,6 +4748,12 @@ cron.schedule(
                 userId,
                 data
             ] of users) {
+                if (
+                    data.skins.length === 0
+                ) {
+                    continue;
+                }
+
                 const availableSkins =
                     data.skins.filter(
                         skin =>
@@ -4788,7 +4794,7 @@ cron.schedule(
             );
 
             console.log(
-                `[SKINS] ${updates.length} skins mis à jour.`
+                `[SKINS] ${updates.length} skins aléatoires mis à jour.`
             );
         } catch (err) {
             console.error(
