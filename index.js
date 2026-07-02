@@ -2384,7 +2384,7 @@ app.post(
                     ball: 0.10,
                     great: 0.50,
                     ultra: 1.00,
-                    safari:0.40
+                    safari:0.30
                 },
                 2: {
                     ball: 0.10,
@@ -2529,7 +2529,7 @@ app.post(
             }
             const flee =
                 Math.random() <
-                0.01;
+                0.0000001;
             if (flee) {
                 await incrementStat(
                     user,
