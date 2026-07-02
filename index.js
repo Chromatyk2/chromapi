@@ -665,6 +665,27 @@ app.post(
 
     }
 );
+app.post(
+    "/api/changeRandomSkin",
+    authMiddleware,
+    async (req, res) => {
+        const { random } = req.body;
+
+        await query(
+            `
+            UPDATE zxd_profil
+            SET randomSkin = ?
+            WHERE id = ?
+            `,
+            [
+                random ? 1 : 0,
+                req.session.user.id
+            ]
+        );
+
+        res.sendStatus(200);
+    }
+);
 /* Add Skin */
 app.post(
     "/api/addSkin",
@@ -4687,6 +4708,100 @@ app.get(
     }
 );
 // Automatisations
+cron.schedule(
+    "0 0 * * *",
+    async () => {
+        try {
+            const rows = await query(`
+                SELECT
+                    p.id,
+                    p.skin AS current_skin,
+                    s.skin AS owned_skin
+                FROM zxd_profil p
+                INNER JOIN zxd_skin s
+                    ON s.user = p.id
+                WHERE p.randomSkin = 1
+                ORDER BY p.id
+            `);
+
+            const users = new Map();
+
+            for (const row of rows) {
+                if (!users.has(row.id)) {
+                    users.set(row.id, {
+                        currentSkin:
+                            row.current_skin,
+                        skins: []
+                    });
+                }
+
+                users
+                    .get(row.id)
+                    .skins.push(
+                        row.owned_skin
+                    );
+            }
+
+            const updates = [];
+
+            for (const [
+                userId,
+                data
+            ] of users) {
+                const availableSkins =
+                    data.skins.filter(
+                        skin =>
+                            skin !==
+                            data.currentSkin
+                    );
+
+                const pool =
+                    availableSkins.length > 0
+                        ? availableSkins
+                        : data.skins;
+
+                const randomSkin =
+                    pool[
+                    Math.floor(
+                        Math.random() *
+                        pool.length
+                    )
+                    ];
+
+                updates.push(
+                    query(
+                        `
+                        UPDATE zxd_profil
+                        SET skin = ?
+                        WHERE id = ?
+                        `,
+                        [
+                            randomSkin,
+                            userId
+                        ]
+                    )
+                );
+            }
+
+            await Promise.all(
+                updates
+            );
+
+            console.log(
+                `[SKINS] ${updates.length} skins mis à jour.`
+            );
+        } catch (err) {
+            console.error(
+                "[SKINS]",
+                err
+            );
+        }
+    },
+    {
+        timezone:
+            "Europe/Paris"
+    }
+);
 cron.schedule("1 0 * * 1", async () => {
 
     try {
