@@ -4711,7 +4711,7 @@ app.get(
 );
 // Automatisations
 cron.schedule(
-    "0 0 * * *",
+    "0 1 * * *",
     async () => {
         try {
             const rows = await query(`
@@ -4722,7 +4722,7 @@ cron.schedule(
                 FROM zxd_profil p
                 INNER JOIN zxd_skin s
                     ON s.user = p.id
-                WHERE p.random_skin = 1
+                WHERE p.randomSkin = 1
                 ORDER BY p.id
             `);
 
