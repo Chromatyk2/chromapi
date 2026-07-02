@@ -670,6 +670,7 @@ app.post(
     authMiddleware,
     async (req, res) => {
         const { random } = req.body;
+        const user = req.user.id;
 
         await query(
             `
@@ -679,7 +680,7 @@ app.post(
             `,
             [
                 random ? 1 : 0,
-                req.session.user.id
+                user
             ]
         );
 
