@@ -676,7 +676,7 @@ app.post(
             `
             UPDATE zxd_profil
             SET randomSkin = ?
-            WHERE id = ?
+            WHERE user = ?
             `,
             [
                 random ? 1 : 0,
