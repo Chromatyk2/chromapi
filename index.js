@@ -370,6 +370,7 @@ app.get(
                         p.skin,
                         p.compagnon,
                         p.title,
+                        p.randomSkin,
                         t.name AS title_name,
                         t.rarity AS title_rarity,
                         c.pokemon,
