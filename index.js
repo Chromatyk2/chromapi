@@ -1259,7 +1259,7 @@ app.post(
         let slug;
         let item;
         if (Math.random() < 0.05) {
-            item = 'Pack Safari +',
+            item = 'Super Pack Safari',
             slug = 'boxplus'
         } else {
             item = 'Pack Safari',
