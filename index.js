@@ -2407,19 +2407,19 @@ app.post(
                     ball: 0.10,
                     great: 0.50,
                     ultra: 1.00,
-                    safari:0.30
+                    safari:0.35
                 },
                 2: {
                     ball: 0.10,
                     great: 0.30,
                     ultra: 0.75,
-                    safari: 0.20
+                    safari: 0.25
                 },
                 3: {
                     ball: 0.05,
                     great: 0.10,
                     ultra: 0.45,
-                    safari: 0.10
+                    safari: 0.15
                 },
                 4: {
                     ball: 0.01,
