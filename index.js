@@ -1538,18 +1538,23 @@ app.post(
                 quantity: 1
             });
             // SUPER BONBON
-            quantity = 1;
-            await addItem(
-                user,
-                "Super Bonbon",
-                "rarecandy",
-                quantity
-            );
-            rewards.push({
-                item:
+            if (
+                Math.random() <
+                0.3
+            ) {
+                quantity = 1;
+                await addItem(
+                    user,
                     "Super Bonbon",
-                quantity
-            });
+                    "rarecandy",
+                    quantity
+                );
+                rewards.push({
+                    item:
+                        "Super Bonbon",
+                    quantity
+                });
+            }
             // BOOSTER
             if (
                 Math.random() < 0.01
@@ -3262,7 +3267,7 @@ app.post(
                 4: 5
             };
 
-            const XP_RATE = 3.5;
+            const XP_RATE = 7;
             const xpGainByTier = {
                 1: 18,
                 2: 37,
