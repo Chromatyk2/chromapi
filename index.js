@@ -4716,7 +4716,7 @@ app.get(
 );
 // Automatisations
 cron.schedule(
-    "32 0 * * *",
+    "0 0 * * *",
     async () => {
         try {
             const rows = await query(`
