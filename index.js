@@ -4891,7 +4891,641 @@ setInterval(
     updateTwitchCache,
     30000
 );
+// =====================================================
+// YOUTUBE
+// =====================================================
 
+function extractYoutubeId(url) {
+
+    try {
+
+        const parsed = new URL(url);
+        const hostname = parsed.hostname.toLowerCase();
+
+        // https://youtu.be/XXXXXXXXXXX
+        if (
+            hostname === 'youtu.be' ||
+            hostname === 'www.youtu.be'
+        ) {
+            return parsed.pathname.substring(1) || null;
+        }
+
+        // https://youtube.com/watch?v=XXXXXXXXXXX
+        // https://music.youtube.com/watch?v=XXXXXXXXXXX
+        if (
+            hostname === 'youtube.com' ||
+            hostname === 'www.youtube.com' ||
+            hostname === 'music.youtube.com'
+        ) {
+            return parsed.searchParams.get('v');
+        }
+
+        return null;
+
+    } catch (error) {
+
+        return null;
+
+    }
+
+}
+
+
+function isValidYoutubeId(videoId) {
+
+    return /^[a-zA-Z0-9_-]{11}$/.test(videoId);
+
+}
+
+
+// =====================================================
+// SÉCURITÉ
+// =====================================================
+
+function checkMusicSecret(req, res, next) {
+
+    const secret = req.headers['x-music-secret'];
+
+    if (!secret) {
+
+        return res.status(401).json({
+            success: false,
+            error: 'Missing authentication'
+        });
+
+    }
+
+    if (secret !== process.env.MUSIC_API_SECRET) {
+
+        return res.status(401).json({
+            success: false,
+            error: 'Invalid authentication'
+        });
+
+    }
+
+    next();
+
+}
+
+
+// =====================================================
+// AJOUTER UNE MUSIQUE
+// Twitchat -> Node -> MySQL
+// =====================================================
+
+app.post(
+    '/api/music/add',
+    checkMusicSecret,
+    function (req, res) {
+
+        const user = req.body.user;
+        const url = req.body.url;
+
+        if (!user) {
+
+            return res.status(400).json({
+                success: false,
+                error: 'Utilisateur manquant'
+            });
+
+        }
+
+        if (!url) {
+
+            return res.status(400).json({
+                success: false,
+                error: 'URL manquante'
+            });
+
+        }
+
+        const videoId = extractYoutubeId(url);
+
+        if (
+            !videoId ||
+            !isValidYoutubeId(videoId)
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                error: 'URL YouTube invalide'
+            });
+
+        }
+
+
+        // Vérifier si la musique existe déjà
+        connection.query(
+            `
+            SELECT id
+            FROM zxd_music_queue
+            WHERE video_id = ?
+            AND status IN (
+                'pending',
+                'processing',
+                'queued'
+            )
+            LIMIT 1
+            `,
+            [videoId],
+            function (error, results) {
+
+                if (error) {
+
+                    console.error(
+                        '[MUSIC DUPLICATE]',
+                        error
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        error: 'Erreur MySQL'
+                    });
+
+                }
+
+
+                // Déjà dans la queue
+                if (results.length > 0) {
+
+                    return res.status(409).json({
+                        success: false,
+                        error: 'Cette musique est déjà dans la file'
+                    });
+
+                }
+
+
+                // Ajouter à la queue
+                connection.query(
+                    `
+                    INSERT INTO zxd_music_queue
+                    (
+                        twitch_user,
+                        video_id,
+                        video_url
+                    )
+                    VALUES (?, ?, ?)
+                    `,
+                    [
+                        user,
+                        videoId,
+                        url
+                    ],
+                    function (error, result) {
+
+                        if (error) {
+
+                            console.error(
+                                '[MUSIC INSERT]',
+                                error
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                error: 'Erreur MySQL'
+                            });
+
+                        }
+
+
+                        return res.json({
+                            success: true,
+                            id: result.insertId,
+                            videoId: videoId
+                        });
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
+
+
+// =====================================================
+// RÉCUPÉRER LA PROCHAINE MUSIQUE
+// Extension Chrome -> Node
+// =====================================================
+
+app.get(
+    '/api/music/pending',
+    checkMusicSecret,
+    function (req, res) {
+
+        connection.query(
+            `
+            SELECT
+                id,
+                twitch_user,
+                video_id,
+                video_url,
+                title,
+                status,
+                created_at
+            FROM zxd_music_queue
+            WHERE status = 'pending'
+            ORDER BY id ASC
+            LIMIT 1
+            `,
+            function (error, results) {
+
+                if (error) {
+
+                    console.error(
+                        '[MUSIC PENDING]',
+                        error
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        error: 'Erreur MySQL'
+                    });
+
+                }
+
+
+                if (results.length === 0) {
+
+                    return res.json({
+                        success: true,
+                        song: null
+                    });
+
+                }
+
+
+                return res.json({
+                    success: true,
+                    song: results[0]
+                });
+
+            }
+        );
+
+    }
+);
+
+
+// =====================================================
+// RÉSERVER UNE MUSIQUE
+// =====================================================
+
+app.post(
+    '/api/music/claim/:id',
+    checkMusicSecret,
+    function (req, res) {
+
+        const id = Number(req.params.id);
+
+        if (!Number.isInteger(id)) {
+
+            return res.status(400).json({
+                success: false,
+                error: 'ID invalide'
+            });
+
+        }
+
+
+        connection.query(
+            `
+            UPDATE zxd_music_queue
+            SET status = 'processing'
+            WHERE id = ?
+            AND status = 'pending'
+            `,
+            [id],
+            function (error, result) {
+
+                if (error) {
+
+                    console.error(
+                        '[MUSIC CLAIM]',
+                        error
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        error: 'Erreur MySQL'
+                    });
+
+                }
+
+
+                if (result.affectedRows === 0) {
+
+                    return res.status(409).json({
+                        success: false,
+                        error: 'Musique déjà récupérée'
+                    });
+
+                }
+
+
+                return res.json({
+                    success: true
+                });
+
+            }
+        );
+
+    }
+);
+
+
+// =====================================================
+// MUSIQUE AJOUTÉE À YOUTUBE MUSIC
+// =====================================================
+
+app.post(
+    '/api/music/complete/:id',
+    checkMusicSecret,
+    function (req, res) {
+
+        const id = Number(req.params.id);
+
+        if (!Number.isInteger(id)) {
+
+            return res.status(400).json({
+                success: false,
+                error: 'ID invalide'
+            });
+
+        }
+
+
+        connection.query(
+            `
+            UPDATE zxd_music_queue
+            SET
+                status = 'queued',
+                processed_at = NOW()
+            WHERE id = ?
+            AND status = 'processing'
+            `,
+            [id],
+            function (error, result) {
+
+                if (error) {
+
+                    console.error(
+                        '[MUSIC COMPLETE]',
+                        error
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        error: 'Erreur MySQL'
+                    });
+
+                }
+
+
+                if (result.affectedRows === 0) {
+
+                    return res.status(404).json({
+                        success: false,
+                        error: 'Musique introuvable'
+                    });
+
+                }
+
+
+                return res.json({
+                    success: true
+                });
+
+            }
+        );
+
+    }
+);
+
+
+// =====================================================
+// ERREUR AJOUT YOUTUBE MUSIC
+// =====================================================
+
+app.post(
+    '/api/music/error/:id',
+    checkMusicSecret,
+    function (req, res) {
+
+        const id = Number(req.params.id);
+
+        const errorMessage =
+            req.body.error || 'Erreur inconnue';
+
+
+        connection.query(
+            `
+            UPDATE zxd_music_queue
+            SET
+                status = 'error',
+                error_message = ?
+            WHERE id = ?
+            `,
+            [
+                errorMessage,
+                id
+            ],
+            function (error) {
+
+                if (error) {
+
+                    console.error(
+                        '[MUSIC ERROR]',
+                        error
+                    );
+
+                    return res.status(500).json({
+                        success: false
+                    });
+
+                }
+
+
+                return res.json({
+                    success: true
+                });
+
+            }
+        );
+
+    }
+);
+
+
+// =====================================================
+// AFFICHER LA QUEUE
+// =====================================================
+
+app.get(
+    '/api/music/queue',
+    checkMusicSecret,
+    function (req, res) {
+
+        connection.query(
+            `
+            SELECT
+                id,
+                twitch_user,
+                video_id,
+                video_url,
+                title,
+                status,
+                created_at
+            FROM zxd_music_queue
+            WHERE status IN (
+                'pending',
+                'processing',
+                'queued'
+            )
+            ORDER BY id ASC
+            `,
+            function (error, results) {
+
+                if (error) {
+
+                    console.error(
+                        '[MUSIC QUEUE]',
+                        error
+                    );
+
+                    return res.status(500).json({
+                        success: false
+                    });
+
+                }
+
+
+                return res.json({
+                    success: true,
+                    queue: results
+                });
+
+            }
+        );
+
+    }
+);
+
+
+// =====================================================
+// SUPPRIMER UNE MUSIQUE
+// =====================================================
+
+app.delete(
+    '/api/music/:id',
+    checkMusicSecret,
+    function (req, res) {
+
+        const id = Number(req.params.id);
+
+        if (!Number.isInteger(id)) {
+
+            return res.status(400).json({
+                success: false,
+                error: 'ID invalide'
+            });
+
+        }
+
+
+        connection.query(
+            `
+            DELETE FROM zxd_music_queue
+            WHERE id = ?
+            `,
+            [id],
+            function (error, result) {
+
+                if (error) {
+
+                    console.error(
+                        '[MUSIC DELETE]',
+                        error
+                    );
+
+                    return res.status(500).json({
+                        success: false
+                    });
+
+                }
+
+
+                return res.json({
+                    success: true,
+                    deleted: result.affectedRows
+                });
+
+            }
+        );
+
+    }
+);
+
+
+// =====================================================
+// VIDER LA QUEUE
+// =====================================================
+
+app.delete(
+    '/api/music/queue',
+    checkMusicSecret,
+    function (req, res) {
+
+        connection.query(
+            `
+            DELETE FROM zxd_music_queue
+            WHERE status IN (
+                'pending',
+                'processing'
+            )
+            `,
+            function (error) {
+
+                if (error) {
+
+                    console.error(
+                        '[MUSIC CLEAR]',
+                        error
+                    );
+
+                    return res.status(500).json({
+                        success: false
+                    });
+
+                }
+
+
+                return res.json({
+                    success: true
+                });
+
+            }
+        );
+
+    }
+);
+
+
+// =====================================================
+// TEST
+// =====================================================
+
+app.get('/api/music/test', function (req, res) {
+
+    res.json({
+        success: true,
+        message: 'Music API OK'
+    });
+
+});
 httpServer.listen(
     process.env.PORT || PORT,
     async () => {
