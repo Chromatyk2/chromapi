@@ -3463,7 +3463,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         // Vérification booster
 
-        const [inventory] = await connection.query(`
+        const [inventory] = await db.query(`
             SELECT quantity
             FROM zxd_inventaire
             WHERE user = ?
@@ -3487,7 +3487,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         // Consommation
 
-        await connection.query(`
+        await db.query(`
             UPDATE zxd_inventaire
             SET quantity = quantity - 1
             WHERE user = ?
@@ -3496,7 +3496,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         // Génération cartes
 
-        const [commonCards] = await connection.query(`
+        const [commonCards] = await db.query(`
             SELECT c.*, r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
@@ -3507,7 +3507,7 @@ app.post("/api/card/openBooster", async (req, res) => {
             LIMIT 2
         `, [setTcgdexId]);
 
-        const [uncommonCards] = await connection.query(`
+        const [uncommonCards] = await db.query(`
             SELECT c.*, r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
@@ -3518,7 +3518,7 @@ app.post("/api/card/openBooster", async (req, res) => {
             LIMIT 2
         `, [setTcgdexId]);
 
-        const [rarityPool] = await connection.query(`
+        const [rarityPool] = await db.query(`
             SELECT
                 r.name AS rarity,
                 r.weight
@@ -3533,7 +3533,7 @@ app.post("/api/card/openBooster", async (req, res) => {
         const selectedRarity =
             weightedRandom(rarityPool);
 
-        const [premiumCard] = await connection.query(`
+        const [premiumCard] = await db.query(`
             SELECT c.*, r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
@@ -3557,7 +3557,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         for (const card of openedCards) {
 
-            const [existing] = await connection.query(`
+            const [existing] = await db.query(`
                 SELECT id
                 FROM zxd_card_collection
                 WHERE profil_id = ?
@@ -3570,7 +3570,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
             card.isNew = existing.length === 0;
 
-            await connection.query(`
+            await db.query(`
                 INSERT INTO zxd_card_collection
                 (
                     profil_id,
@@ -3785,7 +3785,7 @@ app.get("/api/drawBanger", async (req, res) => {
         await connection.beginTransaction();
 
         // Termine l'ancien jeu actif
-        await connection.query(`
+        await db.query(`
             UPDATE zxd_banger
             SET active = 0,
                 finish = 1
@@ -3793,7 +3793,7 @@ app.get("/api/drawBanger", async (req, res) => {
         `);
 
         // Récupère un nouveau jeu aléatoire
-        const [rows] = await connection.query(`
+        const [rows] = await db.query(`
             SELECT *
             FROM zxd_banger
             WHERE finish = 0
@@ -3812,7 +3812,7 @@ app.get("/api/drawBanger", async (req, res) => {
         const banger = rows[0];
 
         // Active le nouveau jeu
-        await connection.query(`
+        await db.query(`
             UPDATE zxd_banger
             SET active = 1
             WHERE id = ?
@@ -5016,7 +5016,7 @@ app.post(
 
 
         // Vérifier si la musique existe déjà
-        connection.query(
+        db.query(
             `
             SELECT id
             FROM zxd_music_queue
@@ -5058,7 +5058,7 @@ app.post(
 
 
                 // Ajouter à la queue
-                connection.query(
+                db.query(
                     `
                     INSERT INTO zxd_music_queue
                     (
@@ -5116,7 +5116,7 @@ app.get(
     checkMusicSecret,
     function (req, res) {
 
-        connection.query(
+        db.query(
             `
             SELECT
                 id,
@@ -5191,7 +5191,7 @@ app.post(
         }
 
 
-        connection.query(
+        db.query(
             `
             UPDATE zxd_music_queue
             SET status = 'processing'
@@ -5258,7 +5258,7 @@ app.post(
         }
 
 
-        connection.query(
+        db.query(
             `
             UPDATE zxd_music_queue
             SET
@@ -5321,7 +5321,7 @@ app.post(
             req.body.error || 'Erreur inconnue';
 
 
-        connection.query(
+        db.query(
             `
             UPDATE zxd_music_queue
             SET
@@ -5369,7 +5369,7 @@ app.get(
     checkMusicSecret,
     function (req, res) {
 
-        connection.query(
+        db.query(
             `
             SELECT
                 id,
@@ -5436,7 +5436,7 @@ app.delete(
         }
 
 
-        connection.query(
+        db.query(
             `
             DELETE FROM zxd_music_queue
             WHERE id = ?
@@ -5479,7 +5479,7 @@ app.delete(
     checkMusicSecret,
     function (req, res) {
 
-        connection.query(
+        db.query(
             `
             DELETE FROM zxd_music_queue
             WHERE status IN (
