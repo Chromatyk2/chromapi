@@ -164,7 +164,7 @@ app.post("/api/auth/twitch", async (req, res) => {
         const user =
             userResponse.data.data[0];
         const profile =
-            await query(                `
+            await query(`
                 SELECT theme
                 FROM zxd_profil
                 WHERE user = ?
@@ -547,7 +547,7 @@ app.get(
                 expeditions,
                 pokedexNormal,
                 pokedexShiny,
-    titles,
+                titles,
                 pokedexShadow,
                 globalProgress: {
                     owned,
@@ -578,7 +578,7 @@ app.post(
     "/api/changeSkin",
     authMiddleware,
     async (req, res) => {
-        const user =req.user.id;
+        const user = req.user.id;
         const skin = req.body.skin;
         const owned =
             await query(
@@ -885,7 +885,7 @@ app.post(
             const number =
                 req.body.number;
             const companion =
-                await query(                    `
+                await query(`
                     SELECT
                         number,
                         tier,
@@ -1154,7 +1154,7 @@ app.post(
             );
             await incrementStat(
                 user,
-                "expedition_"+form
+                "expedition_" + form
             );
             await incrementStat(
                 user,
@@ -1283,10 +1283,10 @@ app.post(
         let item;
         if (Math.random() < 0.05) {
             item = 'Super Pack Safari',
-            slug = 'boxplus'
+                slug = 'boxplus'
         } else {
             item = 'Pack Safari',
-            slug = "box"
+                slug = "box"
         }
         const fragments =
             await query(
@@ -1311,7 +1311,7 @@ app.post(
         }
         await incrementStat(
             user,
-            "created_box_"+slug
+            "created_box_" + slug
         );
         await checkAchievements(
             user
@@ -1346,7 +1346,7 @@ app.post(
                 quantity =
                 quantity + 1
             `,
-            [user,item,slug]
+            [user, item, slug]
         );
         res.send({
             success: true
@@ -1480,7 +1480,7 @@ app.post(
             //            Math.random() * 8
             //        ) + 1;
             //} quantity = 1;
-            
+
             await addItem(
                 user,
                 item,
@@ -1719,7 +1719,7 @@ app.post(
             } else if (
                 honeyTier <
                 (1 / 300) +
-                (1 / 150) 
+                (1 / 150)
             ) {
                 item =
                     "Miel Chromatique";
@@ -2000,7 +2000,7 @@ app.post(
             const honey =
                 req.body.honey;
             const inventory =
-                await query(                    `
+                await query(`
                     SELECT quantity
                     FROM zxd_inventaire
                     WHERE user = ?
@@ -2028,7 +2028,7 @@ app.post(
             );
             await incrementStat(
                 user,
-                "honey_"+honey
+                "honey_" + honey
             );
             await checkAchievements(
                 user
@@ -2117,7 +2117,7 @@ app.post(
             }
             await incrementStat(
                 user,
-                "safari_"+tier
+                "safari_" + tier
             );
             await checkAchievements(
                 user
@@ -2386,7 +2386,7 @@ app.post(
                 req.body.ball;
             const safari =
                 (
-                    await query(                        `
+                    await query(`
                         SELECT
                             s.*,
                             p.gen,
@@ -2412,7 +2412,7 @@ app.post(
                     ball: 0.10,
                     great: 0.50,
                     ultra: 1.00,
-                    safari:0.35
+                    safari: 0.35
                 },
                 2: {
                     ball: 0.10,
@@ -2463,7 +2463,7 @@ app.post(
             );
             await incrementStat(
                 user,
-                "ball_"+ball
+                "ball_" + ball
             );
             await checkAchievements(
                 user
@@ -2830,7 +2830,7 @@ app.post(
             }
             await incrementStat(
                 user,
-                "candy_"+candy
+                "candy_" + candy
             );
             await checkAchievements(
                 user
@@ -3205,7 +3205,7 @@ app.post(
                     });
                 }
 
-            }            
+            }
 
             // NORMAL
             else {
@@ -3319,7 +3319,7 @@ app.post(
             );
             await incrementStat(
                 user,
-                "fight_"+enemy.tier
+                "fight_" + enemy.tier
             );
             await checkAchievements(
                 user
@@ -3401,8 +3401,7 @@ app.get("/api/card/init/:profilId", async (req, res) => {
         ownedSets.forEach(set => { set.percent = Number((set.owned / set.card_count * 100).toFixed(1)); set.cards = typeof set.cards === "string" ? JSON.parse(set.cards) : set.cards; });
         res.send({ rotationSets, collection, progress, boosterCurrency, globalProgress, ownedSets });
     }
-    catch (err)
-    {
+    catch (err) {
         console.error(err); res.status(500).send(err);
     }
 });
@@ -3463,7 +3462,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         // Vérification booster
 
-        const [inventory] = await db.query(`
+        const [inventory] = await connection.query(`
             SELECT quantity
             FROM zxd_inventaire
             WHERE user = ?
@@ -3487,7 +3486,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         // Consommation
 
-        await db.query(`
+        await connection.query(`
             UPDATE zxd_inventaire
             SET quantity = quantity - 1
             WHERE user = ?
@@ -3496,7 +3495,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         // Génération cartes
 
-        const [commonCards] = await db.query(`
+        const [commonCards] = await connection.query(`
             SELECT c.*, r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
@@ -3507,7 +3506,7 @@ app.post("/api/card/openBooster", async (req, res) => {
             LIMIT 2
         `, [setTcgdexId]);
 
-        const [uncommonCards] = await db.query(`
+        const [uncommonCards] = await connection.query(`
             SELECT c.*, r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
@@ -3518,7 +3517,7 @@ app.post("/api/card/openBooster", async (req, res) => {
             LIMIT 2
         `, [setTcgdexId]);
 
-        const [rarityPool] = await db.query(`
+        const [rarityPool] = await connection.query(`
             SELECT
                 r.name AS rarity,
                 r.weight
@@ -3533,7 +3532,7 @@ app.post("/api/card/openBooster", async (req, res) => {
         const selectedRarity =
             weightedRandom(rarityPool);
 
-        const [premiumCard] = await db.query(`
+        const [premiumCard] = await connection.query(`
             SELECT c.*, r.tier
             FROM zxd_card c
             INNER JOIN zxd_card_rarity r
@@ -3557,7 +3556,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
         for (const card of openedCards) {
 
-            const [existing] = await db.query(`
+            const [existing] = await connection.query(`
                 SELECT id
                 FROM zxd_card_collection
                 WHERE profil_id = ?
@@ -3570,7 +3569,7 @@ app.post("/api/card/openBooster", async (req, res) => {
 
             card.isNew = existing.length === 0;
 
-            await db.query(`
+            await connection.query(`
                 INSERT INTO zxd_card_collection
                 (
                     profil_id,
@@ -3785,7 +3784,7 @@ app.get("/api/drawBanger", async (req, res) => {
         await connection.beginTransaction();
 
         // Termine l'ancien jeu actif
-        await db.query(`
+        await connection.query(`
             UPDATE zxd_banger
             SET active = 0,
                 finish = 1
@@ -3793,7 +3792,7 @@ app.get("/api/drawBanger", async (req, res) => {
         `);
 
         // Récupère un nouveau jeu aléatoire
-        const [rows] = await db.query(`
+        const [rows] = await connection.query(`
             SELECT *
             FROM zxd_banger
             WHERE finish = 0
@@ -3812,7 +3811,7 @@ app.get("/api/drawBanger", async (req, res) => {
         const banger = rows[0];
 
         // Active le nouveau jeu
-        await db.query(`
+        await connection.query(`
             UPDATE zxd_banger
             SET active = 1
             WHERE id = ?
@@ -4861,8 +4860,8 @@ cron.schedule("0 0 1 * *", () => {
         }
     );
 },
-{
-    timezone: "Europe/Paris",
+    {
+        timezone: "Europe/Paris",
     }
 );
 
@@ -4881,9 +4880,9 @@ cron.schedule("0 0,12 * * *", () => {
         }
     );
 },
-{
-    timezone: "Europe/Paris",
-}
+    {
+        timezone: "Europe/Paris",
+    }
 );
 updateTwitchCache();
 
@@ -4891,641 +4890,7 @@ setInterval(
     updateTwitchCache,
     30000
 );
-// =====================================================
-// YOUTUBE
-// =====================================================
 
-function extractYoutubeId(url) {
-
-    try {
-
-        const parsed = new URL(url);
-        const hostname = parsed.hostname.toLowerCase();
-
-        // https://youtu.be/XXXXXXXXXXX
-        if (
-            hostname === 'youtu.be' ||
-            hostname === 'www.youtu.be'
-        ) {
-            return parsed.pathname.substring(1) || null;
-        }
-
-        // https://youtube.com/watch?v=XXXXXXXXXXX
-        // https://music.youtube.com/watch?v=XXXXXXXXXXX
-        if (
-            hostname === 'youtube.com' ||
-            hostname === 'www.youtube.com' ||
-            hostname === 'music.youtube.com'
-        ) {
-            return parsed.searchParams.get('v');
-        }
-
-        return null;
-
-    } catch (error) {
-
-        return null;
-
-    }
-
-}
-
-
-function isValidYoutubeId(videoId) {
-
-    return /^[a-zA-Z0-9_-]{11}$/.test(videoId);
-
-}
-
-
-// =====================================================
-// SÉCURITÉ
-// =====================================================
-
-function checkMusicSecret(req, res, next) {
-
-    const secret = req.headers['x-music-secret'];
-
-    if (!secret) {
-
-        return res.status(401).json({
-            success: false,
-            error: 'Missing authentication'
-        });
-
-    }
-
-    if (secret !== process.env.MUSIC_API_SECRET) {
-
-        return res.status(401).json({
-            success: false,
-            error: 'Invalid authentication'
-        });
-
-    }
-
-    next();
-
-}
-
-
-// =====================================================
-// AJOUTER UNE MUSIQUE
-// Twitchat -> Node -> MySQL
-// =====================================================
-
-app.post(
-    '/api/music/add',
-    checkMusicSecret,
-    function (req, res) {
-
-        const user = req.body.user;
-        const url = req.body.url;
-
-        if (!user) {
-
-            return res.status(400).json({
-                success: false,
-                error: 'Utilisateur manquant'
-            });
-
-        }
-
-        if (!url) {
-
-            return res.status(400).json({
-                success: false,
-                error: 'URL manquante'
-            });
-
-        }
-
-        const videoId = extractYoutubeId(url);
-
-        if (
-            !videoId ||
-            !isValidYoutubeId(videoId)
-        ) {
-
-            return res.status(400).json({
-                success: false,
-                error: 'URL YouTube invalide'
-            });
-
-        }
-
-
-        // Vérifier si la musique existe déjà
-        db.query(
-            `
-            SELECT id
-            FROM zxd_music_queue
-            WHERE video_id = ?
-            AND status IN (
-                'pending',
-                'processing',
-                'queued'
-            )
-            LIMIT 1
-            `,
-            [videoId],
-            function (error, results) {
-
-                if (error) {
-
-                    console.error(
-                        '[MUSIC DUPLICATE]',
-                        error
-                    );
-
-                    return res.status(500).json({
-                        success: false,
-                        error: 'Erreur MySQL'
-                    });
-
-                }
-
-
-                // Déjà dans la queue
-                if (results.length > 0) {
-
-                    return res.status(409).json({
-                        success: false,
-                        error: 'Cette musique est déjà dans la file'
-                    });
-
-                }
-
-
-                // Ajouter à la queue
-                db.query(
-                    `
-                    INSERT INTO zxd_music_queue
-                    (
-                        twitch_user,
-                        video_id,
-                        video_url
-                    )
-                    VALUES (?, ?, ?)
-                    `,
-                    [
-                        user,
-                        videoId,
-                        url
-                    ],
-                    function (error, result) {
-
-                        if (error) {
-
-                            console.error(
-                                '[MUSIC INSERT]',
-                                error
-                            );
-
-                            return res.status(500).json({
-                                success: false,
-                                error: 'Erreur MySQL'
-                            });
-
-                        }
-
-
-                        return res.json({
-                            success: true,
-                            id: result.insertId,
-                            videoId: videoId
-                        });
-
-                    }
-                );
-
-            }
-        );
-
-    }
-);
-
-
-// =====================================================
-// RÉCUPÉRER LA PROCHAINE MUSIQUE
-// Extension Chrome -> Node
-// =====================================================
-
-app.get(
-    '/api/music/pending',
-    checkMusicSecret,
-    function (req, res) {
-
-        db.query(
-            `
-            SELECT
-                id,
-                twitch_user,
-                video_id,
-                video_url,
-                title,
-                status,
-                created_at
-            FROM zxd_music_queue
-            WHERE status = 'pending'
-            ORDER BY id ASC
-            LIMIT 1
-            `,
-            function (error, results) {
-
-                if (error) {
-
-                    console.error(
-                        '[MUSIC PENDING]',
-                        error
-                    );
-
-                    return res.status(500).json({
-                        success: false,
-                        error: 'Erreur MySQL'
-                    });
-
-                }
-
-
-                if (results.length === 0) {
-
-                    return res.json({
-                        success: true,
-                        song: null
-                    });
-
-                }
-
-
-                return res.json({
-                    success: true,
-                    song: results[0]
-                });
-
-            }
-        );
-
-    }
-);
-
-
-// =====================================================
-// RÉSERVER UNE MUSIQUE
-// =====================================================
-
-app.post(
-    '/api/music/claim/:id',
-    checkMusicSecret,
-    function (req, res) {
-
-        const id = Number(req.params.id);
-
-        if (!Number.isInteger(id)) {
-
-            return res.status(400).json({
-                success: false,
-                error: 'ID invalide'
-            });
-
-        }
-
-
-        db.query(
-            `
-            UPDATE zxd_music_queue
-            SET status = 'processing'
-            WHERE id = ?
-            AND status = 'pending'
-            `,
-            [id],
-            function (error, result) {
-
-                if (error) {
-
-                    console.error(
-                        '[MUSIC CLAIM]',
-                        error
-                    );
-
-                    return res.status(500).json({
-                        success: false,
-                        error: 'Erreur MySQL'
-                    });
-
-                }
-
-
-                if (result.affectedRows === 0) {
-
-                    return res.status(409).json({
-                        success: false,
-                        error: 'Musique déjà récupérée'
-                    });
-
-                }
-
-
-                return res.json({
-                    success: true
-                });
-
-            }
-        );
-
-    }
-);
-
-
-// =====================================================
-// MUSIQUE AJOUTÉE À YOUTUBE MUSIC
-// =====================================================
-
-app.post(
-    '/api/music/complete/:id',
-    checkMusicSecret,
-    function (req, res) {
-
-        const id = Number(req.params.id);
-
-        if (!Number.isInteger(id)) {
-
-            return res.status(400).json({
-                success: false,
-                error: 'ID invalide'
-            });
-
-        }
-
-
-        db.query(
-            `
-            UPDATE zxd_music_queue
-            SET
-                status = 'queued',
-                processed_at = NOW()
-            WHERE id = ?
-            AND status = 'processing'
-            `,
-            [id],
-            function (error, result) {
-
-                if (error) {
-
-                    console.error(
-                        '[MUSIC COMPLETE]',
-                        error
-                    );
-
-                    return res.status(500).json({
-                        success: false,
-                        error: 'Erreur MySQL'
-                    });
-
-                }
-
-
-                if (result.affectedRows === 0) {
-
-                    return res.status(404).json({
-                        success: false,
-                        error: 'Musique introuvable'
-                    });
-
-                }
-
-
-                return res.json({
-                    success: true
-                });
-
-            }
-        );
-
-    }
-);
-
-
-// =====================================================
-// ERREUR AJOUT YOUTUBE MUSIC
-// =====================================================
-
-app.post(
-    '/api/music/error/:id',
-    checkMusicSecret,
-    function (req, res) {
-
-        const id = Number(req.params.id);
-
-        const errorMessage =
-            req.body.error || 'Erreur inconnue';
-
-
-        db.query(
-            `
-            UPDATE zxd_music_queue
-            SET
-                status = 'error',
-                error_message = ?
-            WHERE id = ?
-            `,
-            [
-                errorMessage,
-                id
-            ],
-            function (error) {
-
-                if (error) {
-
-                    console.error(
-                        '[MUSIC ERROR]',
-                        error
-                    );
-
-                    return res.status(500).json({
-                        success: false
-                    });
-
-                }
-
-
-                return res.json({
-                    success: true
-                });
-
-            }
-        );
-
-    }
-);
-
-
-// =====================================================
-// AFFICHER LA QUEUE
-// =====================================================
-
-app.get(
-    '/api/music/queue',
-    checkMusicSecret,
-    function (req, res) {
-
-        db.query(
-            `
-            SELECT
-                id,
-                twitch_user,
-                video_id,
-                video_url,
-                title,
-                status,
-                created_at
-            FROM zxd_music_queue
-            WHERE status IN (
-                'pending',
-                'processing',
-                'queued'
-            )
-            ORDER BY id ASC
-            `,
-            function (error, results) {
-
-                if (error) {
-
-                    console.error(
-                        '[MUSIC QUEUE]',
-                        error
-                    );
-
-                    return res.status(500).json({
-                        success: false
-                    });
-
-                }
-
-
-                return res.json({
-                    success: true,
-                    queue: results
-                });
-
-            }
-        );
-
-    }
-);
-
-
-// =====================================================
-// SUPPRIMER UNE MUSIQUE
-// =====================================================
-
-app.delete(
-    '/api/music/:id',
-    checkMusicSecret,
-    function (req, res) {
-
-        const id = Number(req.params.id);
-
-        if (!Number.isInteger(id)) {
-
-            return res.status(400).json({
-                success: false,
-                error: 'ID invalide'
-            });
-
-        }
-
-
-        db.query(
-            `
-            DELETE FROM zxd_music_queue
-            WHERE id = ?
-            `,
-            [id],
-            function (error, result) {
-
-                if (error) {
-
-                    console.error(
-                        '[MUSIC DELETE]',
-                        error
-                    );
-
-                    return res.status(500).json({
-                        success: false
-                    });
-
-                }
-
-
-                return res.json({
-                    success: true,
-                    deleted: result.affectedRows
-                });
-
-            }
-        );
-
-    }
-);
-
-
-// =====================================================
-// VIDER LA QUEUE
-// =====================================================
-
-app.delete(
-    '/api/music/queue',
-    checkMusicSecret,
-    function (req, res) {
-
-        db.query(
-            `
-            DELETE FROM zxd_music_queue
-            WHERE status IN (
-                'pending',
-                'processing'
-            )
-            `,
-            function (error) {
-
-                if (error) {
-
-                    console.error(
-                        '[MUSIC CLEAR]',
-                        error
-                    );
-
-                    return res.status(500).json({
-                        success: false
-                    });
-
-                }
-
-
-                return res.json({
-                    success: true
-                });
-
-            }
-        );
-
-    }
-);
-
-
-// =====================================================
-// TEST
-// =====================================================
-
-app.get('/api/music/test', function (req, res) {
-
-    res.json({
-        success: true,
-        message: 'Music API OK'
-    });
-
-});
 httpServer.listen(
     process.env.PORT || PORT,
     async () => {
