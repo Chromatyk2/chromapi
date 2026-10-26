@@ -3380,81 +3380,196 @@ app.get("/api/getLeaderBoard", (req, res, next) => {
 
 //Cartes
 app.post("/api/card/syncCurrentRotation", async (req, res) => {
-    const connection = await db.promise().getConnection();
-
     try {
-        // Vérification de la session
-        const user = req.session?.user;
-
-        if (!user || String(user.id) !== "80482655") {
+        // Réservé à l'administrateur
+        if (String(req.session?.user?.id) !== "80482655") {
             return res.status(403).json({
                 success: false,
                 message: "Accès refusé"
             });
         }
 
-        // Récupération des sets de la rotation actuelle
-        const [sets] = await connection.query(`
-            SELECT DISTINCT s.tcgdex_id, s.name
-            FROM zxd_card_set s
-            INNER JOIN zxd_card_rotation_set rs
-                ON rs.set_id = s.id
-            INNER JOIN zxd_card_rotation r
-                ON r.id = rs.rotation_id
-            WHERE NOW() BETWEEN r.start_date AND r.end_date
+        // Récupérer la rotation en cours
+        const rotations = await query(`
+            SELECT id
+            FROM zxd_card_rotation
+            WHERE UTC_TIMESTAMP() >= start_date
+              AND UTC_TIMESTAMP() < end_date
+            ORDER BY id DESC
+            LIMIT 1
         `);
 
-        if (sets.length === 0) {
-            return res.json({
+        if (!rotations.length) {
+            return res.status(404).json({
                 success: false,
-                message: "Aucun set trouvé dans la rotation actuelle"
+                message: "Aucune rotation en cours"
             });
         }
 
+        const rotationId = rotations[0].id;
         const results = [];
+        const usedSetIds = new Set();
 
-        // Synchronisation des sets
-        for (const set of sets) {
+        // Vérifier les sets déjà dans la rotation
+        const currentSets = await query(`
+            SELECT s.id, s.tcgdex_id, s.name
+            FROM zxd_card_rotation_set rs
+            JOIN zxd_card_set s ON s.id = rs.set_id
+            WHERE rs.rotation_id = ?
+        `, [rotationId]);
+
+        for (const set of currentSets) {
+            let valid = false;
+
             try {
+                // Synchroniser les cartes du set
                 await syncSetCards(set.tcgdex_id);
 
-                results.push({
-                    tcgdexId: set.tcgdex_id,
-                    name: set.name,
-                    success: true
-                });
+                // Vérifier que des images sont enregistrées
+                const cards = await query(`
+                    SELECT COUNT(*) AS total,
+                           SUM(
+                               CASE
+                                   WHEN image IS NOT NULL AND image != ''
+                                   THEN 1 ELSE 0
+                               END
+                           ) AS images
+                    FROM zxd_card
+                    WHERE set_tcgdex_id = ?
+                `, [set.tcgdex_id]);
+
+                valid =
+                    Number(cards[0]?.total || 0) > 0 &&
+                    Number(cards[0]?.images || 0) > 0;
+
             } catch (err) {
                 console.error(
-                    `Erreur de synchronisation du set ${set.tcgdex_id}:`,
-                    err
+                    `[TCG] Échec du set ${set.tcgdex_id}:`,
+                    err.message
                 );
+            }
+
+            if (valid) {
+                usedSetIds.add(Number(set.id));
 
                 results.push({
-                    tcgdexId: set.tcgdex_id,
-                    name: set.name,
-                    success: false,
-                    message: err.message
+                    set: set.tcgdex_id,
+                    status: "validé"
                 });
+
+                continue;
             }
+
+            // Set invalide : le désactiver
+            await query(`
+                UPDATE zxd_card_set
+                SET active = 0
+                WHERE id = ?
+            `, [set.id]);
+
+            // Chercher un remplacement parmi les sets actifs
+            let replacement = null;
+
+            while (true) {
+                const candidates = await query(`
+                    SELECT id, tcgdex_id, name
+                    FROM zxd_card_set
+                    WHERE active = 1
+                      AND id NOT IN (
+                          ${[...usedSetIds, ...currentSets.map(s => Number(s.id))]
+                        .concat(replacement ? [Number(replacement.id)] : [])
+                        .length
+                        ? [...new Set([
+                            ...usedSetIds,
+                            ...currentSets.map(s => Number(s.id)),
+                            ...(replacement ? [Number(replacement.id)] : [])
+                        ])].map(() => "?").join(",")
+                        : "0"}
+                      )
+                    ORDER BY RAND()
+                    LIMIT 1
+                `, [
+                    ...new Set([
+                        ...usedSetIds,
+                        ...currentSets.map(s => Number(s.id)),
+                        ...(replacement ? [Number(replacement.id)] : [])
+                    ])
+                ]);
+
+                if (!candidates.length) break;
+
+                const candidate = candidates[0];
+
+                try {
+                    await syncSetCards(candidate.tcgdex_id);
+
+                    const imageCheck = await query(`
+                        SELECT COUNT(*) AS images
+                        FROM zxd_card
+                        WHERE set_tcgdex_id = ?
+                          AND image IS NOT NULL
+                          AND image != ''
+                    `, [candidate.tcgdex_id]);
+
+                    if (Number(imageCheck[0]?.images || 0) > 0) {
+                        replacement = candidate;
+                        break;
+                    }
+                } catch (err) {
+                    console.error(
+                        `[TCG] Remplacement ${candidate.tcgdex_id} échoué:`,
+                        err.message
+                    );
+                }
+
+                // Le candidat ne fonctionne pas : le désactiver
+                await query(`
+                    UPDATE zxd_card_set
+                    SET active = 0
+                    WHERE id = ?
+                `, [candidate.id]);
+            }
+
+            if (!replacement) {
+                results.push({
+                    set: set.tcgdex_id,
+                    status: "désactivé",
+                    message: "Aucun remplacement valide disponible"
+                });
+
+                continue;
+            }
+
+            // Remplacer le set dans la rotation existante
+            await query(`
+                UPDATE zxd_card_rotation_set
+                SET set_id = ?
+                WHERE rotation_id = ?
+                  AND set_id = ?
+            `, [replacement.id, rotationId, set.id]);
+
+            usedSetIds.add(Number(replacement.id));
+
+            results.push({
+                set: set.tcgdex_id,
+                status: "remplacé",
+                replacement: replacement.tcgdex_id
+            });
         }
 
         return res.json({
-            success: results.every(result => result.success),
-            message: "Synchronisation terminée",
-            total: sets.length,
+            success: true,
+            message: "Vérification terminée",
             results
         });
 
     } catch (err) {
-        console.error("Erreur syncCurrentRotation :", err);
+        console.error("[TCG] Erreur Resync :", err);
 
         return res.status(500).json({
             success: false,
-            message: "Erreur lors de la synchronisation"
+            message: err.message
         });
-
-    } finally {
-        connection.release();
     }
 });
 app.get("/api/card/init/:profilId", async (req, res) => {
