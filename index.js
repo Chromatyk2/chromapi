@@ -4125,157 +4125,62 @@ async function incrementStat(
     );
 
 }
-```js
-async function syncSetCards(setTcgdexId) {
+app.post("/api/card/syncSetCards", async (req, res) => {
     try {
-        console.log(`[TCG] Début synchronisation: ${ setTcgdexId }`);
+        // Vérification de l'administrateur
+        const user = req.session?.user;
 
-        // 1. Récupérer les informations de l'extension en français
-        const { data: setData } = await axios.get(
-            `https://api.tcgdex.net/v2/fr/sets/${setTcgdexId}`
+        if (!user || String(user.id) !== "80482655") {
+            return res.status(403).json({
+                success: false,
+                message: "Accès refusé"
+            });
+        }
+
+        const { setTcgdexId } = req.body;
+
+        if (!setTcgdexId || typeof setTcgdexId !== "string") {
+            return res.status(400).json({
+                success: false,
+                message: "Identifiant de l'extension manquant"
+            });
+        }
+
+        // Vérifier que l'extension existe dans la base
+        const [sets] = await db.promise().query(
+            `SELECT tcgdex_id, name
+             FROM zxd_card_set
+             WHERE tcgdex_id = ?`,
+            [setTcgdexId]
         );
 
-if (!Array.isArray(setData.cards) || setData.cards.length === 0) {
-    throw new Error(
-        `Aucune carte reçue depuis TCGdex pour le set ${setTcgdexId}`
-    );
-}
-
-console.log(
-    `[TCG] ${setTcgdexId} : ${setData.cards.length} cartes trouvées`
-);
-
-let syncedCount = 0;
-
-// 2. Parcourir toutes les cartes de l'extension
-for (const card of setData.cards) {
-    let cardData;
-
-    // 3. Essayer de récupérer la carte en français
-    try {
-        ({ data: cardData } = await axios.get(
-            `https://api.tcgdex.net/v2/fr/cards/${card.id}`
-        ));
-    } catch (err) {
-        // Ne basculer en anglais que si la carte FR est introuvable
-        if (err.response?.status !== 404) {
-            throw err;
+        if (sets.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Extension introuvable dans zxd_card_set"
+            });
         }
 
-        console.log(
-            `[TCG] ${card.id} introuvable en FR, essai en EN`
-        );
+        // Synchroniser les cartes de l'extension
+        const result = await syncSetCards(setTcgdexId);
 
-        ({ data: cardData } = await axios.get(
-            `https://api.tcgdex.net/v2/en/cards/${card.id}`
-        ));
-    }
-
-    // 4. Conserver les données FR, mais utiliser l'image EN si nécessaire
-    let imageUrl = cardData.image || null;
-
-    if (!imageUrl) {
-        try {
-            const { data: englishCard } = await axios.get(
-                `https://api.tcgdex.net/v2/en/cards/${card.id}`
-            );
-
-            if (englishCard.image) {
-                imageUrl = englishCard.image;
-            }
-        } catch (err) {
-            console.warn(
-                `[TCG] Image anglaise indisponible pour ${card.id}:`,
-                err.message
-            );
-        }
-    }
-
-    // 5. Vérifier que l'image haute définition existe
-    if (imageUrl) {
-        try {
-            await axios.head(`${imageUrl}/high.webp`);
-        } catch (err) {
-            // Si l'image FR n'existe pas, essayer l'URL anglaise
-            const englishImageUrl = imageUrl.replace("/fr/", "/en/");
-
-            if (englishImageUrl !== imageUrl) {
-                try {
-                    await axios.head(
-                        `${englishImageUrl}/high.webp`
-                    );
-                    imageUrl = englishImageUrl;
-                } catch {
-                    console.warn(
-                        `[TCG] Image high.webp indisponible pour ${card.id}`
-                    );
-                }
-            }
-        }
-    }
-
-    // 6. Insérer ou mettre à jour la carte en base
-    await query(
-        `
-                INSERT INTO zxd_card
-                (
-                    tcgdex_id,
-                    set_tcgdex_id,
-                    local_id,
-                    rarity,
-                    image
-                )
-                VALUES (?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    local_id = VALUES(local_id),
-                    rarity = VALUES(rarity),
-                    image = VALUES(image)
-                `,
-        [
-            cardData.id,
+        return res.json({
+            success: true,
+            message: `Synchronisation de ${sets[0].name} terminée`,
             setTcgdexId,
-            cardData.localId,
-            cardData.rarity || null,
-            imageUrl
-        ]
-    );
-
-    syncedCount++;
-}
-
-// 7. Marquer le set comme synchronisé après le succès de toutes les cartes
-await query(
-    `
-            UPDATE zxd_card_set
-            SET cards_synced = 1
-            WHERE tcgdex_id = ?
-            `,
-    [setTcgdexId]
-);
-
-console.log(
-    `[TCG] ${setTcgdexId} synchronisé : ${syncedCount} cartes`
-);
-
-return {
-    success: true,
-    setTcgdexId,
-    syncedCount
-};
+            syncedCount: result.syncedCount
+        });
 
     } catch (err) {
-    console.error(`[TCG] Échec synchronisation ${setTcgdexId}:`, {
-        message: err.message,
-        status: err.response?.status,
-        data: err.response?.data,
-        sqlMessage: err.sqlMessage
-    });
+        console.error("[TCG] Erreur endpoint syncSetCards :", err);
 
-    // Important : permettre à l'endpoint appelant de détecter l'échec
-    throw err;
-}
-}
-```
+        return res.status(500).json({
+            success: false,
+            message: "Erreur lors de la synchronisation des cartes",
+            error: err.message
+        });
+    }
+});
 async function getAchievementsProgress(
     userId
 ) {
