@@ -3383,11 +3383,11 @@ app.post("/api/card/syncCurrentRotation", async (req, res) => {
     const connection = await db.promise().getConnection();
 
     try {
-        // Vérification administrateur
-        const userId = req.user?.id || req.body.userId;
+        // Vérification de la session
+        const user = req.session?.user;
 
-        if (String(userId) !== "80482655") {
-            return res.status(403).send({
+        if (!user || String(user.id) !== "80482655") {
+            return res.status(403).json({
                 success: false,
                 message: "Accès refusé"
             });
@@ -3405,7 +3405,7 @@ app.post("/api/card/syncCurrentRotation", async (req, res) => {
         `);
 
         if (sets.length === 0) {
-            return res.send({
+            return res.json({
                 success: false,
                 message: "Aucun set trouvé dans la rotation actuelle"
             });
@@ -3413,7 +3413,7 @@ app.post("/api/card/syncCurrentRotation", async (req, res) => {
 
         const results = [];
 
-        // Synchronisation de chaque set
+        // Synchronisation des sets
         for (const set of sets) {
             try {
                 await syncSetCards(set.tcgdex_id);
@@ -3438,7 +3438,7 @@ app.post("/api/card/syncCurrentRotation", async (req, res) => {
             }
         }
 
-        res.send({
+        return res.json({
             success: results.every(result => result.success),
             message: "Synchronisation terminée",
             total: sets.length,
@@ -3448,10 +3448,11 @@ app.post("/api/card/syncCurrentRotation", async (req, res) => {
     } catch (err) {
         console.error("Erreur syncCurrentRotation :", err);
 
-        res.status(500).send({
+        return res.status(500).json({
             success: false,
-            message: "Erreur lors de la synchronisation de la rotation"
+            message: "Erreur lors de la synchronisation"
         });
+
     } finally {
         connection.release();
     }
