@@ -3379,6 +3379,167 @@ app.get("/api/getLeaderBoard", (req, res, next) => {
 
 
 //Cartes
+"/api/card/syncCurrentRotation",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            // Sécurité : réserver cette action à l'administrateur
+            if (String(req.user.id) !== "80482655") {
+                return res.status(403).json({
+                    success: false,
+                    message: "Accès interdit."
+                });
+            }
+
+            // Récupérer la rotation actuellement en cours
+            const rotations = await query(`
+                SELECT id
+                FROM zxd_card_rotation
+                WHERE NOW() >= start_date
+                  AND NOW() < end_date
+                ORDER BY id DESC
+                LIMIT 1
+            `);
+
+            if (rotations.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Aucune rotation en cours."
+                });
+            }
+
+            // Récupérer les sets de cette rotation
+            const sets = await query(`
+                SELECT
+                    s.id,
+                    s.tcgdex_id,
+                    s.name,
+                    s.card_count,
+                    s.cards_synced,
+                    (
+                        SELECT COUNT(*)
+                        FROM zxd_card c
+                        WHERE c.set_tcgdex_id = s.tcgdex_id
+                    ) AS imported_cards
+                FROM zxd_card_rotation_set rs
+                INNER JOIN zxd_card_set s
+                    ON s.id = rs.set_id
+                WHERE rs.rotation_id = ?
+            `, [rotations[0].id]);
+
+            const results = [];
+
+            for (const set of sets) {
+                const expected = Number(set.card_count) || 0;
+                const imported = Number(set.imported_cards) || 0;
+
+                // Si le nombre de cartes est connu,
+                // vérifier également si l'import est incomplet.
+                const incomplete =
+                    expected > 0 && imported < expected;
+
+                const needsSync =
+                    Number(set.cards_synced) !== 1 ||
+                    imported === 0 ||
+                    incomplete;
+
+                if (!needsSync) {
+                    results.push({
+                        set: set.tcgdex_id,
+                        name: set.name,
+                        status: "already_synced",
+                        imported
+                    });
+
+                    continue;
+                }
+
+                try {
+                    console.log(
+                        `[TCG] Synchronisation forcée : ${set.tcgdex_id}`
+                    );
+
+                    // Réinitialiser le statut avant la tentative
+                    await query(`
+                        UPDATE zxd_card_set
+                        SET cards_synced = 0
+                        WHERE id = ?
+                    `, [set.id]);
+
+                    await syncSetCards(set.tcgdex_id);
+
+                    // Vérifier le nombre de cartes après synchronisation
+                    const verification = await query(`
+                        SELECT COUNT(*) AS total
+                        FROM zxd_card
+                        WHERE set_tcgdex_id = ?
+                    `, [set.tcgdex_id]);
+
+                    const total =
+                        Number(verification[0]?.total) || 0;
+
+                    const complete =
+                        total > 0 &&
+                        (expected === 0 || total >= expected);
+
+                    // Ne pas marquer le set comme synchronisé
+                    // si l'import reste incomplet.
+                    await query(`
+                        UPDATE zxd_card_set
+                        SET cards_synced = ?
+                        WHERE id = ?
+                    `, [complete ? 1 : 0, set.id]);
+
+                    results.push({
+                        set: set.tcgdex_id,
+                        name: set.name,
+                        status: complete
+                            ? "synced"
+                            : "incomplete",
+                        imported: total,
+                        expected
+                    });
+
+                } catch (error) {
+                    console.error(
+                        `[TCG] Erreur de synchronisation ${set.tcgdex_id}:`,
+                        error.response?.data || error.message || error
+                    );
+
+                    await query(`
+                        UPDATE zxd_card_set
+                        SET cards_synced = 0
+                        WHERE id = ?
+                    `, [set.id]);
+
+                    results.push({
+                        set: set.tcgdex_id,
+                        name: set.name,
+                        status: "error",
+                        message: error.message
+                    });
+                }
+            }
+
+            res.json({
+                success: true,
+                rotationId: rotations[0].id,
+                results
+            });
+
+        } catch (error) {
+            console.error(
+                "[TCG] Erreur de synchronisation de la rotation :",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message: "Erreur lors de la synchronisation."
+            });
+        }
+    }
+);
 app.get("/api/card/init/:profilId", async (req, res) => {
     try {
         const profilId = req.params.profilId; // Rotation active 
