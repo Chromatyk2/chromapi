@@ -4125,62 +4125,149 @@ async function incrementStat(
     );
 
 }
-app.post("/api/card/syncSetCards", async (req, res) => {
+async function syncSetCards(setTcgdexId) {
     try {
-        // Vérification de l'administrateur
-        const user = req.session?.user;
+        console.log(`[TCG] Début synchronisation : ${setTcgdexId}`);
 
-        if (!user || String(user.id) !== "80482655") {
-            return res.status(403).json({
-                success: false,
-                message: "Accès refusé"
-            });
+        // 1. Récupérer les cartes de l'extension
+        const { data: setData } = await axios.get(
+            `https://api.tcgdex.net/v2/fr/sets/${setTcgdexId}`
+        );
+
+        if (!Array.isArray(setData.cards) || setData.cards.length === 0) {
+            throw new Error(
+                `Aucune carte trouvée pour le set ${setTcgdexId}`
+            );
         }
 
-        const { setTcgdexId } = req.body;
+        console.log(
+            `[TCG] ${setTcgdexId} : ${setData.cards.length} cartes trouvées`
+        );
 
-        if (!setTcgdexId || typeof setTcgdexId !== "string") {
-            return res.status(400).json({
-                success: false,
-                message: "Identifiant de l'extension manquant"
-            });
+        let syncedCount = 0;
+
+        // 2. Parcourir chaque carte
+        for (const card of setData.cards) {
+            let cardData;
+
+            // 3. Récupérer les données françaises en priorité
+            try {
+                ({ data: cardData } = await axios.get(
+                    `https://api.tcgdex.net/v2/fr/cards/${card.id}`
+                ));
+            } catch (err) {
+                // Si la carte n'existe pas en français, essayer en anglais
+                if (err.response?.status !== 404) {
+                    throw err;
+                }
+
+                console.log(`[TCG] ${card.id} absente en FR, essai en EN`);
+
+                ({ data: cardData } = await axios.get(
+                    `https://api.tcgdex.net/v2/en/cards/${card.id}`
+                ));
+            }
+
+            // 4. Déterminer l'image à utiliser
+            let imageUrl = cardData.image || null;
+
+            if (!imageUrl) {
+                try {
+                    const { data: englishCard } = await axios.get(
+                        `https://api.tcgdex.net/v2/en/cards/${card.id}`
+                    );
+
+                    if (englishCard.image) {
+                        imageUrl = englishCard.image;
+                    }
+                } catch (err) {
+                    console.warn(
+                        `[TCG] Image anglaise indisponible pour ${card.id}: ${err.message}`
+                    );
+                }
+            }
+
+            // 5. Vérifier l'existence de l'image haute définition
+            if (imageUrl) {
+                try {
+                    await axios.head(`${imageUrl}/high.webp`);
+                } catch {
+                    const englishImageUrl = imageUrl.replace("/fr/", "/en/");
+
+                    if (englishImageUrl !== imageUrl) {
+                        try {
+                            await axios.head(`${englishImageUrl}/high.webp`);
+                            imageUrl = englishImageUrl;
+                        } catch {
+                            console.warn(
+                                `[TCG] Image HD introuvable pour ${card.id}`
+                            );
+                        }
+                    }
+                }
+            }
+
+            // 6. Enregistrer la carte dans MySQL
+            await query(
+                `
+                INSERT INTO zxd_card
+                (
+                    tcgdex_id,
+                    set_tcgdex_id,
+                    local_id,
+                    rarity,
+                    image
+                )
+                VALUES (?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    local_id = VALUES(local_id),
+                    rarity = VALUES(rarity),
+                    image = VALUES(image)
+                `,
+                [
+                    cardData.id,
+                    setTcgdexId,
+                    cardData.localId,
+                    cardData.rarity || null,
+                    imageUrl
+                ]
+            );
+
+            syncedCount++;
         }
 
-        // Vérifier que l'extension existe dans la base
-        const [sets] = await db.promise().query(
-            `SELECT tcgdex_id, name
-             FROM zxd_card_set
-             WHERE tcgdex_id = ?`,
+        // 7. Marquer le set comme synchronisé
+        await query(
+            `
+            UPDATE zxd_card_set
+            SET cards_synced = 1
+            WHERE tcgdex_id = ?
+            `,
             [setTcgdexId]
         );
 
-        if (sets.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Extension introuvable dans zxd_card_set"
-            });
-        }
+        console.log(
+            `[TCG] ${setTcgdexId} synchronisé : ${syncedCount} cartes`
+        );
 
-        // Synchroniser les cartes de l'extension
-        const result = await syncSetCards(setTcgdexId);
-
-        return res.json({
+        return {
             success: true,
-            message: `Synchronisation de ${sets[0].name} terminée`,
             setTcgdexId,
-            syncedCount: result.syncedCount
-        });
+            syncedCount
+        };
 
     } catch (err) {
-        console.error("[TCG] Erreur endpoint syncSetCards :", err);
-
-        return res.status(500).json({
-            success: false,
-            message: "Erreur lors de la synchronisation des cartes",
-            error: err.message
+        console.error(`[TCG] Échec synchronisation ${setTcgdexId}:`, {
+            message: err.message,
+            status: err.response?.status,
+            data: err.response?.data,
+            sqlMessage: err.sqlMessage
         });
+
+        // Transmettre l'erreur à l'endpoint appelant
+        throw err;
     }
-});
+}
 async function getAchievementsProgress(
     userId
 ) {
