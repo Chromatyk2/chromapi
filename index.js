@@ -1392,46 +1392,6 @@ app.post(
                 [user]
             );
             const rewards = [];
-            // BONBONS XP
-            const candyTier =
-                Math.random();
-            let item;
-            let slug;
-            let quantity;
-            if (candyTier < 0.10) {
-                item = "Bonbon L";
-                slug = "expl";
-                quantity =
-                    Math.floor(
-                        Math.random() * 5
-                    ) + 1;
-            } else if (
-                candyTier < 0.40
-            ) {
-                item = "Bonbon M";
-                slug = "expm";
-                quantity =
-                    Math.floor(
-                        Math.random() * 10
-                    ) + 1;
-            } else {
-                item = "Bonbon S";
-                slug = "exps";
-                quantity =
-                    Math.floor(
-                        Math.random() * 6
-                    ) + 5;
-            }
-            await addItem(
-                user,
-                item,
-                slug,
-                quantity
-            );
-            rewards.push({
-                item,
-                quantity
-            });
             const ballTier =
                 Math.random();
             if (ballTier < 0.003) {
@@ -1647,37 +1607,6 @@ app.post(
                 [user]
             );
             const rewards = [];
-            // BONBONS XP
-            const candyTier =
-                Math.random();
-            let item;
-            let slug;
-            let quantity;
-            if (candyTier < 0.40) {
-                item = "Bonbon L";
-                slug = "expl";
-                quantity =
-                    Math.floor(
-                        Math.random() * 10
-                    ) + 1;
-            } else {
-                item = "Bonbon M";
-                slug = "expm";
-                quantity =
-                    Math.floor(
-                        Math.random() * 10
-                    ) + 1;
-            }
-            await addItem(
-                user,
-                item,
-                slug,
-                quantity
-            );
-            rewards.push({
-                item,
-                quantity
-            });
             // BALLS
             const ballTier =
                 Math.random();
