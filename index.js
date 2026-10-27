@@ -4192,7 +4192,7 @@ async function syncSets() {
                 [
                     details.id,
                     details.name,
-                    `/boosters/${details.id}.png`,
+                    `/Boosters/${details.id}.png`,
                     details.releaseDate || null,
                     details.cardCount?.total || 0
                 ],
