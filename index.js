@@ -4184,7 +4184,37 @@ app.post("/api/card/openBoostersBulk", async (req, res) => {
         const cardsSummary = [
             ...obtainedCards.values()
         ];
+        // =========================================
+        // IDENTIFICATION DES NOUVELLES CARTES
+        // =========================================
 
+        // Récupération des cartes que le joueur possédait
+        // AVANT l'ouverture des boosters.
+
+        const cardIds = cardsSummary.map(card => card.tcgdex_id);
+
+        const [ownedRows] = await connection.query(`
+    SELECT card_tcgdex_id
+    FROM zxd_card_collection
+    WHERE profil_id = ?
+    AND set_tcgdex_id = ?
+    AND card_tcgdex_id IN (${cardIds.map(() => "?").join(", ")})
+`, [
+            userId,
+            setTcgdexId,
+            ...cardIds
+        ]);
+
+        const ownedCardIds = new Set(
+            ownedRows.map(row => String(row.card_tcgdex_id))
+        );
+
+        // Une carte est nouvelle si elle n'était pas
+        // présente dans la collection avant l'ouverture.
+
+        for (const card of cardsSummary) {
+            card.isNew = !ownedCardIds.has(String(card.tcgdex_id));
+        }
         // Une ligne SQL par carte distincte obtenue.
         // Les exemplaires identiques sont déjà regroupés.
 
