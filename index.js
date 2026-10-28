@@ -3851,6 +3851,675 @@ app.post("/api/card/openBooster", async (req, res) => {
     }
 
 });
+app.post("/api/card/openBoostersBulk", async (req, res) => {
+
+    // =========================================
+    // 1. AUTHENTIFICATION ET VALIDATION
+    // =========================================
+
+    const authenticatedUser = req.session?.user;
+
+    if (!authenticatedUser?.id) {
+        return res.status(401).send({
+            success: false,
+            message: "Authentification requise"
+        });
+    }
+
+    // Ne jamais utiliser req.body.userId comme identité.
+    // L'identité vient de la session authentifiée.
+    const userId = String(authenticatedUser.id);
+
+    const setTcgdexId = req.body?.setTcgdexId;
+    const quantity = Number(req.body?.quantity);
+
+    if (
+        typeof setTcgdexId !== "string" ||
+        !setTcgdexId.trim() ||
+        setTcgdexId.length > 50
+    ) {
+        return res.status(400).send({
+            success: false,
+            message: "Identifiant de set invalide"
+        });
+    }
+
+    if (
+        !Number.isSafeInteger(quantity) ||
+        quantity < 1 ||
+        quantity > 500
+    ) {
+        return res.status(400).send({
+            success: false,
+            message: "La quantité doit être comprise entre 1 et 500"
+        });
+    }
+
+    // =========================================
+    // VARIABLES DE TRAVAIL
+    // =========================================
+
+    let connection;
+    let transactionStarted = false;
+
+    let obtainedCards = new Map();
+
+    try {
+
+        connection = await db.promise().getConnection();
+
+        await connection.beginTransaction();
+        transactionStarted = true;
+
+        // =========================================
+        // 2. VERIFICATION ET VERROUILLAGE INVENTAIRE
+        // =========================================
+
+        const [inventory] = await connection.query(`
+            SELECT quantity
+            FROM zxd_inventaire
+            WHERE user = ?
+            AND slug = 'booster'
+            FOR UPDATE
+        `, [userId]);
+
+        const boosterCurrency = Number(
+            inventory[0]?.quantity ?? 0
+        );
+
+        if (
+            !Number.isSafeInteger(boosterCurrency) ||
+            boosterCurrency < 0
+        ) {
+            throw new Error(
+                "Quantité de boosters invalide dans l'inventaire"
+            );
+        }
+
+        if (boosterCurrency < quantity) {
+
+            await connection.rollback();
+            transactionStarted = false;
+
+            return res.status(400).send({
+                success: false,
+                message: "Tu ne possèdes pas assez de boosters",
+                boosterCurrency
+            });
+
+        }
+
+        // =========================================
+        // 3. RECUPERATION DES CARTES DU SET
+        // =========================================
+
+        const [cards] = await connection.query(`
+            SELECT
+                c.*,
+                r.tier,
+                r.weight AS rarityWeight
+            FROM zxd_card c
+            INNER JOIN zxd_card_rarity r
+                ON r.name = c.rarity
+            WHERE c.set_tcgdex_id = ?
+        `, [setTcgdexId]);
+
+        if (!cards.length) {
+
+            await connection.rollback();
+            transactionStarted = false;
+
+            return res.status(400).send({
+                success: false,
+                message: "Aucune carte disponible pour ce set"
+            });
+
+        }
+
+        // =========================================
+        // 4. PREPARATION DES POOLS DE CARTES
+        // =========================================
+
+        const commonCards = cards.filter(
+            card => Number(card.tier) === 1
+        );
+
+        const uncommonCards = cards.filter(
+            card => Number(card.tier) === 2
+        );
+
+        const premiumCards = cards.filter(
+            card => Number(card.tier) >= 3
+        );
+
+        if (
+            commonCards.length < 2 ||
+            uncommonCards.length < 2 ||
+            premiumCards.length === 0
+        ) {
+
+            await connection.rollback();
+            transactionStarted = false;
+
+            return res.status(400).send({
+                success: false,
+                message:
+                    "Ce set ne contient pas assez de cartes pour ouvrir des boosters"
+            });
+
+        }
+
+        // =========================================
+        // 5. PREPARATION DES RARETES PREMIUM
+        // =========================================
+
+        const rarityMap = new Map();
+
+        for (const card of premiumCards) {
+
+            const weight = Number(card.rarityWeight);
+
+            if (
+                !Number.isFinite(weight) ||
+                weight < 0
+            ) {
+                throw new Error(
+                    `Poids de rareté invalide : ${card.rarity}`
+                );
+            }
+
+            if (!rarityMap.has(card.rarity)) {
+
+                rarityMap.set(card.rarity, {
+                    rarity: card.rarity,
+                    weight
+                });
+
+            }
+
+        }
+
+        const rarityPool = [...rarityMap.values()];
+
+        const totalWeight = rarityPool.reduce(
+            (sum, item) => sum + item.weight,
+            0
+        );
+
+        if (
+            rarityPool.length === 0 ||
+            !Number.isFinite(totalWeight) ||
+            totalWeight <= 0
+        ) {
+            throw new Error(
+                "Aucun poids de rareté premium valide"
+            );
+        }
+
+        // Index des cartes premium par rareté.
+        // Évite de filtrer toutes les cartes à chaque tirage.
+
+        const premiumByRarity = new Map();
+
+        for (const card of premiumCards) {
+
+            if (!premiumByRarity.has(card.rarity)) {
+                premiumByRarity.set(card.rarity, []);
+            }
+
+            premiumByRarity.get(card.rarity).push(card);
+
+        }
+
+        // =========================================
+        // 6. FONCTIONS DE TIRAGE
+        // =========================================
+
+        // Sélectionne deux cartes distinctes dans un pool.
+        // Correspond au comportement de ORDER BY RAND()
+        // LIMIT 2 de ton endpoint classique.
+
+        function pickTwo(pool) {
+
+            const firstIndex = Math.floor(
+                Math.random() * pool.length
+            );
+
+            let secondIndex = Math.floor(
+                Math.random() * (pool.length - 1)
+            );
+
+            if (secondIndex >= firstIndex) {
+                secondIndex++;
+            }
+
+            return [
+                pool[firstIndex],
+                pool[secondIndex]
+            ];
+
+        }
+
+        function pickOne(pool) {
+
+            return pool[
+                Math.floor(Math.random() * pool.length)
+            ];
+
+        }
+
+        // =========================================
+        // 7. GENERATION DES BOOSTERS
+        // =========================================
+
+        for (let i = 0; i < quantity; i++) {
+
+            // Deux cartes de tier 1.
+            const selectedCommonCards =
+                pickTwo(commonCards);
+
+            // Deux cartes de tier 2.
+            const selectedUncommonCards =
+                pickTwo(uncommonCards);
+
+            // Une rareté de tier 3 ou supérieur,
+            // selon les poids de zxd_card_rarity.
+
+            const selectedRarity =
+                weightedRandom(rarityPool);
+
+            const premiumPool =
+                premiumByRarity.get(selectedRarity);
+
+            if (!premiumPool?.length) {
+                throw new Error(
+                    `Aucune carte disponible pour la rareté ${selectedRarity}`
+                );
+            }
+
+            const selectedPremiumCard =
+                pickOne(premiumPool);
+
+            const boosterCards = [
+                ...selectedCommonCards,
+                ...selectedUncommonCards,
+                selectedPremiumCard
+            ];
+
+            // Regroupement en mémoire des cartes identiques.
+
+            for (const card of boosterCards) {
+
+                const cardId = card.tcgdex_id;
+
+                if (!cardId) {
+                    throw new Error(
+                        "Une carte ne possède pas de tcgdex_id"
+                    );
+                }
+
+                if (!obtainedCards.has(cardId)) {
+
+                    obtainedCards.set(cardId, {
+                        tcgdex_id: card.tcgdex_id,
+                        name: card.name,
+                        image: card.image,
+                        rarity: card.rarity,
+                        tier: Number(card.tier),
+                        quantity: 0
+                    });
+
+                }
+
+                obtainedCards.get(cardId).quantity++;
+
+            }
+
+        }
+
+        // =========================================
+        // 8. PREPARATION DE LA COLLECTION
+        // =========================================
+
+        const cardsSummary = [
+            ...obtainedCards.values()
+        ];
+
+        // Une ligne SQL par carte distincte obtenue.
+        // Les exemplaires identiques sont déjà regroupés.
+
+        const placeholders = [];
+        const values = [];
+
+        for (const card of cardsSummary) {
+
+            placeholders.push(
+                "(?, ?, ?, ?, NOW(), NOW())"
+            );
+
+            values.push(
+                userId,
+                setTcgdexId,
+                card.tcgdex_id,
+                card.quantity
+            );
+
+        }
+
+        // =========================================
+        // 9. ENREGISTREMENT DES CARTES
+        // =========================================
+
+        await connection.query(`
+            INSERT INTO zxd_card_collection
+            (
+                profil_id,
+                set_tcgdex_id,
+                card_tcgdex_id,
+                quantity,
+                first_obtained_at,
+                last_obtained_at
+            )
+            VALUES ${placeholders.join(", ")}
+            ON DUPLICATE KEY UPDATE
+                quantity = quantity + VALUES(quantity),
+                last_obtained_at = NOW()
+        `, values);
+
+        // =========================================
+        // 10. CONSOMMATION DES BOOSTERS
+        // =========================================
+
+        const [updateResult] = await connection.query(`
+            UPDATE zxd_inventaire
+            SET quantity = quantity - ?
+            WHERE user = ?
+            AND slug = 'booster'
+            AND quantity >= ?
+        `, [
+            quantity,
+            userId,
+            quantity
+        ]);
+
+        // Le verrouillage et cette condition protègent
+        // également contre une consommation concurrente.
+
+        if (updateResult.affectedRows !== 1) {
+            throw new Error(
+                "Impossible de mettre à jour l'inventaire"
+            );
+        }
+
+        // =========================================
+        // 11. VALIDATION DE LA TRANSACTION
+        // =========================================
+
+        await connection.commit();
+        transactionStarted = false;
+
+    } catch (err) {
+
+        if (connection && transactionStarted) {
+
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+
+                console.error(
+                    "Erreur rollback ouverture multiple :",
+                    rollbackError
+                );
+
+            }
+
+        }
+
+        console.error(
+            "Erreur ouverture multiple :",
+            err
+        );
+
+        return res.status(500).send({
+            success: false,
+            message: "Erreur lors de l'ouverture multiple"
+        });
+
+    } finally {
+
+        if (connection) {
+            connection.release();
+        }
+
+    }
+
+    // =========================================
+    // 12. RECAPITULATIF PAR RARETE
+    // =========================================
+
+    const cardsSummary = [
+        ...obtainedCards.values()
+    ];
+
+    const raritySummary = {};
+
+    for (const card of cardsSummary) {
+
+        if (!raritySummary[card.rarity]) {
+            raritySummary[card.rarity] = 0;
+        }
+
+        raritySummary[card.rarity] += card.quantity;
+
+    }
+
+    // =========================================
+    // 13. MISE A JOUR DES STATISTIQUES
+    // =========================================
+
+    try {
+
+        await incrementStat(
+            userId,
+            "booster_" + setTcgdexId,
+            quantity
+        );
+
+    } catch (err) {
+
+        console.error(
+            "Erreur statistique booster par set :",
+            err
+        );
+
+    }
+
+    try {
+
+        await incrementStat(
+            userId,
+            "booster_total",
+            quantity
+        );
+
+    } catch (err) {
+
+        console.error(
+            "Erreur statistique totale des boosters :",
+            err
+        );
+
+    }
+
+    // =========================================
+    // 14. VERIFICATION DES SUCCES
+    // =========================================
+
+    try {
+
+        await checkAchievements(userId);
+
+    } catch (err) {
+
+        console.error(
+            "Erreur vérification des succès :",
+            err
+        );
+
+    }
+
+    // =========================================
+    // 15. SOLDE REEL DE BOOSTERS
+    // =========================================
+
+    let remainingBoosters = null;
+
+    try {
+
+        const remainingInventory = await query(`
+            SELECT quantity
+            FROM zxd_inventaire
+            WHERE user = ?
+            AND slug = 'booster'
+        `, [userId]);
+
+        remainingBoosters = Number(
+            remainingInventory[0]?.quantity ?? 0
+        );
+
+    } catch (err) {
+
+        console.error(
+            "Erreur récupération solde boosters :",
+            err
+        );
+
+    }
+
+    // =========================================
+    // 16. PROGRESSION DES COLLECTIONS
+    // =========================================
+
+    let progress = {};
+
+    let globalProgress = {
+        owned: 0,
+        total: 0,
+        percent: 0
+    };
+
+    try {
+
+        const progressRows = await query(`
+            SELECT
+                set_tcgdex_id,
+                COUNT(DISTINCT card_tcgdex_id) AS owned
+            FROM zxd_card_collection
+            WHERE profil_id = ?
+            GROUP BY set_tcgdex_id
+        `, [userId]);
+
+        progressRows.forEach(row => {
+
+            progress[row.set_tcgdex_id] = {
+                owned: Number(row.owned)
+            };
+
+        });
+
+        const rotationSets = await query(`
+            SELECT s.*
+            FROM zxd_card_set s
+            INNER JOIN zxd_card_rotation_set rs
+                ON rs.set_id = s.id
+            INNER JOIN zxd_card_rotation r
+                ON r.id = rs.rotation_id
+            WHERE NOW() BETWEEN r.start_date
+                            AND r.end_date
+        `);
+
+        rotationSets.forEach(set => {
+
+            if (!progress[set.tcgdex_id]) {
+
+                progress[set.tcgdex_id] = {
+                    owned: 0
+                };
+
+            }
+
+            progress[set.tcgdex_id].total =
+                Number(set.card_count);
+
+            progress[set.tcgdex_id].percent =
+                Number(
+                    (
+                        progress[set.tcgdex_id].owned /
+                        Number(set.card_count) *
+                        100
+                    ).toFixed(1)
+                );
+
+        });
+
+        const globalOwned = await query(`
+            SELECT
+                COUNT(DISTINCT card_tcgdex_id) AS total
+            FROM zxd_card_collection
+            WHERE profil_id = ?
+        `, [userId]);
+
+        const globalTotal = await query(`
+            SELECT
+                SUM(card_count) AS total
+            FROM zxd_card_set
+            WHERE active = 1
+        `);
+
+        const owned = Number(
+            globalOwned[0]?.total ?? 0
+        );
+
+        const total = Number(
+            globalTotal[0]?.total ?? 0
+        );
+
+        globalProgress = {
+            owned,
+            total,
+            percent: Number(
+                (
+                    owned /
+                    (total || 1) *
+                    100
+                ).toFixed(1)
+            )
+        };
+
+    } catch (err) {
+
+        console.error(
+            "Erreur calcul progression collection :",
+            err
+        );
+
+    }
+
+    // =========================================
+    // 17. REPONSE AU FRONTEND
+    // =========================================
+
+    return res.send({
+        success: true,
+        quantityOpened: quantity,
+        boosterCurrency: remainingBoosters,
+        cardsSummary,
+        raritySummary,
+        progress,
+        globalProgress
+    });
+
+});
 app.get("/api/card/set/:profilId/:setId", async (req, res) => {
     const { profilId, setId } = req.params;
     const cards = await query(`
