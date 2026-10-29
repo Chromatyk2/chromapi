@@ -3291,6 +3291,7 @@ app.get("/api/getLeaderBoard", (req, res, next) => {
         FROM zxd_profil p
         LEFT JOIN zxd_compagnon c
             ON c.number = p.compagnon
+            AND c.user = p.user
         LEFT JOIN zxd_titles t
             ON t.code = p.title
         ORDER BY p.level DESC
